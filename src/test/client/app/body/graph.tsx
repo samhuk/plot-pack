@@ -63,7 +63,7 @@ export const render = () => {
           markerOptions={{
             lineWidth: 1,
             size: 6,
-            type: MarkerType.CROSS,
+            type: MarkerType.PLUS,
           }}
         />
       </div>

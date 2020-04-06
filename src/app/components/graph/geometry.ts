@@ -400,6 +400,16 @@ const createCrossMarkerPath = (x: number, y: number, size: number): Path2D => {
   return path
 }
 
+const createPlusMarkerPath = (x: number, y: number, size: number): Path2D => {
+  const path = new Path2D()
+  const halfSize = size / 2
+  path.moveTo(x - halfSize, y)
+  path.lineTo(x + halfSize, y)
+  path.moveTo(x, y - halfSize)
+  path.lineTo(x, y + halfSize)
+  return path
+}
+
 const createMarkerPath = (markerOptions: MarkerOptions, x: number, y: number): Path2D => {
   const markerSize = markerOptions?.size ?? DEFAULT_MARKER_SIZE
   if (markerSize < 0)
@@ -416,6 +426,8 @@ const createMarkerPath = (markerOptions: MarkerOptions, x: number, y: number): P
       return createTriangleMarkerPath(x, y, markerSize, true)
     case MarkerType.CROSS:
       return createCrossMarkerPath(x, y, markerSize)
+    case MarkerType.PLUS:
+      return createPlusMarkerPath(x, y, markerSize)
     default:
       return null
   }
