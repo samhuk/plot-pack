@@ -5,6 +5,7 @@ export type MarkerOptions = {
   type?: MarkerType
   size?: number
   color?: string
+  lineWidth?: number
   customOptions?: {
     complimentStandardOptions?: boolean
     createPath: (

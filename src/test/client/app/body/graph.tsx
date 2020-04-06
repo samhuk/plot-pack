@@ -61,8 +61,9 @@ export const render = () => {
             showGridLines: true,
           }}
           markerOptions={{
+            lineWidth: 1,
             size: 6,
-            type: MarkerType.TRIANGLE,
+            type: MarkerType.CROSS,
           }}
         />
       </div>

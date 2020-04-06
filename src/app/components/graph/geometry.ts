@@ -390,6 +390,16 @@ const createTriangleMarkerPath = (x: number, y: number, size: number, inversed: 
   return path
 }
 
+const createCrossMarkerPath = (x: number, y: number, size: number): Path2D => {
+  const path = new Path2D()
+  const halfSize = size / 2
+  path.moveTo(x - halfSize, y - halfSize)
+  path.lineTo(x + halfSize, y + halfSize)
+  path.moveTo(x - halfSize, y + halfSize)
+  path.lineTo(x + halfSize, y - halfSize)
+  return path
+}
+
 const createMarkerPath = (markerOptions: MarkerOptions, x: number, y: number): Path2D => {
   const markerSize = markerOptions?.size ?? DEFAULT_MARKER_SIZE
   if (markerSize < 0)
@@ -404,6 +414,8 @@ const createMarkerPath = (markerOptions: MarkerOptions, x: number, y: number): P
       return createTriangleMarkerPath(x, y, markerSize, false)
     case MarkerType.UPSIDE_DOWN_TRIANGLE:
       return createTriangleMarkerPath(x, y, markerSize, true)
+    case MarkerType.CROSS:
+      return createCrossMarkerPath(x, y, markerSize)
     default:
       return null
   }
@@ -422,10 +434,17 @@ const drawStandardMarker = (
 
   const markerType = markerOptions?.type ?? DEFAULT_MARKER_TYPE
   const shouldFill = markerType !== MarkerType.CROSS && markerType !== MarkerType.PLUS
-  if (shouldFill)
+
+  if (shouldFill) {
     ctx.fill(markerPath)
-  else
+  }
+  else {
+    const lineWidth = markerOptions?.lineWidth ?? 1
+    if (lineWidth < 0)
+      return
+    ctx.lineWidth = lineWidth
     ctx.stroke(markerPath)
+  }
 }
 
 const drawCustomMarker = (
