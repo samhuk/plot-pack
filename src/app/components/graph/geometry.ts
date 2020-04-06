@@ -379,6 +379,17 @@ const createSquareMarkerPath = (x: number, y: number, size: number): Path2D => {
   return path
 }
 
+const createTriangleMarkerPath = (x: number, y: number, size: number, inversed: boolean): Path2D => {
+  const path = new Path2D()
+  const halfSize = size / 2
+  const inversionFactor = inversed ? -1 : 1
+  path.moveTo(x - halfSize, y + inversionFactor * halfSize)
+  path.lineTo(x + halfSize, y + inversionFactor * halfSize)
+  path.lineTo(x, y - inversionFactor * halfSize)
+  path.closePath()
+  return path
+}
+
 const createMarkerPath = (markerOptions: MarkerOptions, x: number, y: number): Path2D => {
   const markerSize = markerOptions?.size ?? DEFAULT_MARKER_SIZE
   if (markerSize < 0)
@@ -389,6 +400,10 @@ const createMarkerPath = (markerOptions: MarkerOptions, x: number, y: number): P
       return createDotMarkerPath(x, y, markerSize)
     case MarkerType.SQUARE:
       return createSquareMarkerPath(x, y, markerSize)
+    case MarkerType.TRIANGLE:
+      return createTriangleMarkerPath(x, y, markerSize, false)
+    case MarkerType.UPSIDE_DOWN_TRIANGLE:
+      return createTriangleMarkerPath(x, y, markerSize, true)
     default:
       return null
   }

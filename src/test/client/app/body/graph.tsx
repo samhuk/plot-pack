@@ -62,7 +62,7 @@ export const render = () => {
           }}
           markerOptions={{
             size: 6,
-            type: MarkerType.SQUARE,
+            type: MarkerType.TRIANGLE,
           }}
         />
       </div>

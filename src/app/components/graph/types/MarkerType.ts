@@ -3,7 +3,8 @@ export enum MarkerType {
   PLUS,
   DOT,
   SQUARE,
-  TRIANGLE
+  TRIANGLE,
+  UPSIDE_DOWN_TRIANGLE
 }
 
 export default MarkerType
