@@ -9,10 +9,9 @@ import Options from './types/Options'
 import GraphGeometry from './types/GraphGeometry'
 import BestFitLineType from './types/BestFitLineType'
 import { calculateStraightLineOfBestFit } from '../../common/helpers/stat'
-import MarkerType from './types/MarkerType'
-import MarkerOptions from './types/MarkerOptions'
 import XAxisOrientation from './types/xAxisOrientation'
 import YAxisOrientation from './types/yAxisOrientation'
+import { drawCustomMarker, drawStandardMarker } from './marker'
 
 const DEFAULT_AXIS_LINE_WIDTH = 2
 const DEFAULT_GRID_LINE_WIDTH = 0.5
@@ -20,8 +19,6 @@ const DEFAULT_MARKER_LINE_WIDTH = 3
 const DEFAULT_LINE_WIDTH = 2
 const DEFAULT_AXIS_MARKER_LABEL_FONT_FAMILY = 'Helvetica'
 const DEFAULT_AXIS_MARKER_LABEL_FONT_SIZE = 9
-const DEFAULT_MARKER_SIZE = 4
-const DEFAULT_MARKER_TYPE = MarkerType.DOT
 
 /**
  * Determines the minimum and maximum values for each axis
@@ -364,120 +361,6 @@ const drawYAxisGridLines = (
   ctx.stroke(path)
 }
 
-const createDotMarkerPath = (x: number, y: number, size: number): Path2D => {
-  const path = new Path2D()
-  path.moveTo(x, y)
-  path.arc(x, y, size / 2, 0, 2 * Math.PI)
-  return path
-}
-
-const createSquareMarkerPath = (x: number, y: number, size: number): Path2D => {
-  const path = new Path2D()
-  path.moveTo(x, y)
-  const halfSize = size / 2
-  path.rect(x - halfSize, y - halfSize, size, size)
-  return path
-}
-
-const createTriangleMarkerPath = (x: number, y: number, size: number, inversed: boolean): Path2D => {
-  const path = new Path2D()
-  const halfSize = size / 2
-  const inversionFactor = inversed ? -1 : 1
-  path.moveTo(x - halfSize, y + inversionFactor * halfSize)
-  path.lineTo(x + halfSize, y + inversionFactor * halfSize)
-  path.lineTo(x, y - inversionFactor * halfSize)
-  path.closePath()
-  return path
-}
-
-const createCrossMarkerPath = (x: number, y: number, size: number): Path2D => {
-  const path = new Path2D()
-  const halfSize = size / 2
-  path.moveTo(x - halfSize, y - halfSize)
-  path.lineTo(x + halfSize, y + halfSize)
-  path.moveTo(x - halfSize, y + halfSize)
-  path.lineTo(x + halfSize, y - halfSize)
-  return path
-}
-
-const createPlusMarkerPath = (x: number, y: number, size: number): Path2D => {
-  const path = new Path2D()
-  const halfSize = size / 2
-  path.moveTo(x - halfSize, y)
-  path.lineTo(x + halfSize, y)
-  path.moveTo(x, y - halfSize)
-  path.lineTo(x, y + halfSize)
-  return path
-}
-
-const createMarkerPath = (markerOptions: MarkerOptions, x: number, y: number): Path2D => {
-  const markerSize = markerOptions?.size ?? DEFAULT_MARKER_SIZE
-  if (markerSize < 0)
-    return null
-
-  switch (markerOptions?.type ?? DEFAULT_MARKER_TYPE) {
-    case MarkerType.DOT:
-      return createDotMarkerPath(x, y, markerSize)
-    case MarkerType.SQUARE:
-      return createSquareMarkerPath(x, y, markerSize)
-    case MarkerType.TRIANGLE:
-      return createTriangleMarkerPath(x, y, markerSize, false)
-    case MarkerType.UPSIDE_DOWN_TRIANGLE:
-      return createTriangleMarkerPath(x, y, markerSize, true)
-    case MarkerType.CROSS:
-      return createCrossMarkerPath(x, y, markerSize)
-    case MarkerType.PLUS:
-      return createPlusMarkerPath(x, y, markerSize)
-    default:
-      return null
-  }
-}
-
-const drawStandardMarker = (
-  ctx: CanvasRenderingContext2D,
-  markerOptions: MarkerOptions,
-  pX: number,
-  pY: number,
-) => {
-  const markerPath = createMarkerPath(markerOptions, pX, pY)
-  ctx.fillStyle = markerOptions?.color ?? 'black'
-  if (markerPath == null)
-    return
-
-  const markerType = markerOptions?.type ?? DEFAULT_MARKER_TYPE
-  const shouldFill = markerType !== MarkerType.CROSS && markerType !== MarkerType.PLUS
-
-  if (shouldFill) {
-    ctx.fill(markerPath)
-  }
-  else {
-    const lineWidth = markerOptions?.lineWidth ?? 1
-    if (lineWidth < 0)
-      return
-    ctx.lineWidth = lineWidth
-    ctx.stroke(markerPath)
-  }
-}
-
-const drawCustomMarker = (
-  ctx: CanvasRenderingContext2D,
-  markerOptions: MarkerOptions,
-  pX: number,
-  pY: number,
-  preceedingDataPoint: DataPoint,
-  dataPoint: DataPoint,
-  proceedingDataPoint: DataPoint,
-) => {
-  if (markerOptions?.customOptions?.createPath == null || markerOptions?.customOptions?.renderPath == null)
-    return
-
-  ctx.save()
-  const path = markerOptions.customOptions.createPath(pX, pY, dataPoint, preceedingDataPoint, proceedingDataPoint)
-  if (path != null)
-    markerOptions.customOptions.renderPath(ctx, path)
-  ctx.restore()
-}
-
 const drawConnectingLine = (
   ctx: CanvasRenderingContext2D,
   pX: number,
@@ -523,8 +406,10 @@ const drawDataPoints = (
 }
 
 const drawLineOfBestFit = (ctx: CanvasRenderingContext2D, g: GraphGeometry) => {
+  // Calculate the bounded lower Y value (bounded to the available pixel space)
   const vlY = boundToRange(g.bestFitStraightLineEquation.y(g.xAxis.vl), g.yAxis.vl, g.yAxis.vu)
   const vlX = g.bestFitStraightLineEquation.x(vlY)
+  // Calculate the bounded upper Y value (bounded to the available pixel space)
   const vuY = boundToRange(g.bestFitStraightLineEquation.y(g.xAxis.vu), g.yAxis.vu, g.yAxis.vl)
   const vuX = g.bestFitStraightLineEquation.x(vuY)
 
