@@ -1,8 +1,8 @@
 import DataPoint from './DataPoint'
 import AxisOptions from './AxisOptions'
 import { Axis2D } from '../../../common/types/geometry'
-import BestFitLineType from './BestFitLineType'
 import MarkerOptions from './MarkerOptions'
+import BestFitLineOptions from './BestFitLineOptions'
 
 /**
  * Options for the Graph
@@ -42,7 +42,7 @@ export type Options = {
     showMarkers?: boolean
     showLine?: boolean
   }
-  bestFitLineType?: BestFitLineType
+  bestFitLineOptions?: BestFitLineOptions
 }
 
 export default Options

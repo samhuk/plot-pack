@@ -19,6 +19,7 @@ const DEFAULT_MARKER_LINE_WIDTH = 3
 const DEFAULT_LINE_WIDTH = 2
 const DEFAULT_AXIS_MARKER_LABEL_FONT_FAMILY = 'Helvetica'
 const DEFAULT_AXIS_MARKER_LABEL_FONT_SIZE = 9
+const DEFAULT_BEST_FIT_LINE_WIDTH = 2
 
 /**
  * Determines the minimum and maximum values for each axis
@@ -359,10 +360,12 @@ const drawConnectingLine = (
   if (lineOptions?.width < 0)
     return
 
+  ctx.strokeStyle = lineOptions?.color ?? 'black'
+  ctx.lineWidth = lineOptions?.width ?? DEFAULT_LINE_WIDTH
+
   const path = new Path2D()
   path.moveTo(prevPx, prevPy)
   path.lineTo(pX, pY)
-  ctx.lineWidth = lineOptions?.width ?? DEFAULT_LINE_WIDTH
   ctx.stroke(path)
 }
 
@@ -392,27 +395,29 @@ const drawDataPoints = (
   }
 }
 
-const drawLineOfBestFit = (ctx: CanvasRenderingContext2D, g: GraphGeometry) => {
+const drawLineOfBestFit = (ctx: CanvasRenderingContext2D, g: GraphGeometry, props: Options) => {
   // Calculate the bounded lower Y value (bounded to the available pixel space)
   const vlY = boundToRange(g.bestFitStraightLineEquation.y(g.xAxis.vl), g.yAxis.vl, g.yAxis.vu)
+  // Then the corresponding lower X value
   const vlX = g.bestFitStraightLineEquation.x(vlY)
   // Calculate the bounded upper Y value (bounded to the available pixel space)
   const vuY = boundToRange(g.bestFitStraightLineEquation.y(g.xAxis.vu), g.yAxis.vu, g.yAxis.vl)
+  // Then the corresponding upper X value
   const vuX = g.bestFitStraightLineEquation.x(vuY)
-
-  const plX = g.xAxis.p(vlX)
-  const plY = g.yAxis.p(vlY)
-  const puX = g.xAxis.p(vuX)
-  const puY = g.yAxis.p(vuY)
 
   const path = new Path2D()
 
-  path.moveTo(plX, plY)
-  path.lineTo(puX, puY)
   ctx.save()
-  ctx.setLineDash([5, 5])
-  ctx.lineWidth = 2
+
+  ctx.lineWidth = props.bestFitLineOptions?.lineWidth ?? DEFAULT_BEST_FIT_LINE_WIDTH
+  ctx.strokeStyle = props.bestFitLineOptions?.lineColor ?? 'black'
+  if (props.bestFitLineOptions?.lineDashPattern?.length > 0)
+    ctx.setLineDash(props.bestFitLineOptions.lineDashPattern)
+
+  path.moveTo(g.xAxis.p(vlX), g.yAxis.p(vlY))
+  path.lineTo(g.xAxis.p(vuX), g.yAxis.p(vuY))
   ctx.stroke(path)
+
   ctx.restore()
 }
 
@@ -446,7 +451,7 @@ export const draw = (ctx: CanvasRenderingContext2D, g: GraphGeometry, props: Opt
   drawDataPoints(ctx, g.xAxis.p, g.yAxis.p, props)
 
   if (g.bestFitStraightLineEquation != null)
-    drawLineOfBestFit(ctx, g)
+    drawLineOfBestFit(ctx, g, props)
 }
 
 export const createGraphGeometry = (props: Options): GraphGeometry => {
@@ -465,7 +470,7 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
   const xAxis = calculateAxisProperties(vlX, vuX, plX, puX, defaultGridMinPx)
   const yAxis = calculateAxisProperties(vlY, vuY, plY, puY, defaultGridMinPx)
 
-  const bestFitStraightLineEquation = props.bestFitLineType === BestFitLineType.STRAIGHT
+  const bestFitStraightLineEquation = props.bestFitLineOptions?.type === BestFitLineType.STRAIGHT
     ? calculateStraightLineOfBestFit(props.data)
     : null
 

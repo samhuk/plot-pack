@@ -45,20 +45,23 @@ export const render = () => {
             [Axis2D.Y]: {
               notation: Notation.DECIMAL,
               numFigures: 2,
-              axisLineColor: 'blue',
-              axisMarkerLineColor: 'blue',
-              axisMarkerLabelColor: 'blue',
+              axisLineColor: '#333',
+              axisMarkerLineColor: '#333',
+              axisMarkerLabelColor: '#333',
               orientation: YAxisOrientation.ORIGIN,
             },
             [Axis2D.X]: {
               notation: Notation.DECIMAL,
               numFigures: 2,
-              axisLineColor: 'red',
-              axisLineWidth: 5,
+              axisLineColor: '#333',
+              axisMarkerLineColor: '#333',
               orientation: XAxisOrientation.ORIGIN,
             },
           }}
-          bestFitLineType={BestFitLine.STRAIGHT}
+          bestFitLineOptions={{
+            type: BestFitLine.STRAIGHT,
+            lineDashPattern: [5, 5],
+          }}
           visibilityOptions={{
             showMarkers: true,
             showLine: false,
@@ -68,6 +71,7 @@ export const render = () => {
             lineWidth: 1,
             size: 6,
             type: MarkerType.PLUS,
+            color: '#333',
           }}
         />
       </div>

@@ -81,12 +81,14 @@ export const drawStandardMarker = (
   pY: number,
 ) => {
   const markerPath = createMarkerPath(markerOptions, pX, pY)
-  ctx.fillStyle = markerOptions?.color ?? 'black'
   if (markerPath == null)
     return
 
   const markerType = markerOptions?.type ?? DEFAULT_MARKER_TYPE
   const shouldFill = markerType !== MarkerType.CROSS && markerType !== MarkerType.PLUS
+
+  ctx.fillStyle = markerOptions?.color ?? 'black'
+  ctx.strokeStyle = markerOptions?.color ?? 'black'
 
   if (shouldFill) {
     ctx.fill(markerPath)
