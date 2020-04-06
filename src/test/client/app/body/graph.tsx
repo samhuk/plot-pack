@@ -5,6 +5,8 @@ import { Axis2D } from '../../../../app/common/types/geometry'
 import Notation from '../../../../app/components/graph/types/Notation'
 import BestFitLine from '../../../../app/components/graph/types/BestFitLineType'
 import MarkerType from '../../../../app/components/graph/types/MarkerType'
+import XAxisOrientation from '../../../../app/components/graph/types/xAxisOrientation'
+import YAxisOrientation from '../../../../app/components/graph/types/yAxisOrientation'
 
 export const render = () => {
   const [height, setHeight] = useState(1000)
@@ -42,12 +44,14 @@ export const render = () => {
               axisLineColor: 'blue',
               axisMarkerLineColor: 'blue',
               axisMarkerLabelColor: 'blue',
+              orientation: YAxisOrientation.ORIGIN,
             },
             [Axis2D.X]: {
               notation: Notation.DECIMAL,
               numFigures: 2,
               axisLineColor: 'red',
               axisLineWidth: 5,
+              orientation: XAxisOrientation.ORIGIN,
             },
           }}
           bestFitLineType={BestFitLine.STRAIGHT}

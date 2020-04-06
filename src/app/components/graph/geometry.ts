@@ -11,6 +11,8 @@ import BestFitLineType from './types/BestFitLineType'
 import { calculateStraightLineOfBestFit } from '../../common/helpers/stat'
 import MarkerType from './types/MarkerType'
 import MarkerOptions from './types/MarkerOptions'
+import XAxisOrientation from './types/xAxisOrientation'
+import YAxisOrientation from './types/yAxisOrientation'
 
 const DEFAULT_AXIS_LINE_WIDTH = 2
 const DEFAULT_GRID_LINE_WIDTH = 0.5
@@ -135,7 +137,33 @@ const getAxisLineColor = (props: Options, axis: Axis2D) => props.axesOptions?.[a
   ?? props.axesLineOptions?.color
   ?? 'black'
 
-const drawXAxisLine = (ctx: CanvasRenderingContext2D, plX: number, puX: number, yAxisPOrigin: number, props: Options) => {
+const getXAxisYPosition = (orientation: XAxisOrientation, plY: number, puY: number, yAxisPOrigin: number) => {
+  switch (orientation) {
+    case XAxisOrientation.TOP:
+      return puY
+    case XAxisOrientation.BOTTOM:
+      return plY
+    case XAxisOrientation.ORIGIN:
+      return yAxisPOrigin
+    default:
+      return yAxisPOrigin
+  }
+}
+
+const getYAxisXPosition = (orientation: YAxisOrientation, plX: number, puX: number, xAxisPOrigin: number) => {
+  switch (orientation) {
+    case YAxisOrientation.LEFT:
+      return plX
+    case YAxisOrientation.RIGHT:
+      return puX
+    case YAxisOrientation.ORIGIN:
+      return xAxisPOrigin
+    default:
+      return xAxisPOrigin
+  }
+}
+
+const drawXAxisLine = (ctx: CanvasRenderingContext2D, plX: number, puX: number, plY: number, puY: number, yAxisPOrigin: number, props: Options) => {
   const lineWidth = getAxisLineWidth(props, Axis2D.X)
   if (lineWidth < 0)
     return
@@ -143,13 +171,15 @@ const drawXAxisLine = (ctx: CanvasRenderingContext2D, plX: number, puX: number, 
   ctx.strokeStyle = getAxisLineColor(props, Axis2D.X)
   ctx.lineWidth = lineWidth
 
+  const y = getXAxisYPosition(props.axesOptions[Axis2D.X].orientation as XAxisOrientation, plY, puY, yAxisPOrigin)
+
   const path = new Path2D()
-  path.moveTo(plX, yAxisPOrigin)
-  path.lineTo(puX, yAxisPOrigin)
+  path.moveTo(plX, y)
+  path.lineTo(puX, y)
   ctx.stroke(path)
 }
 
-const drawYAxisLine = (ctx: CanvasRenderingContext2D, plY: number, puY: number, xAxisPOrigin: number, props: Options) => {
+const drawYAxisLine = (ctx: CanvasRenderingContext2D, plY: number, puY: number, plX: number, puX: number, xAxisPOrigin: number, props: Options) => {
   const lineWidth = getAxisLineWidth(props, Axis2D.Y)
   if (lineWidth < 0)
     return
@@ -157,9 +187,11 @@ const drawYAxisLine = (ctx: CanvasRenderingContext2D, plY: number, puY: number, 
   ctx.strokeStyle = getAxisLineColor(props, Axis2D.Y)
   ctx.lineWidth = lineWidth
 
+  const x = getYAxisXPosition(props.axesOptions[Axis2D.Y].orientation as YAxisOrientation, plX, puX, xAxisPOrigin)
+
   const path = new Path2D()
-  path.moveTo(xAxisPOrigin, plY)
-  path.lineTo(xAxisPOrigin, puY)
+  path.moveTo(x, plY)
+  path.lineTo(x, puY)
   ctx.stroke(path)
 }
 
@@ -177,6 +209,8 @@ const drawXAxisAxisMarkerLines = (
   ctx: CanvasRenderingContext2D,
   numGridLinesX: number,
   plX: number,
+  plY: number,
+  puY: number,
   xAxisDpGrid: number,
   yAxisPOrigin: number,
   props: Options,
@@ -184,10 +218,12 @@ const drawXAxisAxisMarkerLines = (
   ctx.strokeStyle = getMarkerLineColor(props, Axis2D.X)
   ctx.lineWidth = getMarkerLineWidth(props, Axis2D.X)
 
+  const y = getXAxisYPosition(props.axesOptions[Axis2D.X].orientation as XAxisOrientation, plY, puY, yAxisPOrigin)
+
   const path = new Path2D()
   for (let i = 0; i < numGridLinesX; i += 1) {
-    path.moveTo(plX + xAxisDpGrid * i, yAxisPOrigin)
-    path.lineTo(plX + xAxisDpGrid * i, yAxisPOrigin + 5)
+    path.moveTo(plX + xAxisDpGrid * i, y)
+    path.lineTo(plX + xAxisDpGrid * i, y + 5)
   }
   ctx.stroke(path)
 }
@@ -196,6 +232,8 @@ const drawYAxisAxisMarkerLines = (
   ctx: CanvasRenderingContext2D,
   numGridLinesY: number,
   plY: number,
+  plX: number,
+  puX: number,
   yAxisDpGrid: number,
   xAxisPOrigin: number,
   props: Options,
@@ -203,10 +241,12 @@ const drawYAxisAxisMarkerLines = (
   ctx.strokeStyle = getMarkerLineColor(props, Axis2D.Y)
   ctx.lineWidth = getMarkerLineWidth(props, Axis2D.Y)
 
+  const x = getYAxisXPosition(props.axesOptions[Axis2D.Y].orientation as YAxisOrientation, plX, puX, xAxisPOrigin)
+
   const path = new Path2D()
   for (let i = 0; i < numGridLinesY; i += 1) {
-    path.moveTo(xAxisPOrigin, plY + yAxisDpGrid * i)
-    path.lineTo(xAxisPOrigin - 5, plY + yAxisDpGrid * i)
+    path.moveTo(x, plY + yAxisDpGrid * i)
+    path.lineTo(x - 5, plY + yAxisDpGrid * i)
   }
   ctx.stroke(path)
 }
@@ -228,37 +268,41 @@ const getLabelColor = (props: Options, axis: Axis2D) => props.axesOptions?.[axis
 
 const drawXAxisAxisMarkerLabels = (
   ctx: CanvasRenderingContext2D,
-  numGridLinesX: number,
   xAxis: AxisGeometry,
-  yAxisPOrigin: number,
+  yAxis: AxisGeometry,
   props: Options,
 ) => {
   ctx.lineWidth = 1
   ctx.font = `${getFontSize(props, Axis2D.X)} ${getFontFamily(props, Axis2D.X)}`.trim()
   ctx.strokeStyle = getLabelColor(props, Axis2D.X)
-  for (let i = 0; i < numGridLinesX; i += 1) {
+
+  const y = getXAxisYPosition(props.axesOptions[Axis2D.X].orientation as XAxisOrientation, yAxis.pl, yAxis.pu, yAxis.pOrigin)
+
+  for (let i = 0; i < xAxis.numGridLines; i += 1) {
     const value = xAxis.vl + xAxis.dvGrid * i
     const x = xAxis.p(value)
-    const y = yAxisPOrigin + 15
-    ctx.strokeText(createAxisGridLabelText(value, props.axesOptions[Axis2D.X]), x, y)
+    const _y = y + 15
+    ctx.strokeText(createAxisGridLabelText(value, props.axesOptions[Axis2D.X]), x, _y)
   }
 }
 
 const drawYAxisAxisMarkerLabels = (
   ctx: CanvasRenderingContext2D,
-  numGridLinesY: number,
   yAxis: AxisGeometry,
-  xAxisPOrigin: number,
+  xAxis: AxisGeometry,
   props: Options,
 ) => {
   ctx.lineWidth = 1
   ctx.font = `${getFontSize(props, Axis2D.Y)} ${getFontFamily(props, Axis2D.Y)}`.trim()
   ctx.strokeStyle = getLabelColor(props, Axis2D.Y)
-  for (let i = 0; i < numGridLinesY; i += 1) {
+
+  const x = getYAxisXPosition(props.axesOptions[Axis2D.Y].orientation as YAxisOrientation, xAxis.pl, xAxis.pu, xAxis.pOrigin)
+
+  for (let i = 0; i < yAxis.numGridLines; i += 1) {
     const value = yAxis.vl + yAxis.dvGrid * i
-    const x = xAxisPOrigin - 30
+    const _x = x - 30
     const y = yAxis.p(value) - 5
-    ctx.strokeText(createAxisGridLabelText(value, props.axesOptions[Axis2D.Y]), x, y)
+    ctx.strokeText(createAxisGridLabelText(value, props.axesOptions[Axis2D.Y]), _x, y)
   }
 }
 
@@ -459,20 +503,20 @@ export const draw = (ctx: CanvasRenderingContext2D, g: GraphGeometry, props: Opt
 
   // Show axis lines by default
   if (props.visibilitySettings?.showAxesLines !== false) {
-    drawXAxisLine(ctx, g.xAxis.pl, g.xAxis.pu, g.yAxis.pOrigin, props)
-    drawYAxisLine(ctx, g.yAxis.pl, g.yAxis.pu, g.xAxis.pOrigin, props)
+    drawXAxisLine(ctx, g.xAxis.pl, g.xAxis.pu, g.yAxis.pl, g.yAxis.pu, g.yAxis.pOrigin, props)
+    drawYAxisLine(ctx, g.yAxis.pl, g.yAxis.pu, g.xAxis.pl, g.xAxis.pu, g.xAxis.pOrigin, props)
   }
 
   // Show axis marker lines by default
   if (props.visibilitySettings?.showAxesMarkerLines !== false) {
-    drawXAxisAxisMarkerLines(ctx, g.xAxis.numGridLines, g.xAxis.pl, g.xAxis.dpGrid, g.yAxis.pOrigin, props)
-    drawYAxisAxisMarkerLines(ctx, g.yAxis.numGridLines, g.yAxis.pl, g.yAxis.dpGrid, g.xAxis.pOrigin, props)
+    drawXAxisAxisMarkerLines(ctx, g.xAxis.numGridLines, g.xAxis.pl, g.yAxis.pl, g.yAxis.pu, g.xAxis.dpGrid, g.yAxis.pOrigin, props)
+    drawYAxisAxisMarkerLines(ctx, g.yAxis.numGridLines, g.yAxis.pl, g.xAxis.pl, g.xAxis.pu, g.yAxis.dpGrid, g.xAxis.pOrigin, props)
   }
 
   // Show axis marker labels by default
   if (props.visibilitySettings?.showAxesMarkerLabels !== false) {
-    drawXAxisAxisMarkerLabels(ctx, g.xAxis.numGridLines, g.xAxis, g.yAxis.pOrigin, props)
-    drawYAxisAxisMarkerLabels(ctx, g.yAxis.numGridLines, g.yAxis, g.xAxis.pOrigin, props)
+    drawXAxisAxisMarkerLabels(ctx, g.xAxis, g.yAxis, props)
+    drawYAxisAxisMarkerLabels(ctx, g.yAxis, g.xAxis, props)
   }
 
   // Show grid lines by default

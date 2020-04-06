@@ -1,5 +1,6 @@
 import Notation from './Notation'
 import XAxisOrientation from './xAxisOrientation'
+import YAxisOrientation from './yAxisOrientation'
 
 export type AxisOptions = {
   notation?: Notation
@@ -14,7 +15,7 @@ export type AxisOptions = {
   axisMarkerLineWidth?: number
   axisMarkerLineColor?: string
   padding?: number
-  orientation?: XAxisOrientation
+  orientation?: XAxisOrientation | YAxisOrientation
 }
 
 export default AxisOptions
