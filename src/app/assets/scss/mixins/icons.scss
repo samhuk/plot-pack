@@ -1,0 +1,15 @@
+@import "../variables.scss";
+
+i {
+  &.green {
+    color: $green;
+  }
+
+  &.blue {
+    color: $blue;
+  }
+
+  &.red {
+    color: $red;
+  }
+}

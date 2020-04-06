@@ -1,0 +1,33 @@
+@import "../variables.scss";
+
+@mixin multipartTextInput {
+  .ui-multipart-text-input-container {    
+    .ui-text-input-label {
+      margin-bottom: 0.4em;
+    }
+
+    .ui-input-icon-container {
+      height: $text-input-height;
+      display: flex;
+
+      .ui-text-input-icon-container {
+        margin-right: 0.7em;
+      }
+
+      .ui-input-list-container {
+        display: flex;
+        flex-grow: 1;
+
+        .ui-text-input {
+          margin-right: 1em;
+        }
+
+        .ui-text-input-separator {
+          margin-right: 1em;
+          display: flex;
+          align-items: center;
+        }
+      }
+    }
+  }
+}

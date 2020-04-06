@@ -1,0 +1,27 @@
+@import "../variables.scss";
+
+@mixin textInput {
+  .ui-text-input-container {    
+    .ui-text-input-label {
+      margin-bottom: 0.4em;
+    }
+    
+    .ui-text-input-icon-container {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      border-right: none;
+    }
+
+    .ui-input-icon-container {
+      height: $text-input-height;
+      display: flex;
+    }
+
+    &.has-icon {
+      .ui-text-input {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+      }
+    }
+  }
+}

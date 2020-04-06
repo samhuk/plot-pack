@@ -1,0 +1,40 @@
+{
+  "env": {
+    "server": {
+      "presets": [
+        "@babel/typescript",
+        ["@babel/preset-env", {
+          "targets": {
+            "node": "current"
+          }
+        }]
+      ]
+    },
+    "client": {
+      "presets": [
+        "@babel/typescript",
+        ["@babel/preset-env", {
+          "targets": {
+            "chrome": "58",
+            "firefox": "60",
+            "ie": "11",
+            "safari": "6",
+            "edge": "44"
+          },
+          "useBuiltIns": "usage",
+          "corejs": 3
+        }],
+        "@babel/preset-react"
+      ]
+    }
+  },
+  "plugins": [
+    ["module-resolver", {
+      "root": ["./src"]
+    }],
+    "@babel/plugin-syntax-dynamic-import",
+    "@babel/plugin-syntax-import-meta",
+    ["@babel/plugin-proposal-class-properties", { "loose": true }],
+    "@babel/plugin-proposal-json-strings"
+  ]
+}

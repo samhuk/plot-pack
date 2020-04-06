@@ -1,0 +1,13 @@
+@mixin headerMixin($color, $background-color, $height) {
+  .header {
+    font-size: 40px;
+    height: $height;
+    color: $color;
+    background-color: $background-color;
+    display: flex;
+    text-align: center;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 20px;
+  }
+}

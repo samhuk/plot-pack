@@ -1,0 +1,20 @@
+@mixin interopMixin {
+  .interop {
+    .sandbox {
+      max-width: 400px;
+    }
+
+    .ui-text-input-container {
+      margin-bottom: 1em;
+    }
+
+    .button-list {
+      display: flex;
+      justify-content: center;
+
+      &>:not(:last-child) {
+        margin-right: 1em;
+      }
+    }
+  }
+}

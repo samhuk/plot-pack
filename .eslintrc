@@ -1,0 +1,66 @@
+{
+  "extends": ["airbnb"],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 11,
+    "sourceType": "module",
+    "project": "./tsconfig.json"
+  },
+  "plugins": ["@typescript-eslint", "react-hooks", "react"],
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".ts", ".tsx", ".js", ".jsx", ".scss"]
+      }
+    },
+    "react": {
+      "pragma": "React",
+      "version": "detect"
+    }
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "jest": true,
+    "es6": true
+  },
+  "rules": {
+    "import/no-named-as-default": 0,
+    "jsx-a11y/label-has-for": 0,
+    "import/prefer-default-export": 0,
+    "jsx-a11y/label-has-associated-control": 0,
+    "camelcase": [2, {
+      "properties": "always"
+    }],
+    "import/no-extraneous-dependencies": [2, {
+      "devDependencies": true
+    }],
+    "semi": [2, "never"],
+    "object-curly-newline": [1, {
+      "ObjectExpression": {
+        "multiline": true
+      },
+      "ObjectPattern": {
+        "multiline": true
+      },
+      "ImportDeclaration": "never",
+      "ExportDeclaration": {
+        "multiline": true
+      }
+    }],
+    "nonblock-statement-body-position": ["error", "any"],
+    "curly": ["error", "multi-or-nest", "consistent"],
+    "import/extensions": 0,
+    "max-len": [2, 150],
+    "react/jsx-filename-extension": [1, { "extensions": [".ts", ".tsx"] }],
+    "@typescript-eslint/no-unused-vars": "error",
+    "no-undef": "off",
+    "no-unused-vars": "off",
+    "arrow-parens": [2, "as-needed"],
+    "no-return-assign": [0],
+    "react/destructuring-assignment": [0],
+    "brace-style": [2, "stroustrup"],
+    "no-underscore-dangle": [0],
+    "radix": [0]
+  }
+}
