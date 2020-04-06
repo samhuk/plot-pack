@@ -15,6 +15,7 @@ export type Options = {
   axesMarkerLabelOptions?: {
     fontFamily?: string
     fontSize?: string
+    color?: string
   }
   axesMarkerLineOptions?: {
     width?: number

@@ -39,10 +39,15 @@ export const render = () => {
             [Axis2D.Y]: {
               notation: Notation.DECIMAL,
               numFigures: 2,
+              axisLineColor: 'blue',
+              axisMarkerLineColor: 'blue',
+              axisMarkerLabelColor: 'blue',
             },
             [Axis2D.X]: {
               notation: Notation.DECIMAL,
               numFigures: 2,
+              axisLineColor: 'red',
+              axisLineWidth: 5,
             },
           }}
           bestFitLineType={BestFitLine.STRAIGHT}

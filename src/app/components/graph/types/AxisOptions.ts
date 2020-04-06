@@ -10,6 +10,7 @@ export type AxisOptions = {
   gridLineColor?: string
   axisMarkerLabelFontFamily?: string
   axisMarkerLabelFontSize?: number
+  axisMarkerLabelColor?: string
   axisMarkerLineWidth?: number
   axisMarkerLineColor?: string
   padding?: number

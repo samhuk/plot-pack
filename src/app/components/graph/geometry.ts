@@ -142,9 +142,11 @@ const drawXAxisLine = (ctx: CanvasRenderingContext2D, plX: number, puX: number, 
 
   ctx.strokeStyle = getAxisLineColor(props, Axis2D.X)
   ctx.lineWidth = lineWidth
-  ctx.moveTo(plX, yAxisPOrigin)
-  ctx.lineTo(puX, yAxisPOrigin)
-  ctx.stroke()
+
+  const path = new Path2D()
+  path.moveTo(plX, yAxisPOrigin)
+  path.lineTo(puX, yAxisPOrigin)
+  ctx.stroke(path)
 }
 
 const drawYAxisLine = (ctx: CanvasRenderingContext2D, plY: number, puY: number, xAxisPOrigin: number, props: Options) => {
@@ -154,9 +156,11 @@ const drawYAxisLine = (ctx: CanvasRenderingContext2D, plY: number, puY: number, 
 
   ctx.strokeStyle = getAxisLineColor(props, Axis2D.Y)
   ctx.lineWidth = lineWidth
-  ctx.moveTo(xAxisPOrigin, plY)
-  ctx.lineTo(xAxisPOrigin, puY)
-  ctx.stroke()
+
+  const path = new Path2D()
+  path.moveTo(xAxisPOrigin, plY)
+  path.lineTo(xAxisPOrigin, puY)
+  ctx.stroke(path)
 }
 
 // -- Axis marker lines
@@ -179,11 +183,13 @@ const drawXAxisAxisMarkerLines = (
 ) => {
   ctx.strokeStyle = getMarkerLineColor(props, Axis2D.X)
   ctx.lineWidth = getMarkerLineWidth(props, Axis2D.X)
+
+  const path = new Path2D()
   for (let i = 0; i < numGridLinesX; i += 1) {
-    ctx.moveTo(plX + xAxisDpGrid * i, yAxisPOrigin)
-    ctx.lineTo(plX + xAxisDpGrid * i, yAxisPOrigin + 5)
+    path.moveTo(plX + xAxisDpGrid * i, yAxisPOrigin)
+    path.lineTo(plX + xAxisDpGrid * i, yAxisPOrigin + 5)
   }
-  ctx.stroke()
+  ctx.stroke(path)
 }
 
 const drawYAxisAxisMarkerLines = (
@@ -196,11 +202,13 @@ const drawYAxisAxisMarkerLines = (
 ) => {
   ctx.strokeStyle = getMarkerLineColor(props, Axis2D.Y)
   ctx.lineWidth = getMarkerLineWidth(props, Axis2D.Y)
+
+  const path = new Path2D()
   for (let i = 0; i < numGridLinesY; i += 1) {
-    ctx.moveTo(xAxisPOrigin, plY + yAxisDpGrid * i)
-    ctx.lineTo(xAxisPOrigin - 5, plY + yAxisDpGrid * i)
+    path.moveTo(xAxisPOrigin, plY + yAxisDpGrid * i)
+    path.lineTo(xAxisPOrigin - 5, plY + yAxisDpGrid * i)
   }
-  ctx.stroke()
+  ctx.stroke(path)
 }
 
 // -- Axis marker labels
@@ -214,6 +222,10 @@ const getFontFamily = (props: Options, axis: Axis2D) => props.axesOptions?.[axis
   ?? props.axesMarkerLabelOptions?.fontFamily
   ?? DEFAULT_AXIS_MARKER_LABEL_FONT_FAMILY
 
+const getLabelColor = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.axisMarkerLabelColor
+  ?? props.axesMarkerLabelOptions?.color
+  ?? 'black'
+
 const drawXAxisAxisMarkerLabels = (
   ctx: CanvasRenderingContext2D,
   numGridLinesX: number,
@@ -223,6 +235,7 @@ const drawXAxisAxisMarkerLabels = (
 ) => {
   ctx.lineWidth = 1
   ctx.font = `${getFontSize(props, Axis2D.X)} ${getFontFamily(props, Axis2D.X)}`.trim()
+  ctx.strokeStyle = getLabelColor(props, Axis2D.X)
   for (let i = 0; i < numGridLinesX; i += 1) {
     const value = xAxis.vl + xAxis.dvGrid * i
     const x = xAxis.p(value)
@@ -240,6 +253,7 @@ const drawYAxisAxisMarkerLabels = (
 ) => {
   ctx.lineWidth = 1
   ctx.font = `${getFontSize(props, Axis2D.Y)} ${getFontFamily(props, Axis2D.Y)}`.trim()
+  ctx.strokeStyle = getLabelColor(props, Axis2D.Y)
   for (let i = 0; i < numGridLinesY; i += 1) {
     const value = yAxis.vl + yAxis.dvGrid * i
     const x = xAxisPOrigin - 30
@@ -272,12 +286,14 @@ const drawXAxisGridLines = (
     return
   ctx.strokeStyle = getGridLineColor(props, Axis2D.X)
   ctx.lineWidth = lineWidth
+
+  const path = new Path2D()
   for (let i = 0; i < numGridLinesX; i += 1) {
     const x = plX + dpGridX * i
-    ctx.moveTo(x, plY)
-    ctx.lineTo(x, puY)
+    path.moveTo(x, plY)
+    path.lineTo(x, puY)
   }
-  ctx.stroke()
+  ctx.stroke(path)
 }
 
 const drawYAxisGridLines = (
@@ -294,12 +310,14 @@ const drawYAxisGridLines = (
     return
   ctx.strokeStyle = getGridLineColor(props, Axis2D.Y)
   ctx.lineWidth = lineWidth
+
+  const path = new Path2D()
   for (let i = 0; i < numGridLinesY; i += 1) {
     const y = plY + dpGridY * i
-    ctx.moveTo(plX, y)
-    ctx.lineTo(puX, y)
+    path.moveTo(plX, y)
+    path.lineTo(puX, y)
   }
-  ctx.stroke()
+  ctx.stroke(path)
 }
 
 const createDotMarkerPath = (x: number, y: number, size: number): Path2D => {
