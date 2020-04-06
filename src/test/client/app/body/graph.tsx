@@ -9,16 +9,20 @@ import XAxisOrientation from '../../../../app/components/graph/types/xAxisOrient
 import YAxisOrientation from '../../../../app/components/graph/types/yAxisOrientation'
 
 export const render = () => {
-  const [height, setHeight] = useState(1000)
-  const [width, setWidth] = useState(1000)
-  const [xMax, setXMax] = useState(2 * Math.PI)
+  const [height, setHeight] = useState(500)
+  const [width, setWidth] = useState(500)
+  const [xMax, setXMax] = useState(1)
   const [numPoints, setNumPoints] = useState(200)
 
-  const fn = (x: number) => x ** 2 * (Math.sin(x) - Math.tanh(x))
+  const fn = (x: number) => x ** x
   const data = []
-  const dx = (xMax - 0.01) / numPoints
-  for (let i = -2 * Math.PI; i < xMax; i += dx)
-    data.push({ x: i, y: fn(i * 5) })
+  const xMin = 0
+  const dx = (xMax - xMin) / numPoints
+  for (let i = xMin; i < xMax; i += dx) {
+    data.push({ x: i, y: fn(i) })
+    if (i > 1E7)
+      break
+  }
 
   return (
     <div className="graph">
@@ -55,7 +59,7 @@ export const render = () => {
             },
           }}
           bestFitLineType={BestFitLine.STRAIGHT}
-          visibilitySettings={{
+          visibilityOptions={{
             showMarkers: true,
             showLine: false,
             showGridLines: true,

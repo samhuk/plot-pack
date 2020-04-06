@@ -34,7 +34,7 @@ export type Options = {
     color?: string
   }
   markerOptions?: MarkerOptions
-  visibilitySettings?: {
+  visibilityOptions?: {
     showAxesMarkerLabels?: boolean
     showAxesMarkerLines?: boolean
     showAxesLines?: boolean
