@@ -24,6 +24,7 @@ export type StraightLineEquation = {
   gradient: number
   yIntercept: number
   y: (x: number) => number
+  x: (y: number) => number
 }
 
 export type Quadrilateral = [Point2D, Point2D, Point2D, Point2D]

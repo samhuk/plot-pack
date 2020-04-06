@@ -321,13 +321,14 @@ const createMarkerPath = (markerOptions: MarkerOptions, x: number, y: number): P
   const markerSize = markerOptions?.size ?? DEFAULT_MARKER_SIZE
   if (markerSize < 0)
     return null
-  switch (markerOptions.type) {
+
+  switch (markerOptions?.type ?? DEFAULT_MARKER_TYPE) {
     case MarkerType.DOT:
       return createDotMarkerPath(x, y, markerSize)
     case MarkerType.SQUARE:
       return createSquareMarkerPath(x, y, markerSize)
     default:
-      return createDotMarkerPath(x, y, markerSize)
+      return null
   }
 }
 
@@ -342,8 +343,8 @@ const drawStandardMarker = (
   if (markerPath == null)
     return
 
-  const shouldFill = markerOptions.type == null
-    || (markerOptions.type !== MarkerType.CROSS && markerOptions.type !== MarkerType.PLUS)
+  const markerType = markerOptions?.type ?? DEFAULT_MARKER_TYPE
+  const shouldFill = markerType !== MarkerType.CROSS && markerType !== MarkerType.PLUS
   if (shouldFill)
     ctx.fill(markerPath)
   else
@@ -414,11 +415,18 @@ const drawDataPoints = (
 }
 
 const drawLineOfBestFit = (ctx: CanvasRenderingContext2D, g: GraphGeometry) => {
-  const plX = g.xAxis.pl
-  const plY = g.yAxis.p(g.bestFitStraightLineEquation.y(g.xAxis.vl))
-  const puX = g.xAxis.pu
-  const puY = g.yAxis.p(g.bestFitStraightLineEquation.y(g.xAxis.vu))
+  const vlY = boundToRange(g.bestFitStraightLineEquation.y(g.xAxis.vl), g.yAxis.vl, g.yAxis.vu)
+  const vlX = g.bestFitStraightLineEquation.x(vlY)
+  const vuY = boundToRange(g.bestFitStraightLineEquation.y(g.xAxis.vu), g.yAxis.vu, g.yAxis.vl)
+  const vuX = g.bestFitStraightLineEquation.x(vuY)
+
+  const plX = g.xAxis.p(vlX)
+  const plY = g.yAxis.p(vlY)
+  const puX = g.xAxis.p(vuX)
+  const puY = g.yAxis.p(vuY)
+
   const path = new Path2D()
+
   path.moveTo(plX, plY)
   path.lineTo(puX, puY)
   ctx.save()

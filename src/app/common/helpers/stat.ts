@@ -13,5 +13,10 @@ export const calculateStraightLineOfBestFit = (points: Point2D[]): StraightLineE
 
   const C = meanY - (m * meanX)
 
-  return { gradient: m, yIntercept: C, y: x => (m * x) + C }
+  return {
+    gradient: m,
+    yIntercept: C,
+    y: x => (m * x) + C,
+    x: y => (y - C) / m,
+  }
 }
