@@ -8,6 +8,7 @@
  * @param dvGrid Grid spacing in the value units
  * @param dpGrid Grid spacing in pixel units
  * @param p Function to convert a value to a pixel position
+ * @param v Function to convert a pixel position to a value
  * @param pOrigin Position of the origin (i.e. `p(0)`) on the axis. This is constrained
  * to between pl and pu (the bounds of p values)
  * @param numGridLines Number of grid lines that fit on the axis for the
@@ -21,6 +22,7 @@ export type AxisGeometry = {
   dvGrid: number
   dpGrid: number
   p: (v: number) => number
+  v: (p: number) => number
   pOrigin: number
   numGridLines: number
 }

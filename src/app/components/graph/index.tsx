@@ -2,24 +2,23 @@ import React, { useRef } from 'react'
 import renderGraph from './graph'
 import Options from './types/Options'
 import renderDynamicAxisMarker from './dynamicAxisMarker'
-import GraphGeometry from './types/GraphGeometry'
 import { createGraphGeometry } from './geometry'
-import { runWhen } from '../../common/helpers/function'
 
 export const Graph = (props: Options) => {
-  const graphGeometry = useRef<GraphGeometry>(createGraphGeometry(props))
+  const graphGeometry = createGraphGeometry(props)
   const hasGraphDrawn = useRef<boolean>(false)
 
   const onGraphCanvasReady = (canvas: HTMLCanvasElement): void => {
-    renderGraph(canvas, props, graphGeometry.current)
+    if (canvas == null)
+      return
+    renderGraph(canvas, props, graphGeometry)
     hasGraphDrawn.current = true
   }
 
   const onDynamicAxisMarkerCanvasReady = (canvas: HTMLCanvasElement): void => {
-    // Render axis marker once graph has
-    runWhen(() => hasGraphDrawn.current, () => {
-      renderDynamicAxisMarker(canvas, props, graphGeometry.current)
-    })
+    if (canvas == null)
+      return
+    renderDynamicAxisMarker(canvas, props, graphGeometry)
   }
 
   return (

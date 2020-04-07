@@ -44,11 +44,16 @@ export const merge = <T extends any[], R>(...fns: ((...args: T) => R)[]) => (...
   .filter(fn => fn != null)
   .map(fn => fn(...args))
 
-export const runWhen = (predicate: () => boolean, fn: Function, intervalMs = 10) => {
+export const runWhen = (predicate: () => boolean, fn: Function, timeoutMs = 2000, intervalMs = 10) => {
+  const timeoutIndex = timeoutMs / intervalMs
+  let i = 0
   const handle = setInterval(() => {
     if (predicate()) {
       fn()
       clearInterval(handle)
     }
+    i += 1
+    if (i > timeoutIndex)
+      clearInterval(handle)
   }, intervalMs)
 }
