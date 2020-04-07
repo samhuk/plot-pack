@@ -1,4 +1,4 @@
-import DataPoint from './DataPoint'
+import Datum from './Datum'
 import AxisOptions from './AxisOptions'
 import { Axis2D } from '../../../common/types/geometry'
 import MarkerOptions from './MarkerOptions'
@@ -8,7 +8,7 @@ import BestFitLineOptions from './BestFitLineOptions'
  * Options for the Graph
  */
 export type Options = {
-  data: DataPoint[]
+  data: Datum[]
   heightPx: number
   widthPx: number
   axesOptions?: { [axis in Axis2D]?: AxisOptions }

@@ -1,5 +1,5 @@
 import MarkerType from './MarkerType'
-import DataPoint from './DataPoint'
+import Datum from './Datum'
 
 export type MarkerOptions = {
   type?: MarkerType
@@ -11,9 +11,9 @@ export type MarkerOptions = {
     createPath: (
       x: number,
       y: number,
-      dataPoint: DataPoint,
-      preceedingDataPoint: DataPoint,
-      proceedingDataPoint: DataPoint,
+      datum: Datum,
+      preceedingDatum: Datum,
+      proceedingDatum: Datum,
     ) => Path2D
     renderPath: (ctx: CanvasRenderingContext2D, createdPath: Path2D) => void
   }

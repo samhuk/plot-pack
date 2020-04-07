@@ -1,6 +1,6 @@
 import MarkerOptions from './types/MarkerOptions'
 import MarkerType from './types/MarkerType'
-import DataPoint from './types/DataPoint'
+import Datum from './types/Datum'
 
 const DEFAULT_MARKER_SIZE = 4
 const DEFAULT_MARKER_TYPE = MarkerType.DOT
@@ -107,15 +107,15 @@ export const drawCustomMarker = (
   markerOptions: MarkerOptions,
   pX: number,
   pY: number,
-  preceedingDataPoint: DataPoint,
-  dataPoint: DataPoint,
-  proceedingDataPoint: DataPoint,
+  preceedingDatum: Datum,
+  datum: Datum,
+  proceedingDatum: Datum,
 ) => {
   if (markerOptions?.customOptions?.createPath == null || markerOptions?.customOptions?.renderPath == null)
     return
 
   ctx.save()
-  const path = markerOptions.customOptions.createPath(pX, pY, dataPoint, preceedingDataPoint, proceedingDataPoint)
+  const path = markerOptions.customOptions.createPath(pX, pY, datum, preceedingDatum, proceedingDatum)
   if (path != null)
     markerOptions.customOptions.renderPath(ctx, path)
   ctx.restore()

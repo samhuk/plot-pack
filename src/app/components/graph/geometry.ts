@@ -1,4 +1,4 @@
-import DataPoint from './types/DataPoint'
+import Datum from './types/Datum'
 import AxesRange from './types/AxesRange'
 import AxisGeometry from './types/AxisGeometry'
 import Options from './types/Options'
@@ -7,36 +7,35 @@ import BestFitLineType from './types/BestFitLineType'
 import { calculateStraightLineOfBestFit } from '../../common/helpers/stat'
 import { boundToRange } from '../../common/helpers/math'
 
+const getDefaultValueRangeOfDatum = (datum: Datum) => ({
+  x: {
+    min: typeof datum.x === 'number' ? datum.x : Math.min(...datum.x),
+    max: typeof datum.x === 'number' ? datum.x : Math.max(...datum.x),
+  },
+  y: {
+    min: typeof datum.y === 'number' ? datum.y : Math.max(...datum.y),
+    max: typeof datum.y === 'number' ? datum.y : Math.max(...datum.y),
+  },
+})
+
 /**
  * Determines the minimum and maximum values for each axis
  */
-const calculateAxesValueRanges = (data: DataPoint[]): AxesRange => {
+const calculateValueRanges = (data: Datum[]): AxesRange => {
   let xMin = 0
   let xMax = 0
   let yMin = 0
   let yMax = 0
   for (let i = 0; i < data.length; i += 1) {
-    const point = data[i]
-    // x axis
-    const x = point.x ?? 0
-    const xLower = x - (point.dx != null ? point.dx / 2 : (point.dxMinus ?? 0))
-    const xUpper = x + (point.dx != null ? point.dx / 2 : (point.dxPlus ?? 0))
-    const _xMax = Math.max(x, xLower, xUpper)
-    const _xMin = Math.min(x, xLower, xUpper)
-    if (_xMax > xMax)
-      xMax = _xMax
-    if (_xMin < xMin)
-      xMin = _xMin
-    // y axis
-    const y = point.y ?? 0
-    const yLower = y - (point.dy != null ? point.dy / 2 : (point.dyMinus ?? 0))
-    const yUpper = y + (point.dy != null ? point.dy / 2 : (point.dyMinus ?? 0))
-    const _yMax = Math.max(y, yLower, yUpper)
-    const _yMin = Math.min(y, yLower, yUpper)
-    if (_yMax > yMax)
-      yMax = _yMax
-    if (_yMin < yMin)
-      yMin = _yMin
+    const datumValueRanges = getDefaultValueRangeOfDatum(data[i])
+    if (datumValueRanges.x.max > xMax)
+      xMax = datumValueRanges.x.max
+    if (datumValueRanges.x.min < xMin)
+      xMin = datumValueRanges.x.min
+    if (datumValueRanges.y.max > yMax)
+      yMax = datumValueRanges.y.max
+    if (datumValueRanges.y.min < yMin)
+      yMin = datumValueRanges.y.min
   }
 
   return {
@@ -94,7 +93,7 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
   const paddingY = 30
   const defaultGridMinPx = 30
 
-  const { vlX, vuX, vlY, vuY } = calculateAxesValueRanges(props.data)
+  const { vlX, vuX, vlY, vuY } = calculateValueRanges(props.data)
 
   // Calculate pixel bounds of axes
   const plX = paddingX
@@ -106,7 +105,10 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
   const yAxis = calculateAxisProperties(vlY, vuY, plY, puY, defaultGridMinPx)
 
   const bestFitStraightLineEquation = props.bestFitLineOptions?.type === BestFitLineType.STRAIGHT
-    ? calculateStraightLineOfBestFit(props.data)
+    ? calculateStraightLineOfBestFit(props.data.map(({ x, y }) => ({
+      x: typeof x === 'number' ? x : x[0],
+      y: typeof y === 'number' ? y : y[0],
+    })))
     : null
 
   return { xAxis, yAxis, bestFitStraightLineEquation }

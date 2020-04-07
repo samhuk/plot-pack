@@ -285,18 +285,21 @@ const drawConnectingLine = (
   ctx.stroke(path)
 }
 
-const drawDataPoints = (
+const drawDatums = (
   ctx: CanvasRenderingContext2D,
   xAxisPFn: (v: number) => number,
   yAxisPFn: (v: number) => number,
   props: Options,
 ) => {
-  ctx.moveTo(xAxisPFn(props.data[0].x), yAxisPFn(props.data[0].y))
+  const firstVx = typeof props.data[0].x === 'number' ? props.data[0].x : props.data[0].x[0]
+  const firstVy = typeof props.data[0].y === 'number' ? props.data[0].y : props.data[0].y[0]
+
+  ctx.moveTo(xAxisPFn(firstVx), yAxisPFn(firstVy))
   let prevPx = 0
   let prevPy = 0
   for (let i = 0; i < props.data.length; i += 1) {
-    const pX = xAxisPFn(props.data[i].x)
-    const pY = yAxisPFn(props.data[i].y)
+    const pX = xAxisPFn(typeof props.data[i].x === 'number' ? props.data[i].x : (props.data[i].x as any)[0])
+    const pY = yAxisPFn(typeof props.data[i].y === 'number' ? props.data[i].y : (props.data[i].y as any)[0])
 
     drawCustomMarker(ctx, props.markerOptions, pX, pY, props.data[i], props.data[i - 1], props.data[i + 1])
     // Don't show markers by default
@@ -364,7 +367,7 @@ export const draw = (ctx: CanvasRenderingContext2D, g: GraphGeometry, props: Opt
   if (props.axesOptions[Axis2D.Y]?.visibilityOptions?.showGridLines ?? props.visibilityOptions?.showGridLines ?? true)
     drawYAxisGridLines(ctx, g.yAxis, g.xAxis, props)
 
-  drawDataPoints(ctx, g.xAxis.p, g.yAxis.p, props)
+  drawDatums(ctx, g.xAxis.p, g.yAxis.p, props)
 
   if (g.bestFitStraightLineEquation != null)
     drawLineOfBestFit(ctx, g, props)
