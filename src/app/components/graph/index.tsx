@@ -1,35 +1,38 @@
-import React, { useEffect, useRef } from 'react'
-import { renderGraph } from './graph'
+import React, { useRef } from 'react'
+import renderGraph from './graph'
 import Options from './types/Options'
-import { init } from './interactivityLayer'
-import MouseMoveHandler from './types/MouseMoveHandler'
+import renderDynamicAxisMarker from './dynamicAxisMarker'
 import GraphGeometry from './types/GraphGeometry'
+import { createGraphGeometry } from './geometry'
+import { runWhen } from '../../common/helpers/function'
 
 export const Graph = (props: Options) => {
-  const graphCanvas = useRef<HTMLCanvasElement>(null)
-  const interactivityCanvas = useRef<HTMLCanvasElement>(null)
-  const onMouseMove = useRef<MouseMoveHandler>(() => undefined)
+  const graphGeometry = useRef<GraphGeometry>(createGraphGeometry(props))
+  const hasGraphDrawn = useRef<boolean>(false)
 
-  const onGraphRenderComplete = (graphGeometry: GraphGeometry) => {
-    if (interactivityCanvas.current == null || graphGeometry == null)
-      return
-    const initializedInteractivityLayer = init(interactivityCanvas.current, props, graphGeometry)
-    onMouseMove.current = initializedInteractivityLayer.onMouseMove
+  const onGraphCanvasReady = (canvas: HTMLCanvasElement): void => {
+    renderGraph(canvas, props, graphGeometry.current)
+    hasGraphDrawn.current = true
   }
 
-  useEffect(() => renderGraph(graphCanvas.current, props, onGraphRenderComplete))
+  const onDynamicAxisMarkerCanvasReady = (canvas: HTMLCanvasElement): void => {
+    // Render axis marker once graph has
+    runWhen(() => hasGraphDrawn.current, () => {
+      renderDynamicAxisMarker(canvas, props, graphGeometry.current)
+    })
+  }
 
   return (
     <div style={{ position: 'relative', height: props.heightPx, width: props.widthPx }}>
       <canvas
         style={{ border: '1px solid black', position: 'absolute' }}
-        ref={graphCanvas}
+        ref={onGraphCanvasReady}
         height={props.heightPx}
         width={props.widthPx}
       />
       <canvas
         style={{ border: '1px solid black', position: 'absolute' }}
-        ref={interactivityCanvas}
+        ref={onDynamicAxisMarkerCanvasReady}
         height={props.heightPx}
         width={props.widthPx}
       />

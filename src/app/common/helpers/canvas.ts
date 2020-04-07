@@ -1,5 +1,7 @@
 /* eslint-disable no-param-reassign */
 
+import { Point2D } from '../types/geometry'
+
 /**
  * Readjusts the dimensions of `canvas` and `ctx` depnding on the current
  * device pixel ratio (DPR) of `window` to prevent blurry rendering. This doesn't change
@@ -61,6 +63,12 @@ export const measureTextLineHeight = (ctx: CanvasRenderingContext2D) => {
   return (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent)
 }
 
-export const isMouseInPath = (e: MouseEvent, ctx: CanvasRenderingContext2D, path: Path2D) => (
-  ctx.isPointInPath(path, e.offsetX * window.devicePixelRatio, e.offsetY * window.devicePixelRatio)
-)
+export const getDprCorrectedEventPosition = (e: MouseEvent): Point2D => ({
+  x: e.offsetX * window.devicePixelRatio,
+  y: e.offsetY * window.devicePixelRatio,
+})
+
+export const isMouseInPath = (e: MouseEvent, ctx: CanvasRenderingContext2D, path: Path2D) => {
+  const { x, y } = getDprCorrectedEventPosition(e)
+  return ctx.isPointInPath(path, x, y)
+}

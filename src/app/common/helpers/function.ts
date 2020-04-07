@@ -43,3 +43,12 @@ export const repeat = <T extends any[], R>(
 export const merge = <T extends any[], R>(...fns: ((...args: T) => R)[]) => (...args: T) => fns
   .filter(fn => fn != null)
   .map(fn => fn(...args))
+
+export const runWhen = (predicate: () => boolean, fn: Function, intervalMs = 10) => {
+  const handle = setInterval(() => {
+    if (predicate()) {
+      fn()
+      clearInterval(handle)
+    }
+  }, intervalMs)
+}
