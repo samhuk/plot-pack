@@ -18,12 +18,17 @@ export type AxisOptions = {
   visibilityOptions?: AxisVisibilityOptions
   padding?: number
   orientation?: XAxisOrientation | YAxisOrientation
-  snapCursorLineToNearestDatum?: boolean
-  cursorLineLineWidth?: number
-  cursorLineColor?: string
+  snapCursorPositionLineToNearestDatum?: boolean
+  snapCursorPositionValueToNearestDatum?: boolean
+  cursorPositionLineLineWidth?: number
+  cursorPositionLineColor?: string
   cursorPositionValueLabelFontFamily?: string
   cursorPositionValueLabelFontSize?: number
   cursorPositionValueLabelColor?: string
+  cursorPositionValueLabelBackgroundColor?: string
+  cursorPositionValueLabelBorderColor?: string
+  cursorPositionValueLabelBorderLineWidth?: number
+  cursorPositionValueLabelBorderRadius?: number
 }
 
 export default AxisOptions

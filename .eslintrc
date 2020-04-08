@@ -61,6 +61,7 @@
     "react/destructuring-assignment": [0],
     "brace-style": [2, "stroustrup"],
     "no-underscore-dangle": [0],
-    "radix": [0]
+    "radix": [0],
+    "no-nested-ternary": [0]
   }
 }

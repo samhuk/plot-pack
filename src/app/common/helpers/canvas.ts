@@ -76,3 +76,33 @@ export const isMouseInPath = (e: MouseEvent, ctx: CanvasRenderingContext2D, path
 export const createTextStyle = (fontFamily: string, fontSize: number) => (
   `${fontSize?.toString().concat('px') ?? ''} ${fontFamily ?? ''}`.trim()
 )
+
+export const createRoundedRect = (
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  cornerRadii: number | number[],
+): Path2D => {
+  const _cornerRadii = typeof cornerRadii === 'number'
+    ? { upperLeft: cornerRadii, upperRight: cornerRadii, lowerLeft: cornerRadii, lowerRight: cornerRadii }
+    : cornerRadii.length === 4
+      ? { upperLeft: cornerRadii[0], upperRight: cornerRadii[1], lowerLeft: cornerRadii[2], lowerRight: cornerRadii[3] }
+      : null
+
+  if (_cornerRadii == null)
+    return null
+
+  const path = new Path2D()
+  path.moveTo(x + _cornerRadii.upperLeft, y)
+  path.lineTo(x + width - _cornerRadii.upperRight, y)
+  path.quadraticCurveTo(x + width, y, x + width, y + _cornerRadii.upperRight)
+  path.lineTo(x + width, y + height - _cornerRadii.lowerRight)
+  path.quadraticCurveTo(x + width, y + height, x + width - _cornerRadii.lowerRight, y + height)
+  path.lineTo(x + _cornerRadii.lowerLeft, y + height)
+  path.quadraticCurveTo(x, y + height, x, y + height - _cornerRadii.lowerLeft)
+  path.lineTo(x, y + _cornerRadii.upperLeft)
+  path.quadraticCurveTo(x, y, x + _cornerRadii.upperLeft, y)
+
+  return path
+}

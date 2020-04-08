@@ -51,7 +51,7 @@ export const render = () => {
               axisMarkerLabelColor: '#333',
               orientation: YAxisOrientation.ORIGIN,
               visibilityOptions: {
-                showCursorLine: false,
+                showCursorPositionLine: true,
                 showCursorPositionValueLabel: true,
               },
             },
@@ -62,12 +62,17 @@ export const render = () => {
               axisMarkerLineColor: '#333',
               orientation: XAxisOrientation.ORIGIN,
               visibilityOptions: {
-                showCursorLine: true,
+                showCursorPositionLine: true,
                 showCursorPositionValueLabel: true,
               },
-              snapCursorLineToNearestDatum: true,
-              cursorPositionValueLabelFontSize: 16,
+              snapCursorPositionLineToNearestDatum: true,
+              cursorPositionLineColor: 'red',
+              cursorPositionValueLabelFontSize: 20,
               cursorPositionValueLabelColor: 'red',
+              cursorPositionValueLabelBackgroundColor: 'white',
+              cursorPositionValueLabelBorderColor: 'blue',
+              cursorPositionValueLabelBorderLineWidth: 3,
+              cursorPositionValueLabelBorderRadius: 15,
             },
           }}
           bestFitLineOptions={{

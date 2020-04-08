@@ -1,5 +1,5 @@
 import GraphGeometry from './types/GraphGeometry'
-import { get2DContext, createTextStyle } from '../../common/helpers/canvas'
+import { get2DContext, createTextStyle, measureTextLineHeight, createRoundedRect } from '../../common/helpers/canvas'
 import { Options } from './types/Options'
 import { isInRange } from '../../common/helpers/math'
 import PositionedDatum from './types/PositionedDatum'
@@ -69,7 +69,7 @@ const drawNearestDatumFocus = (ctx: CanvasRenderingContext2D, nearestDatum: Posi
   ctx.stroke(path)
 }
 
-const drawCursorLines = (
+const drawCursorPositionLines = (
   ctx: CanvasRenderingContext2D,
   cursorX: number,
   cursorY: number,
@@ -77,27 +77,27 @@ const drawCursorLines = (
   graphGeometry: GraphGeometry,
   props: Options,
 ) => {
-  if (props.axesOptions?.[Axis2D.Y]?.visibilityOptions?.showCursorLine ?? false) {
+  if (props.axesOptions?.[Axis2D.Y]?.visibilityOptions?.showCursorPositionLine ?? false) {
     const cursorYLine = new Path2D()
     // Don't snap horizontal y-axis line by default
-    const yAxisLineY = nearestDatum != null && (props.axesOptions?.[Axis2D.Y]?.snapCursorLineToNearestDatum ?? false) ? nearestDatum.pY : cursorY
+    const yAxisLineY = nearestDatum != null && (props.axesOptions?.[Axis2D.Y]?.snapCursorPositionLineToNearestDatum ?? false) ? nearestDatum.pY : cursorY
     cursorYLine.moveTo(graphGeometry.xAxis.pu, yAxisLineY)
     cursorYLine.lineTo(graphGeometry.xAxis.pl, yAxisLineY) // The horizontal line
 
-    ctx.lineWidth = props.axesOptions?.[Axis2D.Y]?.cursorLineLineWidth ?? 1
-    ctx.strokeStyle = props.axesOptions?.[Axis2D.Y]?.cursorLineColor ?? 'black'
+    ctx.lineWidth = props.axesOptions?.[Axis2D.Y]?.cursorPositionLineLineWidth ?? 1
+    ctx.strokeStyle = props.axesOptions?.[Axis2D.Y]?.cursorPositionLineColor ?? 'black'
     ctx.stroke(cursorYLine)
   }
 
-  if (props.axesOptions?.[Axis2D.X]?.visibilityOptions?.showCursorLine ?? false) {
+  if (props.axesOptions?.[Axis2D.X]?.visibilityOptions?.showCursorPositionLine ?? false) {
     const cursorXLine = new Path2D()
     // Snap vertical x-axis line by default
-    const xAxisLineX = nearestDatum != null && (props.axesOptions?.[Axis2D.X]?.snapCursorLineToNearestDatum ?? true) ? nearestDatum.pX : cursorX
+    const xAxisLineX = nearestDatum != null && (props.axesOptions?.[Axis2D.X]?.snapCursorPositionLineToNearestDatum ?? true) ? nearestDatum.pX : cursorX
     cursorXLine.moveTo(xAxisLineX, graphGeometry.yAxis.pu)
     cursorXLine.lineTo(xAxisLineX, graphGeometry.yAxis.pl) // The vertical line
 
-    ctx.lineWidth = props.axesOptions?.[Axis2D.X]?.cursorLineLineWidth ?? 2
-    ctx.strokeStyle = props.axesOptions?.[Axis2D.X]?.cursorLineColor ?? 'black'
+    ctx.lineWidth = props.axesOptions?.[Axis2D.X]?.cursorPositionLineLineWidth ?? 2
+    ctx.strokeStyle = props.axesOptions?.[Axis2D.X]?.cursorPositionLineColor ?? 'black'
     ctx.stroke(cursorXLine)
   }
 }
@@ -111,6 +111,7 @@ const drawCursorPositionValueLabels = (
   ctx: CanvasRenderingContext2D,
   cursorX: number,
   cursorY: number,
+  nearestDatum: PositionedDatum,
   xAxis: AxisGeometry,
   yAxis: AxisGeometry,
   props: Options,
@@ -118,18 +119,57 @@ const drawCursorPositionValueLabels = (
   ctx.lineWidth = 1
 
   if (props.axesOptions?.[Axis2D.X]?.visibilityOptions?.showCursorPositionValueLabel ?? true) {
-    ctx.font = getCursorPositionValueLabelFont(props, Axis2D.X)
-    ctx.fillStyle = props.axesOptions?.[Axis2D.X]?.cursorPositionValueLabelColor ?? 'black'
+    const pX = nearestDatum != null && (props.axesOptions?.[Axis2D.X]?.snapCursorPositionLineToNearestDatum ?? false) ? nearestDatum.pX : cursorX
+    const xAxisText = xAxis.v(pX).toFixed(2)
 
-    const xAxisText = xAxis.v(cursorX).toFixed(2)
-    ctx.fillText(xAxisText, cursorX + 5, yAxis.pl - 5)
+    const bgRectPaddingPx = 5
+    ctx.font = getCursorPositionValueLabelFont(props, Axis2D.X)
+    const lineHeight = measureTextLineHeight(ctx)
+
+    const textBoxWidth = ctx.measureText(xAxisText).width
+    const bgRectX = pX - textBoxWidth / 2 - bgRectPaddingPx
+    const bgRectY = yAxis.pl - lineHeight - 2 * bgRectPaddingPx
+    const bgRectWidth = textBoxWidth + 2 * bgRectPaddingPx
+    const bgRectHeight = lineHeight + 2 * bgRectPaddingPx
+    const bgRectRadius = props.axesOptions?.[Axis2D.X]?.cursorPositionValueLabelBorderRadius ?? 3
+    const bgRect = createRoundedRect(bgRectX, bgRectY, bgRectWidth, bgRectHeight, bgRectRadius)
+    ctx.fillStyle = props.axesOptions?.[Axis2D.X]?.cursorPositionValueLabelBackgroundColor ?? '#ddd'
+    ctx.strokeStyle = '#aaa'
+    ctx.fill(bgRect)
+    ctx.strokeStyle = props.axesOptions?.[Axis2D.X]?.cursorPositionValueLabelBorderColor ?? '#aaa'
+    ctx.lineWidth = props.axesOptions?.[Axis2D.X]?.cursorPositionValueLabelBorderLineWidth ?? 1
+    ctx.stroke(bgRect)
+
+    // Create label
+    ctx.fillStyle = props.axesOptions?.[Axis2D.X]?.cursorPositionValueLabelColor ?? 'black'
+    ctx.fillText(xAxisText, pX - textBoxWidth / 2, yAxis.pl - bgRectPaddingPx - 2)
   }
   if (props.axesOptions?.[Axis2D.Y]?.visibilityOptions?.showCursorPositionValueLabel ?? true) {
-    ctx.font = getCursorPositionValueLabelFont(props, Axis2D.Y)
-    ctx.fillStyle = props.axesOptions?.[Axis2D.Y]?.cursorPositionValueLabelColor ?? 'black'
+    const pY = nearestDatum != null && (props.axesOptions?.[Axis2D.Y]?.snapCursorPositionLineToNearestDatum ?? false) ? nearestDatum.pY : cursorY
+    const yAxisText = yAxis.v(pY).toFixed(2)
 
-    const yAxisText = yAxis.v(cursorY).toFixed(2)
-    ctx.fillText(yAxisText, xAxis.pl + 5, cursorY - 5)
+    const bgRectPaddingPx = 5
+    // Set font now early on so we can get the line height to size the bgRect correctly
+    ctx.font = getCursorPositionValueLabelFont(props, Axis2D.Y)
+    const lineHeight = measureTextLineHeight(ctx)
+
+    // Create background rect
+    const textBoxWidth = ctx.measureText(yAxisText).width
+    const bgRectX = xAxis.pl
+    const bgRectY = pY - lineHeight / 2 - bgRectPaddingPx
+    const bgRectWidth = textBoxWidth + 2 * bgRectPaddingPx
+    const bgRectHeight = lineHeight + 2 * bgRectPaddingPx
+    const bgRectRadius = props.axesOptions?.[Axis2D.Y]?.cursorPositionValueLabelBorderRadius ?? 3
+    const bgRect = createRoundedRect(bgRectX, bgRectY, bgRectWidth, bgRectHeight, bgRectRadius)
+    ctx.fillStyle = props.axesOptions?.[Axis2D.Y]?.cursorPositionValueLabelBackgroundColor ?? '#ddd'
+    ctx.fill(bgRect)
+    ctx.strokeStyle = props.axesOptions?.[Axis2D.Y]?.cursorPositionValueLabelBorderColor ?? '#aaa'
+    ctx.lineWidth = props.axesOptions?.[Axis2D.Y]?.cursorPositionValueLabelBorderLineWidth ?? 1
+    ctx.stroke(bgRect)
+
+    // Create label
+    ctx.fillStyle = props.axesOptions?.[Axis2D.Y]?.cursorPositionValueLabelColor ?? 'black'
+    ctx.fillText(yAxisText, xAxis.pl + bgRectPaddingPx, pY + lineHeight / 2 - 2)
   }
 }
 
@@ -156,14 +196,15 @@ export const render = (canvas: HTMLCanvasElement, props: Options, graphGeometry:
     const y = e.offsetY
 
     if (isInRange(graphGeometry.xAxis.pl, graphGeometry.xAxis.pu, x) && isInRange(graphGeometry.yAxis.pl, graphGeometry.yAxis.pu, y)) {
-      drawCursorPositionValueLabels(ctx, x, y, graphGeometry.xAxis, graphGeometry.yAxis, props)
-
       // Highlight the nearest point to the cursor
       const nearestDatum = determineNearestDatum(tree, x, y, props.datumFocusDistanceThresholdPx)
+
       if (nearestDatum != null && props.datumFocusMode !== DatumFocusMode.NONE)
         drawNearestDatumFocus(ctx, nearestDatum)
 
-      drawCursorLines(ctx, x, y, nearestDatum, graphGeometry, props)
+      drawCursorPositionLines(ctx, x, y, nearestDatum, graphGeometry, props)
+
+      drawCursorPositionValueLabels(ctx, x, y, nearestDatum, graphGeometry.xAxis, graphGeometry.yAxis, props)
     }
   }
 
