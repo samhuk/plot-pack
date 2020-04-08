@@ -10,6 +10,7 @@ import XAxisOrientation from './types/xAxisOrientation'
 import YAxisOrientation from './types/yAxisOrientation'
 import { drawCustomMarker, drawStandardMarker } from './marker'
 import PositionedDatum from './types/PositionedDatum'
+import { createTextStyle } from '../../common/helpers/canvas'
 
 const DEFAULT_AXIS_LINE_WIDTH = 2
 const DEFAULT_GRID_LINE_WIDTH = 0.5
@@ -161,10 +162,9 @@ const drawYAxisAxisMarkerLines = (
 
 // -- Axis marker labels
 
-const getFontSize = (props: Options, axis: Axis2D) => (props.axesOptions?.[axis]?.axisMarkerLabelFontSize
+const getFontSize = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.axisMarkerLabelFontSize
   ?? props.axesMarkerLabelOptions?.fontSize
   ?? DEFAULT_AXIS_MARKER_LABEL_FONT_SIZE
-).toString().concat('px')
 
 const getFontFamily = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.axisMarkerLabelFontFamily
   ?? props.axesMarkerLabelOptions?.fontFamily
@@ -174,6 +174,8 @@ const getLabelColor = (props: Options, axis: Axis2D) => props.axesOptions?.[axis
   ?? props.axesMarkerLabelOptions?.color
   ?? 'black'
 
+const getFont = (props: Options, axis: Axis2D) => createTextStyle(getFontFamily(props, axis), getFontSize(props, axis))
+
 const drawXAxisAxisMarkerLabels = (
   ctx: CanvasRenderingContext2D,
   xAxis: AxisGeometry,
@@ -181,7 +183,7 @@ const drawXAxisAxisMarkerLabels = (
   props: Options,
 ) => {
   ctx.lineWidth = 0.7
-  ctx.font = `${getFontSize(props, Axis2D.X)} ${getFontFamily(props, Axis2D.X)}`.trim()
+  ctx.font = getFont(props, Axis2D.X)
   ctx.strokeStyle = getLabelColor(props, Axis2D.X)
 
   const y = getXAxisYPosition(props.axesOptions[Axis2D.X].orientation as XAxisOrientation, yAxis.pl, yAxis.pu, yAxis.pOrigin)
@@ -201,7 +203,7 @@ const drawYAxisAxisMarkerLabels = (
   props: Options,
 ) => {
   ctx.lineWidth = 0.7
-  ctx.font = `${getFontSize(props, Axis2D.Y)} ${getFontFamily(props, Axis2D.Y)}`.trim()
+  ctx.font = getFont(props, Axis2D.Y)
   ctx.strokeStyle = getLabelColor(props, Axis2D.Y)
 
   const x = getYAxisXPosition(props.axesOptions[Axis2D.Y].orientation as YAxisOrientation, xAxis.pl, xAxis.pu, xAxis.pOrigin)

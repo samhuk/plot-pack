@@ -15,7 +15,7 @@ export type Options = {
   axesOptions?: { [axis in Axis2D]?: AxisOptions }
   axesMarkerLabelOptions?: {
     fontFamily?: string
-    fontSize?: string
+    fontSize?: number
     color?: string
   }
   axesMarkerLineOptions?: {

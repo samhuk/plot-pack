@@ -72,3 +72,7 @@ export const isMouseInPath = (e: MouseEvent, ctx: CanvasRenderingContext2D, path
   const { x, y } = getDprCorrectedEventPosition(e)
   return ctx.isPointInPath(path, x, y)
 }
+
+export const createTextStyle = (fontFamily: string, fontSize: number) => (
+  `${fontSize?.toString().concat('px') ?? ''} ${fontFamily ?? ''}`.trim()
+)

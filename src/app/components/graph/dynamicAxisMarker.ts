@@ -1,5 +1,5 @@
 import GraphGeometry from './types/GraphGeometry'
-import { get2DContext } from '../../common/helpers/canvas'
+import { get2DContext, createTextStyle } from '../../common/helpers/canvas'
 import { Options } from './types/Options'
 import { isInRange } from '../../common/helpers/math'
 import PositionedDatum from './types/PositionedDatum'
@@ -14,6 +14,9 @@ type KdTreeNearestDatumResult = [
 ]
 
 const KdTree = require('kd-tree-javascript')
+
+const DEFAULT_CURSOR_POSITION_VALUE_LABEL_FONT_FAMILY = 'Helvetica'
+const DEFAULT_CURSOR_POSITION_VALUE_LABEL_FONT_SIZE = 12
 
 const createDatumDistanceFunction = (datumFocusMode: DatumFocusMode): DatumDistanceFunction => {
   const defaultFn = (datum1: PositionedDatum, datum2: PositionedDatum) => Math.abs(datum1.pX - datum2.pX)
@@ -99,6 +102,11 @@ const drawCursorLines = (
   }
 }
 
+const getCursorPositionValueLabelFont = (props: Options, axis: Axis2D) => createTextStyle(
+  props.axesOptions?.[axis]?.cursorPositionValueLabelFontFamily ?? DEFAULT_CURSOR_POSITION_VALUE_LABEL_FONT_FAMILY,
+  props.axesOptions?.[axis]?.cursorPositionValueLabelFontSize ?? DEFAULT_CURSOR_POSITION_VALUE_LABEL_FONT_SIZE,
+)
+
 const drawCursorPositionValueLabels = (
   ctx: CanvasRenderingContext2D,
   cursorX: number,
@@ -110,10 +118,16 @@ const drawCursorPositionValueLabels = (
   ctx.lineWidth = 1
 
   if (props.axesOptions?.[Axis2D.X]?.visibilityOptions?.showCursorPositionValueLabel ?? true) {
+    ctx.font = getCursorPositionValueLabelFont(props, Axis2D.X)
+    ctx.fillStyle = props.axesOptions?.[Axis2D.X]?.cursorPositionValueLabelColor ?? 'black'
+
     const xAxisText = xAxis.v(cursorX).toFixed(2)
     ctx.fillText(xAxisText, cursorX + 5, yAxis.pl - 5)
   }
   if (props.axesOptions?.[Axis2D.Y]?.visibilityOptions?.showCursorPositionValueLabel ?? true) {
+    ctx.font = getCursorPositionValueLabelFont(props, Axis2D.Y)
+    ctx.fillStyle = props.axesOptions?.[Axis2D.Y]?.cursorPositionValueLabelColor ?? 'black'
+
     const yAxisText = yAxis.v(cursorY).toFixed(2)
     ctx.fillText(yAxisText, xAxis.pl + 5, cursorY - 5)
   }

@@ -66,6 +66,8 @@ export const render = () => {
                 showCursorPositionValueLabel: true,
               },
               snapCursorLineToNearestDatum: true,
+              cursorPositionValueLabelFontSize: 16,
+              cursorPositionValueLabelColor: 'red',
             },
           }}
           bestFitLineOptions={{

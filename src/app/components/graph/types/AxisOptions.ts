@@ -21,6 +21,9 @@ export type AxisOptions = {
   snapCursorLineToNearestDatum?: boolean
   cursorLineLineWidth?: number
   cursorLineColor?: string
+  cursorPositionValueLabelFontFamily?: string
+  cursorPositionValueLabelFontSize?: number
+  cursorPositionValueLabelColor?: string
 }
 
 export default AxisOptions
