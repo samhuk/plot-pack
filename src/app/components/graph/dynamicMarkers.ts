@@ -5,9 +5,9 @@ import { isInRange } from '../../common/helpers/math'
 import PositionedDatum from './types/PositionedDatum'
 import DatumFocusMode from './types/DatumFocusMode'
 import DatumDistanceFunction from './types/DatumDistanceFunction'
-import { Axis2D } from '../../common/types/geometry'
+import { Point2D } from '../../common/types/geometry'
 import { drawCursorPositionValueLabels } from './cursorPositionValueLabel'
-import AxisGeometry from './types/AxisGeometry'
+import { drawCursorPositionLines } from './cursorPositionLine'
 
 type KdTreeNearestDatumResult = [
   PositionedDatum, // The nearest Datum
@@ -48,62 +48,52 @@ const createDatumDimensionStringList = (datumFocusMode: DatumFocusMode): string[
 
 const determineNearestDatum = (
   kdTree: any,
-  cursorX: number,
-  cursorY: number,
+  cursorPoint: Point2D,
   datumFocusDistanceThresholdPx: number,
 ) => {
   // TODO: MAKE THIS CUSTOMIZABLE AND MORE POWERFUL!
   // TODO: ADD THIS KDTREE OBJECT TO THE GRAPH GEOMETRY!
-  const nearestDatumResult: KdTreeNearestDatumResult[] = kdTree.nearest({ pX: cursorX, pY: cursorY }, 1)
+  const nearestDatumResult: KdTreeNearestDatumResult[] = kdTree.nearest({ pX: cursorPoint.x, pY: cursorPoint.y }, 1)
   if (datumFocusDistanceThresholdPx == null || nearestDatumResult[0][1] <= datumFocusDistanceThresholdPx)
     return nearestDatumResult[0][0]
 
   return null
 }
 
-const drawNearestDatumFocus = (ctx: CanvasRenderingContext2D, nearestDatum: PositionedDatum) => {
+const drawNearestDatumHighlight = (ctx: CanvasRenderingContext2D, nearestDatum: PositionedDatum) => {
   const path = new Path2D()
   path.arc(nearestDatum.pX, nearestDatum.pY, 5, 0, 2 * Math.PI)
+  ctx.strokeStyle = 'black'
   ctx.stroke(path)
 }
 
-const getCursorPositionLineSnapTo = (props: Options, axis: Axis2D, defaultValue: boolean) => (
-  props.axesOptions?.[axis]?.cursorPositionLineOptions?.snapToNearestDatum ?? defaultValue
-)
-
-const drawCursorPositionLines = (
+const draw = (
   ctx: CanvasRenderingContext2D,
-  cursorX: number,
-  cursorY: number,
-  nearestDatum: PositionedDatum,
-  xAxis: AxisGeometry,
-  yAxis: AxisGeometry,
   props: Options,
+  graphGeometry: GraphGeometry,
+  kdTree: any,
+  cursorPoint: Point2D,
 ) => {
-  if (props.axesOptions?.[Axis2D.Y]?.visibilityOptions?.showCursorPositionLine ?? false) {
-    const cursorYLine = new Path2D()
-    // Don't snap horizontal y-axis line by default
-    const yAxisLineY = nearestDatum != null && getCursorPositionLineSnapTo(props, Axis2D.Y, false) ? nearestDatum.pY : cursorY
-    cursorYLine.moveTo(xAxis.pu, yAxisLineY)
-    cursorYLine.lineTo(xAxis.pl, yAxisLineY) // The horizontal line
+  ctx.clearRect(0, 0, props.widthPx, props.heightPx)
 
-    ctx.lineWidth = props.axesOptions?.[Axis2D.Y]?.cursorPositionLineOptions?.lineWidth ?? 1
-    ctx.strokeStyle = props.axesOptions?.[Axis2D.Y]?.cursorPositionLineOptions?.color ?? 'black'
-    ctx.stroke(cursorYLine)
-  }
+  // Determine if the cursor is within the graph area
+  const isCursorWithinGraphArea = isInRange(graphGeometry.xAxis.pl, graphGeometry.xAxis.pu, cursorPoint.x)
+    && isInRange(graphGeometry.yAxis.pl, graphGeometry.yAxis.pu, cursorPoint.y)
 
-  if (props.axesOptions?.[Axis2D.X]?.visibilityOptions?.showCursorPositionLine ?? false) {
-    const cursorXLine = new Path2D()
-    // Snap vertical x-axis line by default
-    const xAxisLineX = nearestDatum != null && getCursorPositionLineSnapTo(props, Axis2D.X, true) ? nearestDatum.pX : cursorX
-    cursorXLine.moveTo(xAxisLineX, yAxis.pu)
-    cursorXLine.lineTo(xAxisLineX, yAxis.pl) // The vertical line
+  // Don't draw anything if cursor isn't within the graph area (this excludes the padding area too)
+  if (!isCursorWithinGraphArea)
+    return
 
-    ctx.lineWidth = props.axesOptions?.[Axis2D.X]?.cursorPositionLineOptions?.lineWidth ?? 2
-    ctx.strokeStyle = props.axesOptions?.[Axis2D.X]?.cursorPositionLineOptions.color ?? 'black'
+  // Determine the nearest point to the cursor
+  const nearestDatum = determineNearestDatum(kdTree, cursorPoint, props.datumFocusDistanceThresholdPx)
 
-    ctx.stroke(cursorXLine)
-  }
+  // Draw the highlight for the nearest point to the cursor
+  if (nearestDatum != null && props.datumFocusMode !== DatumFocusMode.NONE)
+    drawNearestDatumHighlight(ctx, nearestDatum)
+  // Draw the vertical and horizontal lines, intersecting at where the cursor is
+  drawCursorPositionLines(ctx, cursorPoint, nearestDatum, graphGeometry.xAxis, graphGeometry.yAxis, props)
+  // Draw the axis value labels at the cursor co-ordinates (next to the axes)
+  drawCursorPositionValueLabels(ctx, cursorPoint, nearestDatum, graphGeometry.xAxis, graphGeometry.yAxis, props)
 }
 
 export const render = (canvas: HTMLCanvasElement, props: Options, graphGeometry: GraphGeometry) => {
@@ -112,11 +102,9 @@ export const render = (canvas: HTMLCanvasElement, props: Options, graphGeometry:
 
   const ctx = get2DContext(canvas, props.widthPx, props.heightPx)
 
-  ctx.strokeStyle = '#333'
-
   // Create the K-D tree for quicker nearest neighboor searching
   // eslint-disable-next-line new-cap
-  const tree = new KdTree.kdTree(
+  const kdTree = new KdTree.kdTree(
     graphGeometry.positionedDatums,
     createDatumDistanceFunction(props.datumFocusMode),
     createDatumDimensionStringList(props.datumFocusMode),
@@ -124,21 +112,7 @@ export const render = (canvas: HTMLCanvasElement, props: Options, graphGeometry:
 
   // eslint-disable-next-line no-param-reassign
   canvas.onmousemove = e => {
-    ctx.clearRect(0, 0, props.widthPx, props.heightPx)
-    const x = e.offsetX
-    const y = e.offsetY
-
-    if (isInRange(graphGeometry.xAxis.pl, graphGeometry.xAxis.pu, x) && isInRange(graphGeometry.yAxis.pl, graphGeometry.yAxis.pu, y)) {
-      // Highlight the nearest point to the cursor
-      const nearestDatum = determineNearestDatum(tree, x, y, props.datumFocusDistanceThresholdPx)
-
-      if (nearestDatum != null && props.datumFocusMode !== DatumFocusMode.NONE)
-        drawNearestDatumFocus(ctx, nearestDatum)
-
-      drawCursorPositionLines(ctx, x, y, nearestDatum, graphGeometry.xAxis, graphGeometry.yAxis, props)
-
-      drawCursorPositionValueLabels(ctx, x, y, nearestDatum, graphGeometry.xAxis, graphGeometry.yAxis, props)
-    }
+    draw(ctx, props, graphGeometry, kdTree, { x: e.offsetX, y: e.offsetY })
   }
 
   // eslint-disable-next-line no-param-reassign

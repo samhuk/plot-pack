@@ -1,7 +1,7 @@
 import React from 'react'
 import renderGraph from './graph'
 import Options from './types/Options'
-import renderDynamicAxisMarker from './dynamicAxisMarker'
+import renderDynamicAxisMarker from './dynamicMarkers'
 import { createGraphGeometry } from './geometry'
 
 export const Graph = (props: Options) => {
