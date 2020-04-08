@@ -50,6 +50,10 @@ export const render = () => {
               axisMarkerLineColor: '#333',
               axisMarkerLabelColor: '#333',
               orientation: YAxisOrientation.ORIGIN,
+              visibilityOptions: {
+                showCursorLine: false,
+                showCursorPositionValueLabel: true,
+              },
             },
             [Axis2D.X]: {
               notation: Notation.DECIMAL,
@@ -59,6 +63,7 @@ export const render = () => {
               orientation: XAxisOrientation.ORIGIN,
               visibilityOptions: {
                 showCursorLine: true,
+                showCursorPositionValueLabel: true,
               },
               snapCursorLineToNearestDatum: true,
             },

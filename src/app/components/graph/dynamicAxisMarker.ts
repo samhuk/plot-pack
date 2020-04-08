@@ -6,6 +6,7 @@ import PositionedDatum from './types/PositionedDatum'
 import DatumFocusMode from './types/DatumFocusMode'
 import DatumDistanceFunction from './types/DatumDistanceFunction'
 import { Axis2D } from '../../common/types/geometry'
+import AxisGeometry from './types/AxisGeometry'
 
 type KdTreeNearestDatumResult = [
   PositionedDatum, // The nearest Datum
@@ -98,6 +99,26 @@ const drawCursorLines = (
   }
 }
 
+const drawCursorPositionValueLabels = (
+  ctx: CanvasRenderingContext2D,
+  cursorX: number,
+  cursorY: number,
+  xAxis: AxisGeometry,
+  yAxis: AxisGeometry,
+  props: Options,
+) => {
+  ctx.lineWidth = 1
+
+  if (props.axesOptions?.[Axis2D.X]?.visibilityOptions?.showCursorPositionValueLabel ?? true) {
+    const xAxisText = xAxis.v(cursorX).toFixed(2)
+    ctx.fillText(xAxisText, cursorX + 5, yAxis.pl - 5)
+  }
+  if (props.axesOptions?.[Axis2D.Y]?.visibilityOptions?.showCursorPositionValueLabel ?? true) {
+    const yAxisText = yAxis.v(cursorY).toFixed(2)
+    ctx.fillText(yAxisText, xAxis.pl + 5, cursorY - 5)
+  }
+}
+
 export const render = (canvas: HTMLCanvasElement, props: Options, graphGeometry: GraphGeometry) => {
   // eslint-disable-next-line no-param-reassign
   canvas.style.cursor = 'crosshair'
@@ -119,13 +140,9 @@ export const render = (canvas: HTMLCanvasElement, props: Options, graphGeometry:
     ctx.clearRect(0, 0, props.widthPx, props.heightPx)
     const x = e.offsetX
     const y = e.offsetY
-    if (isInRange(graphGeometry.xAxis.pl, graphGeometry.xAxis.pu, x) && isInRange(graphGeometry.yAxis.pl, graphGeometry.yAxis.pu, y)) {
-      const xAxisText = graphGeometry.xAxis.v(x).toFixed(2)
-      const yAxisText = graphGeometry.yAxis.v(y).toFixed(2)
 
-      ctx.lineWidth = 1
-      ctx.fillText(xAxisText, x + 5, graphGeometry.yAxis.pl - 5)
-      ctx.fillText(yAxisText, graphGeometry.xAxis.pl + 5, y - 5)
+    if (isInRange(graphGeometry.xAxis.pl, graphGeometry.xAxis.pu, x) && isInRange(graphGeometry.yAxis.pl, graphGeometry.yAxis.pu, y)) {
+      drawCursorPositionValueLabels(ctx, x, y, graphGeometry.xAxis, graphGeometry.yAxis, props)
 
       // Highlight the nearest point to the cursor
       const nearestDatum = determineNearestDatum(tree, x, y, props.datumFocusDistanceThresholdPx)
