@@ -5,6 +5,8 @@ import AxisVisibilityOptions from './AxisVisibilityOptions'
 
 export type AxisOptions = {
   dvGrid?: number
+  vl?: number
+  vu?: number
   notation?: Notation
   numFigures?: number
   axisLineWidth?: number

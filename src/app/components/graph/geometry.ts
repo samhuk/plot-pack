@@ -5,7 +5,7 @@ import Options from './types/Options'
 import GraphGeometry from './types/GraphGeometry'
 import BestFitLineType from './types/BestFitLineType'
 import { calculateStraightLineOfBestFit } from '../../common/helpers/stat'
-import { boundToRange } from '../../common/helpers/math'
+import { boundToRange, isInRange } from '../../common/helpers/math'
 import PositionedDatum from './types/PositionedDatum'
 import { Axis2D } from '../../common/types/geometry'
 
@@ -64,6 +64,18 @@ const calculateAutoDvGrid = (vl: number, vu: number, dp: number, dpMin: number) 
   return normPrimeDvGridMin * magMultiplier
 }
 
+const calculateVlPrime = (vl: number, dvGrid: number) => {
+  // For a vl of 455, this is 400. For a vl of 400, this is 400 (i.e. it's inclusive)
+  const vlModDvGrid = vl % dvGrid
+  return vl - vlModDvGrid - (vlModDvGrid !== 0 ? dvGrid : 0)
+}
+
+const calculateVuPrime = (vu: number, dvGrid: number) => {
+  // For a vu of 880, this is 1200. For a vl of 800, this is 800 (i.e. it's inclusive)
+  const vuModDvGrid = vu % dvGrid
+  return vu - vuModDvGrid + (vuModDvGrid !== 0 ? dvGrid : 0)
+}
+
 const calculateAxisGeometry = (
   vl: number,
   vu: number,
@@ -71,23 +83,23 @@ const calculateAxisGeometry = (
   pu: number,
   dpMin: number,
   dvGrid?: number,
+  forceVl: boolean = false,
+  forceVu: boolean = false,
 ): AxisGeometry => {
   const dp = pu - pl
 
   const _dvGrid = dvGrid ?? calculateAutoDvGrid(vl, vu, dp, dpMin)
-
-  // For a vl of 455, this is 400. For a vl of 400, this is 400 (i.e. it's inclusive)
-  const vlModDvGrid = vl % _dvGrid
-  const vlPrime = vl - vlModDvGrid - (vlModDvGrid !== 0 ? _dvGrid : 0)
-  // For a vu of 880, this is 1200. For a vl of 800, this is 800 (i.e. it's inclusive)
-  const vuModDvGrid = vu % _dvGrid
-  const vuPrime = vu - vuModDvGrid + (vuModDvGrid !== 0 ? _dvGrid : 0)
+  const vlPrime = forceVl ? vl : calculateVlPrime(vl, _dvGrid)
+  const vuPrime = forceVu ? vu : calculateVuPrime(vu, _dvGrid)
 
   const dpdv = dp / (vuPrime - vlPrime)
 
   const dpGrid = _dvGrid * dpdv
 
   const p = (v: number) => dpdv * (v - vlPrime) + pl
+
+  const dvAbs = Math.abs(vlPrime - vuPrime)
+  const dvGridAbs = Math.abs(_dvGrid)
 
   return {
     vl: vlPrime,
@@ -99,7 +111,7 @@ const calculateAxisGeometry = (
     p,
     v: _p => ((_p - pl) / dpdv) + vlPrime,
     pOrigin: boundToRange(p(0), pl, pu),
-    numGridLines: Math.max(0, Math.abs(Math.floor(((vlPrime - vuPrime) / _dvGrid))) + 1),
+    numGridLines: Math.floor(dvAbs / dvGridAbs) + 1,
   }
 }
 
@@ -107,16 +119,22 @@ const calculatePositionedDatums = (
   datums: Datum[],
   xAxisPFn: (v: number) => number,
   yAxisPFn: (v: number) => number,
-): PositionedDatum[] => datums.map(datum => {
-  const vX = typeof datum.x === 'number' ? datum.x : datum.x[0]
-  const vY = typeof datum.y === 'number' ? datum.y : datum.y[0]
-  return {
+  vlX: number,
+  vuX: number,
+  vlY: number,
+  vuY: number,
+): PositionedDatum[] => datums
+  .map(datum => ({
+    vX: typeof datum.x === 'number' ? datum.x : datum.x[0],
+    vY: typeof datum.y === 'number' ? datum.y : datum.y[0],
+  }))
+  .filter(({ vX, vY }) => isInRange(vlX, vuX, vX) && isInRange(vlY, vuY, vY))
+  .map(({ vX, vY }) => ({
     vX,
     vY,
     pX: xAxisPFn(vX),
     pY: yAxisPFn(vY),
-  }
-})
+  }))
 
 export const createGraphGeometry = (props: Options): GraphGeometry => {
   const paddingX = 30
@@ -125,10 +143,15 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
 
   const axesValueRange = calculateValueRanges(props.data)
 
-  const vlX = props.axesOptions?.[Axis2D.X]?.vl ?? axesValueRange.vlX
-  const vlY = props.axesOptions?.[Axis2D.Y]?.vl ?? axesValueRange.vlY
-  const vuX = props.axesOptions?.[Axis2D.X]?.vu ?? axesValueRange.vuX
-  const vuY = props.axesOptions?.[Axis2D.Y]?.vu ?? axesValueRange.vuY
+  const forcedVlX = props.axesOptions?.[Axis2D.X]?.vl ?? axesValueRange.vlX
+  const forcedVlY = props.axesOptions?.[Axis2D.Y]?.vl ?? axesValueRange.vlY
+  const forcedVuX = props.axesOptions?.[Axis2D.X]?.vu ?? axesValueRange.vuX
+  const forcedVuY = props.axesOptions?.[Axis2D.Y]?.vu ?? axesValueRange.vuY
+
+  const vlX = forcedVlX ?? axesValueRange.vlX
+  const vlY = forcedVlY ?? axesValueRange.vlY
+  const vuX = forcedVuX ?? axesValueRange.vuX
+  const vuY = forcedVuY ?? axesValueRange.vuY
 
   // Calculate pixel bounds of axes
   const plX = paddingX
@@ -136,8 +159,8 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
   const plY = props.heightPx - paddingY
   const puY = paddingY
   // Calculate the various properties of the axes
-  const xAxis = calculateAxisGeometry(vlX, vuX, plX, puX, defaultGridMinPx, props.axesOptions?.[Axis2D.X]?.dvGrid)
-  const yAxis = calculateAxisGeometry(vlY, vuY, plY, puY, defaultGridMinPx, props.axesOptions?.[Axis2D.Y]?.dvGrid)
+  const xAxis = calculateAxisGeometry(vlX, vuX, plX, puX, defaultGridMinPx, props.axesOptions?.[Axis2D.X]?.dvGrid, forcedVlX != null, forcedVuX != null)
+  const yAxis = calculateAxisGeometry(vlY, vuY, plY, puY, defaultGridMinPx, props.axesOptions?.[Axis2D.Y]?.dvGrid, forcedVlY != null, forcedVuY != null)
 
   const bestFitStraightLineEquation = props.bestFitLineOptions?.type === BestFitLineType.STRAIGHT
     ? calculateStraightLineOfBestFit(props.data.map(({ x, y }) => ({
@@ -150,6 +173,6 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
     xAxis,
     yAxis,
     bestFitStraightLineEquation,
-    positionedDatums: calculatePositionedDatums(props.data, xAxis.p, yAxis.p),
+    positionedDatums: calculatePositionedDatums(props.data, xAxis.p, yAxis.p, vlX, vuX, vlY, vuY),
   }
 }

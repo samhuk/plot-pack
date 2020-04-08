@@ -301,7 +301,7 @@ const drawDatums = (
   ctx.moveTo(xAxisPFn(firstVx), yAxisPFn(firstVy))
   let prevPx = 0
   let prevPy = 0
-  for (let i = 0; i < props.data.length; i += 1) {
+  for (let i = 0; i < positionedDatums.length; i += 1) {
     const { pX, pY } = positionedDatums[i]
 
     drawCustomMarker(ctx, props.markerOptions, pX, pY, props.data[i], props.data[i - 1], props.data[i + 1])
