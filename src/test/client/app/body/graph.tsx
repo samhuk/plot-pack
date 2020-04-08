@@ -56,6 +56,7 @@ export const render = () => {
               },
             },
             [Axis2D.X]: {
+              dvGrid: 0.15,
               notation: Notation.DECIMAL,
               numFigures: 2,
               axisLineColor: '#333',

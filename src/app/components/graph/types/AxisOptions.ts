@@ -4,6 +4,7 @@ import YAxisOrientation from './yAxisOrientation'
 import AxisVisibilityOptions from './AxisVisibilityOptions'
 
 export type AxisOptions = {
+  dvGrid?: number
   notation?: Notation
   numFigures?: number
   axisLineWidth?: number
