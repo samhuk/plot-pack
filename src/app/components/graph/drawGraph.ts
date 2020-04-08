@@ -9,6 +9,7 @@ import GraphGeometry from './types/GraphGeometry'
 import XAxisOrientation from './types/xAxisOrientation'
 import YAxisOrientation from './types/yAxisOrientation'
 import { drawCustomMarker, drawStandardMarker } from './marker'
+import PositionedDatum from './types/PositionedDatum'
 
 const DEFAULT_AXIS_LINE_WIDTH = 2
 const DEFAULT_GRID_LINE_WIDTH = 0.5
@@ -287,19 +288,19 @@ const drawConnectingLine = (
 
 const drawDatums = (
   ctx: CanvasRenderingContext2D,
+  positionedDatums: PositionedDatum[],
   xAxisPFn: (v: number) => number,
   yAxisPFn: (v: number) => number,
   props: Options,
 ) => {
-  const firstVx = typeof props.data[0].x === 'number' ? props.data[0].x : props.data[0].x[0]
-  const firstVy = typeof props.data[0].y === 'number' ? props.data[0].y : props.data[0].y[0]
+  const firstVx = positionedDatums[0].pX
+  const firstVy = positionedDatums[0].pY
 
   ctx.moveTo(xAxisPFn(firstVx), yAxisPFn(firstVy))
   let prevPx = 0
   let prevPy = 0
   for (let i = 0; i < props.data.length; i += 1) {
-    const pX = xAxisPFn(typeof props.data[i].x === 'number' ? props.data[i].x : (props.data[i].x as any)[0])
-    const pY = yAxisPFn(typeof props.data[i].y === 'number' ? props.data[i].y : (props.data[i].y as any)[0])
+    const { pX, pY } = positionedDatums[i]
 
     drawCustomMarker(ctx, props.markerOptions, pX, pY, props.data[i], props.data[i - 1], props.data[i + 1])
     // Don't show markers by default
@@ -367,7 +368,7 @@ export const draw = (ctx: CanvasRenderingContext2D, g: GraphGeometry, props: Opt
   if (props.axesOptions[Axis2D.Y]?.visibilityOptions?.showGridLines ?? props.visibilityOptions?.showGridLines ?? true)
     drawYAxisGridLines(ctx, g.yAxis, g.xAxis, props)
 
-  drawDatums(ctx, g.xAxis.p, g.yAxis.p, props)
+  drawDatums(ctx, g.positionedDatums, g.xAxis.p, g.yAxis.p, props)
 
   if (g.bestFitStraightLineEquation != null)
     drawLineOfBestFit(ctx, g, props)

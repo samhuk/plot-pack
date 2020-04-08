@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React from 'react'
 import renderGraph from './graph'
 import Options from './types/Options'
 import renderDynamicAxisMarker from './dynamicAxisMarker'
@@ -6,13 +6,11 @@ import { createGraphGeometry } from './geometry'
 
 export const Graph = (props: Options) => {
   const graphGeometry = createGraphGeometry(props)
-  const hasGraphDrawn = useRef<boolean>(false)
 
   const onGraphCanvasReady = (canvas: HTMLCanvasElement): void => {
     if (canvas == null)
       return
     renderGraph(canvas, props, graphGeometry)
-    hasGraphDrawn.current = true
   }
 
   const onDynamicAxisMarkerCanvasReady = (canvas: HTMLCanvasElement): void => {

@@ -6,6 +6,7 @@ import GraphGeometry from './types/GraphGeometry'
 import BestFitLineType from './types/BestFitLineType'
 import { calculateStraightLineOfBestFit } from '../../common/helpers/stat'
 import { boundToRange } from '../../common/helpers/math'
+import PositionedDatum from './types/PositionedDatum'
 
 const getDefaultValueRangeOfDatum = (datum: Datum) => ({
   x: {
@@ -46,7 +47,7 @@ const calculateValueRanges = (data: Datum[]): AxesRange => {
   }
 }
 
-const calculateAxisProperties = (vl: number, vu: number, pl: number, pu: number, dpMin: number): AxisGeometry => {
+const calculateAxisGeometry = (vl: number, vu: number, pl: number, pu: number, dpMin: number): AxisGeometry => {
   const dp = pu - pl
   const dvGridMin = Math.abs(dpMin * ((vu - vl) / dp))
 
@@ -88,6 +89,21 @@ const calculateAxisProperties = (vl: number, vu: number, pl: number, pu: number,
   }
 }
 
+const calculatePositionedDatums = (
+  datums: Datum[],
+  xAxisPFn: (v: number) => number,
+  yAxisPFn: (v: number) => number,
+): PositionedDatum[] => datums.map(datum => {
+  const vX = typeof datum.x === 'number' ? datum.x : datum.x[0]
+  const vY = typeof datum.y === 'number' ? datum.y : datum.y[0]
+  return {
+    vX,
+    vY,
+    pX: xAxisPFn(vX),
+    pY: yAxisPFn(vY),
+  }
+})
+
 export const createGraphGeometry = (props: Options): GraphGeometry => {
   const paddingX = 30
   const paddingY = 30
@@ -101,8 +117,8 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
   const plY = props.heightPx - paddingY
   const puY = paddingY
   // Calculate the various properties of the axes
-  const xAxis = calculateAxisProperties(vlX, vuX, plX, puX, defaultGridMinPx)
-  const yAxis = calculateAxisProperties(vlY, vuY, plY, puY, defaultGridMinPx)
+  const xAxis = calculateAxisGeometry(vlX, vuX, plX, puX, defaultGridMinPx)
+  const yAxis = calculateAxisGeometry(vlY, vuY, plY, puY, defaultGridMinPx)
 
   const bestFitStraightLineEquation = props.bestFitLineOptions?.type === BestFitLineType.STRAIGHT
     ? calculateStraightLineOfBestFit(props.data.map(({ x, y }) => ({
@@ -111,5 +127,10 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
     })))
     : null
 
-  return { xAxis, yAxis, bestFitStraightLineEquation }
+  return {
+    xAxis,
+    yAxis,
+    bestFitStraightLineEquation,
+    positionedDatums: calculatePositionedDatums(props.data, xAxis.p, yAxis.p),
+  }
 }
