@@ -65,9 +65,12 @@ export const render = () => {
                 showCursorPositionLine: true,
                 showCursorPositionValueLabel: true,
               },
-              snapCursorPositionLineToNearestDatum: true,
-              cursorPositionLineColor: 'red',
+              cursorPositionLineOptions: {
+                snapToNearestDatum: true,
+                color: 'red',
+              },
               cursorPositionValueLabelOptions: {
+                snapToNearestDatum: true,
                 fontSize: 20,
                 color: 'red',
                 backgroundColor: 'white',

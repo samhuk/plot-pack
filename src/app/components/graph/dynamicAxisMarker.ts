@@ -67,6 +67,10 @@ const drawNearestDatumFocus = (ctx: CanvasRenderingContext2D, nearestDatum: Posi
   ctx.stroke(path)
 }
 
+const getCursorPositionLineSnapTo = (props: Options, axis: Axis2D, defaultValue: boolean) => (
+  props.axesOptions?.[axis]?.cursorPositionLineOptions?.snapToNearestDatum ?? defaultValue
+)
+
 const drawCursorPositionLines = (
   ctx: CanvasRenderingContext2D,
   cursorX: number,
@@ -79,24 +83,25 @@ const drawCursorPositionLines = (
   if (props.axesOptions?.[Axis2D.Y]?.visibilityOptions?.showCursorPositionLine ?? false) {
     const cursorYLine = new Path2D()
     // Don't snap horizontal y-axis line by default
-    const yAxisLineY = nearestDatum != null && (props.axesOptions?.[Axis2D.Y]?.snapCursorPositionLineToNearestDatum ?? false) ? nearestDatum.pY : cursorY
+    const yAxisLineY = nearestDatum != null && getCursorPositionLineSnapTo(props, Axis2D.Y, false) ? nearestDatum.pY : cursorY
     cursorYLine.moveTo(xAxis.pu, yAxisLineY)
     cursorYLine.lineTo(xAxis.pl, yAxisLineY) // The horizontal line
 
-    ctx.lineWidth = props.axesOptions?.[Axis2D.Y]?.cursorPositionLineLineWidth ?? 1
-    ctx.strokeStyle = props.axesOptions?.[Axis2D.Y]?.cursorPositionLineColor ?? 'black'
+    ctx.lineWidth = props.axesOptions?.[Axis2D.Y]?.cursorPositionLineOptions?.lineWidth ?? 1
+    ctx.strokeStyle = props.axesOptions?.[Axis2D.Y]?.cursorPositionLineOptions?.color ?? 'black'
     ctx.stroke(cursorYLine)
   }
 
   if (props.axesOptions?.[Axis2D.X]?.visibilityOptions?.showCursorPositionLine ?? false) {
     const cursorXLine = new Path2D()
     // Snap vertical x-axis line by default
-    const xAxisLineX = nearestDatum != null && (props.axesOptions?.[Axis2D.X]?.snapCursorPositionLineToNearestDatum ?? true) ? nearestDatum.pX : cursorX
+    const xAxisLineX = nearestDatum != null && getCursorPositionLineSnapTo(props, Axis2D.X, true) ? nearestDatum.pX : cursorX
     cursorXLine.moveTo(xAxisLineX, yAxis.pu)
     cursorXLine.lineTo(xAxisLineX, yAxis.pl) // The vertical line
 
-    ctx.lineWidth = props.axesOptions?.[Axis2D.X]?.cursorPositionLineLineWidth ?? 2
-    ctx.strokeStyle = props.axesOptions?.[Axis2D.X]?.cursorPositionLineColor ?? 'black'
+    ctx.lineWidth = props.axesOptions?.[Axis2D.X]?.cursorPositionLineOptions?.lineWidth ?? 2
+    ctx.strokeStyle = props.axesOptions?.[Axis2D.X]?.cursorPositionLineOptions.color ?? 'black'
+
     ctx.stroke(cursorXLine)
   }
 }

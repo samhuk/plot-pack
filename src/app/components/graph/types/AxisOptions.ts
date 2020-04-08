@@ -18,11 +18,14 @@ export type AxisOptions = {
   visibilityOptions?: AxisVisibilityOptions
   padding?: number
   orientation?: XAxisOrientation | YAxisOrientation
-  snapCursorPositionLineToNearestDatum?: boolean
-  snapCursorPositionValueToNearestDatum?: boolean
-  cursorPositionLineLineWidth?: number
-  cursorPositionLineColor?: string
+  cursorPositionLineOptions?: {
+    snapToNearestDatum?: boolean
+    lineWidth?: number
+    color?: string
+    dashPattern?: number[]
+  }
   cursorPositionValueLabelOptions?: {
+    snapToNearestDatum?: boolean
     fontFamily?: string
     fontSize?: number
     color?: string
