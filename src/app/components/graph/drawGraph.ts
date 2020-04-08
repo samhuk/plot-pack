@@ -180,7 +180,7 @@ const drawXAxisAxisMarkerLabels = (
   yAxis: AxisGeometry,
   props: Options,
 ) => {
-  ctx.lineWidth = 1
+  ctx.lineWidth = 0.7
   ctx.font = `${getFontSize(props, Axis2D.X)} ${getFontFamily(props, Axis2D.X)}`.trim()
   ctx.strokeStyle = getLabelColor(props, Axis2D.X)
 
@@ -190,7 +190,7 @@ const drawXAxisAxisMarkerLabels = (
     const value = xAxis.vl + xAxis.dvGrid * i
     const x = xAxis.p(value)
     const _y = y + 15
-    ctx.strokeText(createAxisGridLabelText(value, props.axesOptions[Axis2D.X]), x, _y)
+    ctx.fillText(createAxisGridLabelText(value, props.axesOptions[Axis2D.X]), x, _y)
   }
 }
 
@@ -200,7 +200,7 @@ const drawYAxisAxisMarkerLabels = (
   xAxis: AxisGeometry,
   props: Options,
 ) => {
-  ctx.lineWidth = 1
+  ctx.lineWidth = 0.7
   ctx.font = `${getFontSize(props, Axis2D.Y)} ${getFontFamily(props, Axis2D.Y)}`.trim()
   ctx.strokeStyle = getLabelColor(props, Axis2D.Y)
 
@@ -210,7 +210,7 @@ const drawYAxisAxisMarkerLabels = (
     const value = yAxis.vl + yAxis.dvGrid * i
     const _x = x - 30
     const y = yAxis.p(value) - 5
-    ctx.strokeText(createAxisGridLabelText(value, props.axesOptions[Axis2D.Y]), _x, y)
+    ctx.fillText(createAxisGridLabelText(value, props.axesOptions[Axis2D.Y]), _x, y)
   }
 }
 

@@ -18,6 +18,9 @@ export type AxisOptions = {
   visibilityOptions?: AxisVisibilityOptions
   padding?: number
   orientation?: XAxisOrientation | YAxisOrientation
+  snapCursorLineToNearestDatum?: boolean
+  cursorLineLineWidth?: number
+  cursorLineColor?: string
 }
 
 export default AxisOptions

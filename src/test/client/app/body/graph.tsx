@@ -7,12 +7,13 @@ import BestFitLine from '../../../../app/components/graph/types/BestFitLineType'
 import MarkerType from '../../../../app/components/graph/types/MarkerType'
 import XAxisOrientation from '../../../../app/components/graph/types/xAxisOrientation'
 import YAxisOrientation from '../../../../app/components/graph/types/yAxisOrientation'
+import DatumFocusMode from '../../../../app/components/graph/types/DatumFocusMode'
 
 export const render = () => {
   const [height, setHeight] = useState(500)
   const [width, setWidth] = useState(500)
   const [xMax, setXMax] = useState(1)
-  const [numPoints, setNumPoints] = useState(200)
+  const [numPoints, setNumPoints] = useState(20)
 
   const fn = (x: number) => x ** x
   const data = []
@@ -56,6 +57,10 @@ export const render = () => {
               axisLineColor: '#333',
               axisMarkerLineColor: '#333',
               orientation: XAxisOrientation.ORIGIN,
+              visibilityOptions: {
+                showCursorLine: true,
+              },
+              snapCursorLineToNearestDatum: true,
             },
           }}
           bestFitLineOptions={{
@@ -70,9 +75,10 @@ export const render = () => {
           markerOptions={{
             lineWidth: 1,
             size: 6,
-            type: MarkerType.PLUS,
+            type: MarkerType.DOT,
             color: '#333',
           }}
+          datumFocusMode={DatumFocusMode.SNAP_NEAREST_X}
         />
       </div>
     </div>

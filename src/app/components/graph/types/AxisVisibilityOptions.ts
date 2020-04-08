@@ -3,6 +3,7 @@ export type AxisVisibilityOptions = {
   showAxisMarkerLines?: boolean
   showAxisLine?: boolean
   showGridLines?: boolean
+  showCursorLine?: boolean
 }
 
 export default AxisVisibilityOptions
