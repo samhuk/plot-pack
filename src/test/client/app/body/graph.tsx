@@ -67,12 +67,15 @@ export const render = () => {
               },
               snapCursorPositionLineToNearestDatum: true,
               cursorPositionLineColor: 'red',
-              cursorPositionValueLabelFontSize: 20,
-              cursorPositionValueLabelColor: 'red',
-              cursorPositionValueLabelBackgroundColor: 'white',
-              cursorPositionValueLabelBorderColor: 'blue',
-              cursorPositionValueLabelBorderLineWidth: 3,
-              cursorPositionValueLabelBorderRadius: 15,
+              cursorPositionValueLabelOptions: {
+                fontSize: 20,
+                color: 'red',
+                backgroundColor: 'white',
+                borderColor: 'blue',
+                borderLineWidth: 3,
+                borderRadius: 15,
+                padding: 10,
+              },
             },
           }}
           bestFitLineOptions={{

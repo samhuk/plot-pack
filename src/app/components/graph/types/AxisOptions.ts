@@ -22,13 +22,16 @@ export type AxisOptions = {
   snapCursorPositionValueToNearestDatum?: boolean
   cursorPositionLineLineWidth?: number
   cursorPositionLineColor?: string
-  cursorPositionValueLabelFontFamily?: string
-  cursorPositionValueLabelFontSize?: number
-  cursorPositionValueLabelColor?: string
-  cursorPositionValueLabelBackgroundColor?: string
-  cursorPositionValueLabelBorderColor?: string
-  cursorPositionValueLabelBorderLineWidth?: number
-  cursorPositionValueLabelBorderRadius?: number
+  cursorPositionValueLabelOptions?: {
+    fontFamily?: string
+    fontSize?: number
+    color?: string
+    backgroundColor?: string
+    borderColor?: string
+    borderLineWidth?: number
+    borderRadius?: number
+    padding?: number
+  }
 }
 
 export default AxisOptions
