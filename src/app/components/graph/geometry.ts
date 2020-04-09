@@ -105,6 +105,8 @@ const calculateAxisGeometry = (
   const dvAbs = Math.abs(vlPrime - vuPrime)
   const dvGridAbs = Math.abs(_dvGrid)
 
+  const shouldAddOneDueToFloatingPointImprecision = Math.abs((dvAbs % dvGridAbs) - dvGridAbs) <= Number.EPSILON
+
   return {
     vl: vlPrime,
     vu: vuPrime,
@@ -115,7 +117,7 @@ const calculateAxisGeometry = (
     p,
     v: _p => ((_p - pl) / dpdv) + vlPrime,
     pOrigin: boundToRange(p(0), pl, pu),
-    numGridLines: Math.floor(dvAbs / dvGridAbs) + 1,
+    numGridLines: Math.floor(dvAbs / dvGridAbs) + 1 + (shouldAddOneDueToFloatingPointImprecision ? 1 : 0),
   }
 }
 
@@ -147,10 +149,10 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
 
   const axesValueRange = calculateValueRanges(props.data)
 
-  const forcedVlX = props.axesOptions?.[Axis2D.X]?.vl ?? axesValueRange.vlX
-  const forcedVlY = props.axesOptions?.[Axis2D.Y]?.vl ?? axesValueRange.vlY
-  const forcedVuX = props.axesOptions?.[Axis2D.X]?.vu ?? axesValueRange.vuX
-  const forcedVuY = props.axesOptions?.[Axis2D.Y]?.vu ?? axesValueRange.vuY
+  const forcedVlX = props.axesOptions?.[Axis2D.X]?.vl
+  const forcedVlY = props.axesOptions?.[Axis2D.Y]?.vl
+  const forcedVuX = props.axesOptions?.[Axis2D.X]?.vu
+  const forcedVuY = props.axesOptions?.[Axis2D.Y]?.vu
 
   const vlX = forcedVlX ?? axesValueRange.vlX
   const vlY = forcedVlY ?? axesValueRange.vlY

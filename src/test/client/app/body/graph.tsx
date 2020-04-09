@@ -12,12 +12,12 @@ import DatumFocusMode from '../../../../app/components/graph/types/DatumFocusMod
 export const render = () => {
   const [height, setHeight] = useState(500)
   const [width, setWidth] = useState(500)
-  const [xMax, setXMax] = useState(1)
+  const [xMax, setXMax] = useState(20)
   const [numPoints, setNumPoints] = useState(20)
 
-  const fn = (x: number) => x ** x + 2
+  const fn = (x: number) => x * Math.cos(x)
   const data = []
-  const xMin = 0
+  const xMin = -10
   const dx = (xMax - xMin) / numPoints
   for (let i = xMin; i < xMax; i += dx) {
     data.push({ x: i, y: fn(i) })
