@@ -15,7 +15,7 @@ export const render = () => {
   const [xMax, setXMax] = useState(1)
   const [numPoints, setNumPoints] = useState(20)
 
-  const fn = (x: number) => x ** x
+  const fn = (x: number) => x ** x + 2
   const data = []
   const xMin = 0
   const dx = (xMax - xMin) / numPoints
@@ -35,9 +35,9 @@ export const render = () => {
         X Max:
         <input type="number" value={xMax} onChange={e => setXMax(parseInt(e.target.value))} />
         Width:
-        <input type="number" value={width} onChange={e => setWidth(parseInt(e.target.value))} />
+        <input type="number" min="0" value={width} onChange={e => setWidth(parseInt(e.target.value))} />
         Height:
-        <input type="number" value={height} onChange={e => setHeight(parseInt(e.target.value))} />
+        <input type="number" min="0" value={height} onChange={e => setHeight(parseInt(e.target.value))} />
         <Graph
           heightPx={height}
           widthPx={width}
@@ -56,9 +56,9 @@ export const render = () => {
               },
             },
             [Axis2D.X]: {
-              dvGrid: 0.15,
-              vu: 2,
-              vl: 0.3,
+              // dvGrid: 0.15,
+              // vl: 0,
+              // vu: 1,
               notation: Notation.DECIMAL,
               numFigures: 2,
               axisLineColor: '#333',

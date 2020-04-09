@@ -24,11 +24,15 @@ const getDefaultValueRangeOfDatums = (datum: Datum) => ({
  * Determines the minimum and maximum values for each axis
  */
 const calculateValueRanges = (data: Datum[]): AxesRange => {
-  let xMin = 0
-  let xMax = 0
-  let yMin = 0
-  let yMax = 0
-  for (let i = 0; i < data.length; i += 1) {
+  if (data.length === 0)
+    return { vlX: 0, vuX: 0, vlY: 0, vuY: 0 }
+
+  const firstDatumValueRange = getDefaultValueRangeOfDatums(data[0])
+  let xMin = firstDatumValueRange.x.min
+  let xMax = firstDatumValueRange.x.max
+  let yMin = firstDatumValueRange.y.min
+  let yMax = firstDatumValueRange.y.max
+  for (let i = 1; i < data.length; i += 1) {
     const datumValueRanges = getDefaultValueRangeOfDatums(data[i])
     if (datumValueRanges.x.max > xMax)
       xMax = datumValueRanges.x.max

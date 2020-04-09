@@ -295,6 +295,9 @@ const drawDatums = (
   yAxisPFn: (v: number) => number,
   props: Options,
 ) => {
+  if (positionedDatums.length === 0)
+    return
+
   const firstVx = positionedDatums[0].pX
   const firstVy = positionedDatums[0].pY
 
