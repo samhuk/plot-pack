@@ -105,7 +105,7 @@ const calculateAxisGeometry = (
   const dvAbs = Math.abs(vlPrime - vuPrime)
   const dvGridAbs = Math.abs(_dvGrid)
 
-  const shouldAddOneDueToFloatingPointImprecision = Math.abs((dvAbs % dvGridAbs) - dvGridAbs) <= Number.EPSILON
+  const shouldAddOneDueToFloatingPointImprecision = Math.abs(((vlPrime - vuPrime + _dvGrid / 2) % _dvGrid) - _dvGrid / 2) <= Number.EPSILON
 
   return {
     vl: vlPrime,
