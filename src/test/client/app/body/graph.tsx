@@ -7,7 +7,8 @@ import BestFitLine from '../../../../app/components/graph/types/BestFitLineType'
 import MarkerType from '../../../../app/components/graph/types/MarkerType'
 import XAxisOrientation from '../../../../app/components/graph/types/xAxisOrientation'
 import YAxisOrientation from '../../../../app/components/graph/types/yAxisOrientation'
-import DatumFocusMode from '../../../../app/components/graph/types/DatumFocusMode'
+import DatumSnapMode from '../../../../app/components/graph/types/DatumSnapMode'
+import { DatumHighlightAppearanceType } from '../../../../app/components/graph/types/DatumHighlightAppearanceType'
 
 export const render = () => {
   const [height, setHeight] = useState(500)
@@ -99,7 +100,12 @@ export const render = () => {
             type: MarkerType.DOT,
             color: '#333',
           }}
-          datumFocusMode={DatumFocusMode.SNAP_NEAREST_X}
+          datumSnapMode={DatumSnapMode.SNAP_NEAREST_X}
+          datumHighlightAppearance={{
+            type: DatumHighlightAppearanceType.CROSSHAIR,
+            lineWidth: 2,
+            color: 'blue',
+          }}
         />
       </div>
     </div>

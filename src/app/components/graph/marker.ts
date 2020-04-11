@@ -2,7 +2,7 @@ import MarkerOptions from './types/MarkerOptions'
 import MarkerType from './types/MarkerType'
 import Datum from './types/Datum'
 
-const DEFAULT_MARKER_SIZE = 4
+export const DEFAULT_MARKER_SIZE = 4
 const DEFAULT_MARKER_TYPE = MarkerType.DOT
 
 const createDotMarkerPath = (x: number, y: number, size: number): Path2D => {

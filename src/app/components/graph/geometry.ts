@@ -80,6 +80,17 @@ const calculateVuPrime = (vu: number, dvGrid: number) => {
   return vu - vuModDvGrid + (vuModDvGrid !== 0 ? dvGrid : 0)
 }
 
+/**
+ * Calculates the geometrical properties of an axis given some initial details.
+ * @param vl The lower value bound (i.e. minimum value) of the data
+ * @param vu The upper value bound (i.e. the maximum value) of the data
+ * @param pl The lower position bound (i.e. the minimum possible position in units of px)
+ * @param pu The upper position bound (i.e. the maximum possible position in units of px)
+ * @param dpMin The minimum possible grid spacing in units of px
+ * @param dvGrid Optional forced grid spacing in the value units
+ * @param forceVl True to force the lower axis bound to the lower bound of the data, `vl`
+ * @param forceVu True to force the upper axis bound to the upper bound of the data, `vu`
+ */
 const calculateAxisGeometry = (
   vl: number,
   vu: number,
@@ -102,10 +113,9 @@ const calculateAxisGeometry = (
 
   const p = (v: number) => dpdv * (v - vlPrime) + pl
 
-  const dvAbs = Math.abs(vlPrime - vuPrime)
-  const dvGridAbs = Math.abs(_dvGrid)
+  const dvPrime = vlPrime - vuPrime
 
-  const shouldAddOneDueToFloatingPointImprecision = Math.abs(((vlPrime - vuPrime + _dvGrid / 2) % _dvGrid) - _dvGrid / 2) <= Number.EPSILON
+  const shouldAddOneDueToFloatingPointImprecision = Math.abs(((dvPrime + _dvGrid / 2) % _dvGrid) - _dvGrid / 2) <= Number.EPSILON
 
   return {
     vl: vlPrime,
@@ -117,7 +127,7 @@ const calculateAxisGeometry = (
     p,
     v: _p => ((_p - pl) / dpdv) + vlPrime,
     pOrigin: boundToRange(p(0), pl, pu),
-    numGridLines: Math.floor(dvAbs / dvGridAbs) + 1 + (shouldAddOneDueToFloatingPointImprecision ? 1 : 0),
+    numGridLines: Math.floor(Math.abs(dvPrime / _dvGrid)) + 1 + (shouldAddOneDueToFloatingPointImprecision ? 1 : 0),
   }
 }
 

@@ -3,7 +3,9 @@ import AxisOptions from './AxisOptions'
 import { Axis2D } from '../../../common/types/geometry'
 import MarkerOptions from './MarkerOptions'
 import BestFitLineOptions from './BestFitLineOptions'
-import DatumFocusMode from './DatumFocusMode'
+import DatumSnapMode from './DatumSnapMode'
+import PositionedDatum from './PositionedDatum'
+import DatumFocusAppearance from './DatumHighlightAppearance'
 
 /**
  * Options for the Graph
@@ -44,8 +46,9 @@ export type Options = {
     showLine?: boolean
   }
   bestFitLineOptions?: BestFitLineOptions
-  datumFocusMode?: DatumFocusMode
-  datumFocusDistanceThresholdPx?: number
+  datumSnapMode?: DatumSnapMode
+  datumSnapDistanceThresholdPx?: number
+  datumHighlightAppearance?: DatumFocusAppearance | ((ctx: CanvasRenderingContext2D, highlightedDatum: PositionedDatum) => void)
 }
 
 export default Options

@@ -3,6 +3,9 @@ import XAxisOrientation from './xAxisOrientation'
 import YAxisOrientation from './yAxisOrientation'
 import AxisVisibilityOptions from './AxisVisibilityOptions'
 
+/**
+ * Options to customize the rendering and behavior of an axis.
+ */
 export type AxisOptions = {
   dvGrid?: number
   vl?: number
