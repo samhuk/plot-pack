@@ -8,6 +8,10 @@ import { calculateStraightLineOfBestFit } from '../../common/helpers/stat'
 import { boundToRange, isInRange } from '../../common/helpers/math'
 import PositionedDatum from './types/PositionedDatum'
 import { Axis2D } from '../../common/types/geometry'
+import DatumSnapMode from './types/DatumSnapMode'
+import DatumDistanceFunction from './types/DatumDistanceFunction'
+
+const kdTree: any = require('kd-tree-javascript')
 
 const getDefaultValueRangeOfDatums = (datum: Datum) => ({
   x: {
@@ -152,6 +156,36 @@ const calculatePositionedDatums = (
     pY: yAxisPFn(vY),
   }))
 
+const createDatumDistanceFunction = (datumSnapMode: DatumSnapMode): DatumDistanceFunction => {
+  const defaultFn = (datum1: PositionedDatum, datum2: PositionedDatum) => Math.abs(datum1.pX - datum2.pX)
+
+  switch (datumSnapMode) {
+    case DatumSnapMode.SNAP_NEAREST_X:
+      return defaultFn
+    case DatumSnapMode.SNAP_NEAREST_Y:
+      return (datum1: PositionedDatum, datum2: PositionedDatum) => Math.abs(datum1.pY - datum2.pY)
+    case DatumSnapMode.SNAP_NEAREST_X_Y:
+      return (datum1: PositionedDatum, datum2: PositionedDatum) => Math.sqrt((datum1.pX - datum2.pX) ** 2 + (datum1.pY - datum2.pY) ** 2)
+    default:
+      return defaultFn
+  }
+}
+
+const createDatumDimensionStringList = (datumSnapMode: DatumSnapMode): string[] => {
+  const defaultValue = ['pX']
+
+  switch (datumSnapMode) {
+    case DatumSnapMode.SNAP_NEAREST_X:
+      return ['pX']
+    case DatumSnapMode.SNAP_NEAREST_Y:
+      return ['pY']
+    case DatumSnapMode.SNAP_NEAREST_X_Y:
+      return ['pX', 'pY']
+    default:
+      return defaultValue
+  }
+}
+
 export const createGraphGeometry = (props: Options): GraphGeometry => {
   const paddingX = 30
   const paddingY = 30
@@ -185,10 +219,21 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
     })))
     : null
 
+  const positionedDatums = calculatePositionedDatums(props.data, xAxis.p, yAxis.p, vlX, vuX, vlY, vuY)
+
+  // Create a K-D tree for the datums to provide quicker (lower time complexity) nearest neighboor searching
+  // eslint-disable-next-line new-cap
+  const datumKdTree = new kdTree.kdTree(
+    positionedDatums,
+    createDatumDistanceFunction(props.datumSnapMode),
+    createDatumDimensionStringList(props.datumSnapMode),
+  )
+
   return {
     xAxis,
     yAxis,
     bestFitStraightLineEquation,
-    positionedDatums: calculatePositionedDatums(props.data, xAxis.p, yAxis.p, vlX, vuX, vlY, vuY),
+    positionedDatums,
+    datumKdTree,
   }
 }

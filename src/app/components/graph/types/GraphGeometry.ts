@@ -1,9 +1,10 @@
 import AxisGeometry from './AxisGeometry'
 import { StraightLineEquation } from '../../../common/types/geometry'
 import PositionedDatum from './PositionedDatum'
+import KdTree from './KdTree'
 
 /**
- * Geometry of a graph. This is all the values that one would need
+ * Geometry of a graph. This is all the information that one would need
  * to draw a graph.
  */
 export type GraphGeometry = {
@@ -11,6 +12,7 @@ export type GraphGeometry = {
   xAxis: AxisGeometry
   yAxis: AxisGeometry
   bestFitStraightLineEquation: StraightLineEquation
+  datumKdTree: KdTree<PositionedDatum>
 }
 
 export default GraphGeometry
