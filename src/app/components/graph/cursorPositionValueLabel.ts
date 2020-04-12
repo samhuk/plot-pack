@@ -38,8 +38,9 @@ const getCursorPositionValueLabelPadding = (props: Options, axis: Axis2D) => (
   props.axesOptions?.[axis]?.cursorPositionValueLabelOptions?.padding ?? DEFAULT_PADDING
 )
 
-const getCursorPositionValueLabelSnapTo = (props: Options, axis: Axis2D, defaultValue: boolean) => (
-  props.axesOptions?.[axis]?.cursorPositionValueLabelOptions?.snapToNearestDatum ?? defaultValue
+const getCursorPositionValueLabelSnapTo = (props: Options, axis: Axis2D) => (
+  props.axesOptions?.[axis]?.cursorPositionValueLabelOptions?.snapToNearestDatum
+    ?? axis === Axis2D.X
 )
 
 const getCursorPositionValueLabelColor = (props: Options, axis: Axis2D) => (
@@ -63,7 +64,7 @@ export const drawCursorPositionValueLabels = (
   props: Options,
 ) => {
   if (props.axesOptions?.[Axis2D.X]?.visibilityOptions?.showCursorPositionValueLabel ?? true) {
-    const pX = nearestDatum != null && getCursorPositionValueLabelSnapTo(props, Axis2D.X, false) ? nearestDatum.pX : cursorPoint.x
+    const pX = nearestDatum != null && getCursorPositionValueLabelSnapTo(props, Axis2D.X) ? nearestDatum.pX : cursorPoint.x
     const xAxisText = xAxis.v(pX).toFixed(2)
 
     const bgRectPaddingPx = getCursorPositionValueLabelPadding(props, Axis2D.X)
@@ -85,7 +86,7 @@ export const drawCursorPositionValueLabels = (
     ctx.fillText(xAxisText, pX - textBoxWidth / 2, yAxis.pl - bgRectPaddingPx - 2)
   }
   if (props.axesOptions?.[Axis2D.Y]?.visibilityOptions?.showCursorPositionValueLabel ?? true) {
-    const pY = nearestDatum != null && getCursorPositionValueLabelSnapTo(props, Axis2D.Y, false) ? nearestDatum.pY : cursorPoint.y
+    const pY = nearestDatum != null && getCursorPositionValueLabelSnapTo(props, Axis2D.Y) ? nearestDatum.pY : cursorPoint.y
     const yAxisText = yAxis.v(pY).toFixed(2)
 
     const bgRectPaddingPx = getCursorPositionValueLabelPadding(props, Axis2D.Y)

@@ -1,7 +1,7 @@
 import React from 'react'
 import renderGraph from './graph'
 import Options from './types/Options'
-import renderDynamicAxisMarker from './dynamicMarkers'
+import renderInteractivity from './interactivity'
 import { createGraphGeometry } from './geometry'
 
 export const Graph = (props: Options) => {
@@ -16,7 +16,7 @@ export const Graph = (props: Options) => {
   const onDynamicAxisMarkerCanvasReady = (canvas: HTMLCanvasElement): void => {
     if (canvas == null)
       return
-    renderDynamicAxisMarker(canvas, props, graphGeometry)
+    renderInteractivity(canvas, props, graphGeometry)
   }
 
   return (

@@ -63,6 +63,8 @@ export const measureTextLineHeight = (ctx: CanvasRenderingContext2D) => {
   return (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent)
 }
 
+export const measureTextWidth = (ctx: CanvasRenderingContext2D, text: string) => ctx.measureText(text).width
+
 export const getDprCorrectedEventPosition = (e: MouseEvent): Point2D => ({
   x: e.offsetX * window.devicePixelRatio,
   y: e.offsetY * window.devicePixelRatio,
@@ -73,8 +75,8 @@ export const isMouseInPath = (e: MouseEvent, ctx: CanvasRenderingContext2D, path
   return ctx.isPointInPath(path, x, y)
 }
 
-export const createTextStyle = (fontFamily: string, fontSize: number) => (
-  `${fontSize?.toString().concat('px') ?? ''} ${fontFamily ?? ''}`.trim()
+export const createTextStyle = (fontFamily: string, fontSize: number, bold?: boolean, italic?: boolean) => (
+  `${italic ? 'italic ' : ''}${bold ? 'bold ' : ''}${fontSize?.toString().concat('px ') ?? ''}${fontFamily ?? ''}`.trim()
 )
 
 export const createRoundedRect = (
