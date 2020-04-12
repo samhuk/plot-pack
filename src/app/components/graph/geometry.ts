@@ -204,8 +204,8 @@ const getBestFitLineType = (props: Options, seriesKey: string) => props.seriesOp
   ?? BestFitLineType.STRAIGHT
 
 export const createGraphGeometry = (props: Options): GraphGeometry => {
-  const paddingX = 30
-  const paddingY = 30
+  const paddingX = props.axesOptions?.[Axis2D.X]?.padding ?? 40
+  const paddingY = props.axesOptions?.[Axis2D.Y]?.padding ?? 40
   const defaultGridMinPx = 30
 
   const axesValueRange = calculateValueRangesOfSeries(props.series)

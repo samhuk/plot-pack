@@ -78,6 +78,9 @@ export const render = () => {
           }}
           axesOptions={{
             [Axis2D.Y]: {
+              titleOptions: {
+                text: 'This is the Y Axis',
+              },
               notation: Notation.DECIMAL,
               numFigures: 2,
               axisLineColor: '#333',
@@ -90,6 +93,9 @@ export const render = () => {
               },
             },
             [Axis2D.X]: {
+              titleOptions: {
+                text: 'This is the X Axis',
+              },
               // dvGrid: 0.15,
               // vl: 0,
               // vu: 1,

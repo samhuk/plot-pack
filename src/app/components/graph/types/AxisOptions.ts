@@ -2,11 +2,15 @@ import Notation from './Notation'
 import XAxisOrientation from './xAxisOrientation'
 import YAxisOrientation from './yAxisOrientation'
 import AxisVisibilityOptions from './AxisVisibilityOptions'
+import TextOptions from './TextOptions'
 
 /**
  * Options to customize the rendering and behavior of an axis.
  */
 export type AxisOptions = {
+  titleOptions?: TextOptions & {
+    text?: string
+  }
   dvGrid?: number
   vl?: number
   vu?: number

@@ -12,6 +12,7 @@ import { drawXAxisAxisMarkerLabels, drawYAxisAxisMarkerLabels } from './markerLa
 import { drawXAxisAxisMarkerLines, drawYAxisAxisMarkerLines } from './axisMarkerLines'
 import { drawXAxisLine, drawYAxisLine } from './axisLines'
 import { drawStraightLineOfBestFit } from './straightLineOfBestFit'
+import { drawAxisTitle } from './axisTitles'
 
 // -- Axis lines
 
@@ -187,4 +188,7 @@ export const draw = (ctx: CanvasRenderingContext2D, g: GraphGeometry, props: Opt
   Object.entries(g.bestFitStraightLineEquations)
     .filter(([seriesKey, eq]) => eq != null && getShouldShowLineOfBestFit(props, seriesKey))
     .forEach(([seriesKey, eq]) => drawStraightLineOfBestFit(ctx, eq, g, props, seriesKey))
+
+  drawAxisTitle(ctx, Axis2D.X, g, props)
+  drawAxisTitle(ctx, Axis2D.Y, g, props)
 }
