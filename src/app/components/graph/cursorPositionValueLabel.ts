@@ -76,7 +76,8 @@ export const drawCursorPositionValueLabels = (
     const bgRectWidth = textBoxWidth + 2 * bgRectPaddingPx
     const bgRectHeight = lineHeight + 2 * bgRectPaddingPx
     const bgRectRadius = getCursorPositionValueLabelBorderRadius(props, Axis2D.X)
-    const bgRect = createRoundedRect(bgRectX, bgRectY, bgRectWidth, bgRectHeight, bgRectRadius)
+    const bgRectBorderRadii = [bgRectRadius, bgRectRadius, 0, 0]
+    const bgRect = createRoundedRect(bgRectX, bgRectY, bgRectWidth, bgRectHeight, bgRectBorderRadii)
     drawLabelBackgroundRect(ctx, bgRect, Axis2D.X, props)
 
     // Create label
@@ -99,7 +100,8 @@ export const drawCursorPositionValueLabels = (
     const bgRectWidth = textBoxWidth + 2 * bgRectPaddingPx
     const bgRectHeight = lineHeight + 2 * bgRectPaddingPx
     const bgRectRadius = getCursorPositionValueLabelBorderRadius(props, Axis2D.Y)
-    const bgRect = createRoundedRect(bgRectX, bgRectY, bgRectWidth, bgRectHeight, bgRectRadius)
+    const bgRectBorderRadii = [0, bgRectRadius, 0, bgRectRadius]
+    const bgRect = createRoundedRect(bgRectX, bgRectY, bgRectWidth, bgRectHeight, bgRectBorderRadii)
     drawLabelBackgroundRect(ctx, bgRect, Axis2D.Y, props)
 
     // Create label

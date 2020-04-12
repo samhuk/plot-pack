@@ -50,7 +50,7 @@ module.exports = merge(common, {
       filename: '[path].gz[query]',
       algorithm: 'gzip',
       threshold: 8192,
-      minRatio: 0.8
-    })
+      minRatio: 0.8,
+    }),
   ],
 })

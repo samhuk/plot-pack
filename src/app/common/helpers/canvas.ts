@@ -38,7 +38,7 @@ const setContextTextProperties = (
   canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
   fontFamily?: string,
-  fontSize?: string,
+  fontSize?: number,
 ) => {
   const computedStyle = fontFamily == null || fontSize == null ? window.getComputedStyle(canvas) : null
   ctx.font = `${fontSize ?? computedStyle.fontSize} ${fontFamily ?? computedStyle.fontFamily}`
@@ -49,7 +49,7 @@ export const get2DContext = (
   properWidthPx?: number,
   properHeightPx?: number,
   fontFamily?: string,
-  fontSize?: string,
+  fontSize?: number,
 ) => {
   const ctx = canvas.getContext('2d')
   fixCanvasBlurriness(canvas, ctx, properWidthPx, properHeightPx)

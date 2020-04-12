@@ -10,10 +10,11 @@ import PositionedDatum from './types/PositionedDatum'
 import { Axis2D } from '../../common/types/geometry'
 import DatumSnapMode from './types/DatumSnapMode'
 import DatumDistanceFunction from './types/DatumDistanceFunction'
+import { mapDict } from '../../common/helpers/dict'
 
 const kdTree: any = require('kd-tree-javascript')
 
-const getDefaultValueRangeOfDatums = (datum: Datum) => ({
+const getValueRangeOfDatums = (datum: Datum) => ({
   x: {
     min: typeof datum.x === 'number' ? datum.x : Math.min(...datum.x),
     max: typeof datum.x === 'number' ? datum.x : Math.max(...datum.x),
@@ -27,17 +28,17 @@ const getDefaultValueRangeOfDatums = (datum: Datum) => ({
 /**
  * Determines the minimum and maximum values for each axis
  */
-const calculateValueRanges = (data: Datum[]): AxesRange => {
-  if (data.length === 0)
+const calculateValueRangesOfDatums = (datums: Datum[]): AxesRange => {
+  if (datums.length === 0)
     return { vlX: 0, vuX: 0, vlY: 0, vuY: 0 }
 
-  const firstDatumValueRange = getDefaultValueRangeOfDatums(data[0])
+  const firstDatumValueRange = getValueRangeOfDatums(datums[0])
   let xMin = firstDatumValueRange.x.min
   let xMax = firstDatumValueRange.x.max
   let yMin = firstDatumValueRange.y.min
   let yMax = firstDatumValueRange.y.max
-  for (let i = 1; i < data.length; i += 1) {
-    const datumValueRanges = getDefaultValueRangeOfDatums(data[i])
+  for (let i = 1; i < datums.length; i += 1) {
+    const datumValueRanges = getValueRangeOfDatums(datums[i])
     if (datumValueRanges.x.max > xMax)
       xMax = datumValueRanges.x.max
     if (datumValueRanges.x.min < xMin)
@@ -55,6 +56,20 @@ const calculateValueRanges = (data: Datum[]): AxesRange => {
     vuY: yMax,
   }
 }
+
+const calculateValueRangesOfSeries = (series: { [seriesKey: string]: Datum[] }): AxesRange => (
+  Object.values(mapDict(series, (_, datums) => calculateValueRangesOfDatums(datums)))
+    .reduce((acc, axesRange) => (acc == null
+      ? axesRange
+      : {
+        vlX: Math.min(axesRange.vlX, acc.vlX),
+        vlY: Math.min(axesRange.vlY, acc.vlY),
+        vuX: Math.max(axesRange.vuX, acc.vuX),
+        vuY: Math.max(axesRange.vuY, acc.vuY),
+      }),
+      null as AxesRange)
+)
+
 
 const calculateAutoDvGrid = (vl: number, vu: number, dp: number, dpMin: number) => {
   // Calculate minimum possible value grid increment
@@ -156,24 +171,22 @@ const calculatePositionedDatums = (
     pY: yAxisPFn(vY),
   }))
 
-const createDatumDistanceFunction = (datumSnapMode: DatumSnapMode): DatumDistanceFunction => {
-  const defaultFn = (datum1: PositionedDatum, datum2: PositionedDatum) => Math.abs(datum1.pX - datum2.pX)
+export const createDatumDistanceFunction = (datumSnapMode: DatumSnapMode): DatumDistanceFunction => {
+  const xDistanceFunction = (datum1: PositionedDatum, datum2: PositionedDatum) => Math.abs(datum1.pX - datum2.pX)
 
   switch (datumSnapMode) {
     case DatumSnapMode.SNAP_NEAREST_X:
-      return defaultFn
+      return xDistanceFunction
     case DatumSnapMode.SNAP_NEAREST_Y:
       return (datum1: PositionedDatum, datum2: PositionedDatum) => Math.abs(datum1.pY - datum2.pY)
     case DatumSnapMode.SNAP_NEAREST_X_Y:
       return (datum1: PositionedDatum, datum2: PositionedDatum) => Math.sqrt((datum1.pX - datum2.pX) ** 2 + (datum1.pY - datum2.pY) ** 2)
     default:
-      return defaultFn
+      return xDistanceFunction
   }
 }
 
 const createDatumDimensionStringList = (datumSnapMode: DatumSnapMode): string[] => {
-  const defaultValue = ['pX']
-
   switch (datumSnapMode) {
     case DatumSnapMode.SNAP_NEAREST_X:
       return ['pX']
@@ -182,16 +195,20 @@ const createDatumDimensionStringList = (datumSnapMode: DatumSnapMode): string[] 
     case DatumSnapMode.SNAP_NEAREST_X_Y:
       return ['pX', 'pY']
     default:
-      return defaultValue
+      return ['pX']
   }
 }
+
+const getBestFitLineType = (props: Options, seriesKey: string) => props.seriesOptions?.[seriesKey]?.bestFitLineOptions?.type
+  ?? props.bestFitLineOptions?.type
+  ?? BestFitLineType.STRAIGHT
 
 export const createGraphGeometry = (props: Options): GraphGeometry => {
   const paddingX = 30
   const paddingY = 30
   const defaultGridMinPx = 30
 
-  const axesValueRange = calculateValueRanges(props.data)
+  const axesValueRange = calculateValueRangesOfSeries(props.series)
 
   const forcedVlX = props.axesOptions?.[Axis2D.X]?.vl
   const forcedVlY = props.axesOptions?.[Axis2D.Y]?.vl
@@ -212,28 +229,32 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
   const xAxis = calculateAxisGeometry(vlX, vuX, plX, puX, defaultGridMinPx, props.axesOptions?.[Axis2D.X]?.dvGrid, forcedVlX != null, forcedVuX != null)
   const yAxis = calculateAxisGeometry(vlY, vuY, plY, puY, defaultGridMinPx, props.axesOptions?.[Axis2D.Y]?.dvGrid, forcedVlY != null, forcedVuY != null)
 
-  const bestFitStraightLineEquation = props.bestFitLineOptions?.type === BestFitLineType.STRAIGHT
-    ? calculateStraightLineOfBestFit(props.data.map(({ x, y }) => ({
-      x: typeof x === 'number' ? x : x[0],
-      y: typeof y === 'number' ? y : y[0],
-    })))
-    : null
+  const bestFitStraightLineEquations = mapDict(props.series, (seriesKey, datums) => (
+    getBestFitLineType(props, seriesKey) === BestFitLineType.STRAIGHT
+      ? calculateStraightLineOfBestFit(datums.map(({ x, y }) => ({
+        x: typeof x === 'number' ? x : x[0],
+        y: typeof y === 'number' ? y : y[0],
+      })))
+      : null
+  ))
 
-  const positionedDatums = calculatePositionedDatums(props.data, xAxis.p, yAxis.p, vlX, vuX, vlY, vuY)
+  const positionedDatums = mapDict(props.series, (seriesKey, datums) => (
+    calculatePositionedDatums(datums, xAxis.p, yAxis.p, vlX, vuX, vlY, vuY)
+  ))
 
   // Create a K-D tree for the datums to provide quicker (lower time complexity) nearest neighboor searching
   // eslint-disable-next-line new-cap
-  const datumKdTree = new kdTree.kdTree(
-    positionedDatums,
+  const datumKdTrees = mapDict(props.series, seriesKey => new kdTree.kdTree(
+    positionedDatums[seriesKey],
     createDatumDistanceFunction(props.datumSnapMode),
     createDatumDimensionStringList(props.datumSnapMode),
-  )
+  ))
 
   return {
     xAxis,
     yAxis,
-    bestFitStraightLineEquation,
+    bestFitStraightLineEquations,
     positionedDatums,
-    datumKdTree,
+    datumKdTrees,
   }
 }

@@ -8,11 +8,11 @@ import KdTree from './KdTree'
  * to draw a graph.
  */
 export type GraphGeometry = {
-  positionedDatums: PositionedDatum[]
   xAxis: AxisGeometry
   yAxis: AxisGeometry
-  bestFitStraightLineEquation: StraightLineEquation
-  datumKdTree: KdTree<PositionedDatum>
+  positionedDatums: { [seriesKey: string]: PositionedDatum[] }
+  bestFitStraightLineEquations: { [seriesKey: string]: StraightLineEquation }
+  datumKdTrees: { [seriesKey: string]: KdTree<PositionedDatum> }
 }
 
 export default GraphGeometry

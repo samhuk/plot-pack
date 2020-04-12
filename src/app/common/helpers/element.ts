@@ -39,7 +39,7 @@ export const createElement = <K extends keyof HTMLElementTagNameMap>(tag: K, cla
   return el
 }
 
-export const iconClass = (iconName: string): string => `icon icon-${iconName}`;
+export const iconClass = (iconName: string): string => `icon icon-${iconName}`
 
 export const createIcon = (iconName: string, className?: string, id?: string): HTMLElement => {
   const el = document.createElement('i')
@@ -78,7 +78,8 @@ export const toggleLoadingElement = (element: HTMLElement, isLoading: boolean) =
     const loadingElement = createIcon('spinner', LOADING_ELEMENT_CLASS)
     addClasses(loadingElement, 'icon-spin', 'icon-lg')
     element.appendChild(loadingElement)
-  } else {
+  }
+  else {
     const existingLoadingElements = element.getElementsByClassName(LOADING_ELEMENT_CLASS)
     for (let i = 0; i < existingLoadingElements.length; i += 1)
       existingLoadingElements[i].remove()

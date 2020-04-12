@@ -16,21 +16,26 @@ export const render = () => {
   const [xMax, setXMax] = useState(20)
   const [numPoints, setNumPoints] = useState(20)
 
-  const fn = (x: number) => x * Math.cos(x)
-  const data = []
+  const fn = (x: number) => 10 * Math.cos(x) + 0.5 * x
+  const data1 = []
   const xMin = -10
   const dx = (xMax - xMin) / numPoints
   for (let i = xMin; i < xMax; i += dx) {
-    data.push({ x: i, y: fn(i) })
+    data1.push({ x: i, y: fn(i) })
     if (i > 1E7)
       break
   }
+
+  const data2 = []
+  for (let i = -10; i < 10; i += 1)
+    data2.push({ x: i, y: i })
 
   return (
     <div className="graph">
       <h2>Graph</h2>
 
       <div className="sandbox">
+        <h3>Highly customized, with changable options</h3>
         # of points:
         <input type="number" min="0" value={numPoints} onChange={e => setNumPoints(parseInt(e.target.value))} />
         X Max:
@@ -42,7 +47,27 @@ export const render = () => {
         <Graph
           heightPx={height}
           widthPx={width}
-          data={data}
+          series={{
+            1: data1,
+            2: data2,
+          }}
+          seriesOptions={{
+            1: {
+              visibilityOptions: {
+                showLine: true,
+              },
+              lineOptions: {
+                color: 'red',
+                width: 2,
+              },
+              markerOptions: {
+                color: 'purple',
+                type: MarkerType.CROSS,
+                size: 10,
+                lineWidth: 2,
+              },
+            },
+          }}
           axesOptions={{
             [Axis2D.Y]: {
               notation: Notation.DECIMAL,
@@ -91,7 +116,7 @@ export const render = () => {
           }}
           visibilityOptions={{
             showMarkers: true,
-            showLine: false,
+            showConnectingLine: true,
             showGridLines: true,
           }}
           markerOptions={{
@@ -105,6 +130,53 @@ export const render = () => {
             type: DatumHighlightAppearanceType.CROSSHAIR,
             lineWidth: 2,
             color: 'blue',
+          }}
+          seriesExcludedFromDatumHighlighting={[]}
+        />
+      </div>
+
+      <div className="sandbox">
+        <h3>Mostly default options (realistic use case example)</h3>
+        <Graph
+          heightPx={height}
+          widthPx={width}
+          series={{
+            1: data1,
+            2: data2,
+          }}
+          seriesOptions={{
+            1: {
+              lineOptions: {
+                color: 'red',
+                width: 2,
+              },
+            },
+            2: {
+              lineOptions: {
+                color: 'blue',
+                width: 2,
+              },
+            },
+          }}
+          visibilityOptions={{
+            showConnectingLine: true,
+          }}
+          markerOptions={{
+            size: 8,
+            type: MarkerType.CROSS,
+            lineWidth: 2,
+          }}
+        />
+      </div>
+
+      <div className="sandbox">
+        <h3>All default options</h3>
+        <Graph
+          heightPx={height}
+          widthPx={width}
+          series={{
+            1: data1,
+            2: data2,
           }}
         />
       </div>

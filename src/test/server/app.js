@@ -15,7 +15,8 @@ if (isProduction) {
       enableBrotli: true,
     }),
   )
-} else {
+}
+else {
   const devConfig = require('../../webpack.development') // eslint-disable-line global-require
   const compiler = require('webpack')(devConfig) // eslint-disable-line global-require
   const middleware = require('webpack-dev-middleware')(compiler) // eslint-disable-line global-require
@@ -31,7 +32,8 @@ app
   .get('*', (req, res) => {
     if (isProduction) {
       res.sendFile(join(__dirname, '../../client/index.html'))
-    } else {
+    }
+    else {
       req.url = '/' // Let middleware handle the request
       app.handle(req, res)
     }

@@ -1,8 +1,10 @@
-import MarkerOptions from './types/MarkerOptions'
 import MarkerType from './types/MarkerType'
-import Datum from './types/Datum'
+import PositionedDatum from './types/PositionedDatum'
+import Options from './types/Options'
 
-export const DEFAULT_MARKER_SIZE = 4
+export const DEFAULT_MARKER_SIZE = 6
+const DEFAULT_MARKER_LINE_WIDTH = 2
+const DEFAULT_MARKET_COLOR = 'black'
 const DEFAULT_MARKER_TYPE = MarkerType.DOT
 
 const createDotMarkerPath = (x: number, y: number, size: number): Path2D => {
@@ -51,50 +53,76 @@ const createPlusMarkerPath = (x: number, y: number, size: number): Path2D => {
   return path
 }
 
-const createMarkerPath = (markerOptions: MarkerOptions, x: number, y: number): Path2D => {
-  const markerSize = markerOptions?.size ?? DEFAULT_MARKER_SIZE
-  if (markerSize < 0)
+const createMarkerPath = (markerSize: number, markerType: MarkerType, x: number, y: number): Path2D => {
+  const _markerSize = markerSize ?? DEFAULT_MARKER_SIZE
+  if (_markerSize < 0)
     return null
 
-  switch (markerOptions?.type ?? DEFAULT_MARKER_TYPE) {
+  switch (markerType ?? DEFAULT_MARKER_TYPE) {
     case MarkerType.DOT:
-      return createDotMarkerPath(x, y, markerSize)
+      return createDotMarkerPath(x, y, _markerSize)
     case MarkerType.SQUARE:
-      return createSquareMarkerPath(x, y, markerSize)
+      return createSquareMarkerPath(x, y, _markerSize)
     case MarkerType.TRIANGLE:
-      return createTriangleMarkerPath(x, y, markerSize, false)
+      return createTriangleMarkerPath(x, y, _markerSize, false)
     case MarkerType.UPSIDE_DOWN_TRIANGLE:
-      return createTriangleMarkerPath(x, y, markerSize, true)
+      return createTriangleMarkerPath(x, y, _markerSize, true)
     case MarkerType.CROSS:
-      return createCrossMarkerPath(x, y, markerSize)
+      return createCrossMarkerPath(x, y, _markerSize)
     case MarkerType.PLUS:
-      return createPlusMarkerPath(x, y, markerSize)
+      return createPlusMarkerPath(x, y, _markerSize)
     default:
       return null
   }
 }
 
+export const getMarkerSize = (props: Options, seriesKey: string) => (
+  props.seriesOptions?.[seriesKey]?.markerOptions?.size
+    ?? props.markerOptions?.size
+    ?? DEFAULT_MARKER_SIZE
+)
+
+const getMarkerType = (props: Options, seriesKey: string) => (
+  props.seriesOptions?.[seriesKey]?.markerOptions?.type
+    ?? props.markerOptions?.type
+    ?? DEFAULT_MARKER_TYPE
+)
+
+const getMarkerColor = (props: Options, seriesKey: string) => (
+  props.seriesOptions?.[seriesKey]?.markerOptions?.color
+    ?? props.markerOptions?.color
+    ?? DEFAULT_MARKET_COLOR
+)
+
+const getMarkerLineWidth = (props: Options, seriesKey: string) => (
+  props.seriesOptions?.[seriesKey]?.markerOptions?.lineWidth
+    ?? props.markerOptions?.lineWidth
+    ?? DEFAULT_MARKER_LINE_WIDTH
+)
+
 export const drawStandardMarker = (
   ctx: CanvasRenderingContext2D,
-  markerOptions: MarkerOptions,
   pX: number,
   pY: number,
+  props: Options,
+  seriesKey: string,
 ) => {
-  const markerPath = createMarkerPath(markerOptions, pX, pY)
+  const markerSize = getMarkerSize(props, seriesKey)
+  const markerType = getMarkerType(props, seriesKey)
+  const markerPath = createMarkerPath(markerSize, markerType, pX, pY)
   if (markerPath == null)
     return
 
-  const markerType = markerOptions?.type ?? DEFAULT_MARKER_TYPE
+  const markerColor = getMarkerColor(props, seriesKey)
+  ctx.fillStyle = markerColor
+  ctx.strokeStyle = markerColor
+
   const shouldFill = markerType !== MarkerType.CROSS && markerType !== MarkerType.PLUS
-
-  ctx.fillStyle = markerOptions?.color ?? 'black'
-  ctx.strokeStyle = markerOptions?.color ?? 'black'
-
   if (shouldFill) {
     ctx.fill(markerPath)
   }
   else {
-    const lineWidth = markerOptions?.lineWidth ?? 1
+    const lineWidth = getMarkerLineWidth(props, seriesKey)
     if (lineWidth < 0)
       return
     ctx.lineWidth = lineWidth
@@ -104,19 +132,22 @@ export const drawStandardMarker = (
 
 export const drawCustomMarker = (
   ctx: CanvasRenderingContext2D,
-  markerOptions: MarkerOptions,
   pX: number,
   pY: number,
-  preceedingDatum: Datum,
-  datum: Datum,
-  proceedingDatum: Datum,
+  datum: PositionedDatum,
+  preceedingDatum: PositionedDatum,
+  proceedingDatum: PositionedDatum,
+  props: Options,
+  seriesKey: string,
 ) => {
-  if (markerOptions?.customOptions?.createPath == null || markerOptions?.customOptions?.renderPath == null)
-    return
+  const createPathFn = props.seriesOptions?.[seriesKey]?.markerOptions?.customOptions?.createPath
+    ?? props?.markerOptions?.customOptions?.createPath
+  const renderPathFn = props.seriesOptions?.[seriesKey]?.markerOptions?.customOptions?.renderPath
+    ?? props?.markerOptions?.customOptions?.renderPath
 
   ctx.save()
-  const path = markerOptions.customOptions.createPath(pX, pY, datum, preceedingDatum, proceedingDatum)
+  const path = createPathFn(pX, pY, datum, preceedingDatum, proceedingDatum)
   if (path != null)
-    markerOptions.customOptions.renderPath(ctx, path)
+    renderPathFn(ctx, path)
   ctx.restore()
 }

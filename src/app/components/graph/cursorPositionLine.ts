@@ -5,12 +5,16 @@ import { Axis2D, Point2D } from '../../common/types/geometry'
 
 const DEFAULT_LINE_WIDTH_X = 2
 const DEFAULT_LINE_WIDTH_Y = 1
-const DEFAULT_COLOR = 'black'
+const DEFAULT_COLOR = 'grey'
 const DEFAULT_DASH_PATTERN_X = [5, 5]
-const DEFAULT_DASH_PATTERN_Y: number[] = null
+const DEFAULT_DASH_PATTERN_Y: number[] = []
+const DEFAULT_SHOUD_SNAP_CURSOR_LINE_X = true
+const DEFAULT_SHOUD_SNAP_CURSOR_LINE_Y = false
 
-const getCursorPositionLineSnapTo = (props: Options, axis: Axis2D, defaultValue: boolean) => (
-  props.axesOptions?.[axis]?.cursorPositionLineOptions?.snapToNearestDatum ?? defaultValue
+const getShouldSnapCursorPositionLine = (props: Options, axis: Axis2D) => (
+  props.axesOptions?.[axis]?.cursorPositionLineOptions?.snapToNearestDatum ?? (
+    axis === Axis2D.X ? DEFAULT_SHOUD_SNAP_CURSOR_LINE_X : DEFAULT_SHOUD_SNAP_CURSOR_LINE_Y
+  )
 )
 
 const createCursorLinePath = (
@@ -27,7 +31,8 @@ const createCursorLinePath = (
     {
       const line = new Path2D()
       // Don't snap horizontal y-axis line by default
-      const yAxisLineY = nearestDatum != null && getCursorPositionLineSnapTo(props, Axis2D.Y, false) ? nearestDatum.pY : cursorPoint.y
+      const shouldSnapLine = getShouldSnapCursorPositionLine(props, Axis2D.Y)
+      const yAxisLineY = nearestDatum != null && shouldSnapLine ? nearestDatum.pY : cursorPoint.y
       line.moveTo(xAxis.pu, yAxisLineY)
       line.lineTo(xAxis.pl, yAxisLineY)
       return line
@@ -37,7 +42,8 @@ const createCursorLinePath = (
     {
       const line = new Path2D()
       // Snap vertical x-axis line by default
-      const xAxisLineX = nearestDatum != null && getCursorPositionLineSnapTo(props, Axis2D.X, true) ? nearestDatum.pX : cursorPoint.x
+      const shouldSnapLine = getShouldSnapCursorPositionLine(props, Axis2D.X)
+      const xAxisLineX = nearestDatum != null && shouldSnapLine ? nearestDatum.pX : cursorPoint.x
       line.moveTo(xAxisLineX, yAxis.pu)
       line.lineTo(xAxisLineX, yAxis.pl)
       return line
@@ -48,14 +54,33 @@ const createCursorLinePath = (
 }
 
 const applyDrawOptionsToContext = (ctx: CanvasRenderingContext2D, props: Options, axis: Axis2D) => {
-  ctx.lineWidth = props.axesOptions?.[axis]?.cursorPositionLineOptions?.lineWidth ?? (
-    axis === Axis2D.X ? DEFAULT_LINE_WIDTH_X : DEFAULT_LINE_WIDTH_Y
-  )
-  ctx.strokeStyle = props.axesOptions?.[axis]?.cursorPositionLineOptions?.color ?? DEFAULT_COLOR
-  const dashPattern = props.axesOptions?.[axis]?.cursorPositionLineOptions?.dashPattern ?? DEFAULT_DASH_PATTERN_Y ?? (
-    axis === Axis2D.X ? DEFAULT_DASH_PATTERN_X : DEFAULT_DASH_PATTERN_Y
-  ) ?? []
-  ctx.setLineDash(dashPattern)
+  const lineWidth = props.axesOptions?.[axis]?.cursorPositionLineOptions?.lineWidth
+    ?? (axis === Axis2D.X ? DEFAULT_LINE_WIDTH_X : DEFAULT_LINE_WIDTH_Y)
+  const lineDashPattern = props.axesOptions?.[axis]?.cursorPositionLineOptions?.dashPattern
+    ?? (axis === Axis2D.X ? DEFAULT_DASH_PATTERN_X : DEFAULT_DASH_PATTERN_Y)
+  const lineColor = props.axesOptions?.[axis]?.cursorPositionLineOptions?.color
+    ?? DEFAULT_COLOR
+  ctx.lineWidth = lineWidth
+  ctx.strokeStyle = lineColor
+  ctx.setLineDash(lineDashPattern)
+}
+
+const getShouldDrawCursorPositionLine = (props: Options, axis: Axis2D) => (
+  props.axesOptions?.[axis]?.visibilityOptions?.showCursorPositionLine ?? true
+)
+
+export const drawCursorPositionLine = (
+  ctx: CanvasRenderingContext2D,
+  cursorPoint: Point2D,
+  nearestDatum: PositionedDatum,
+  xAxis: AxisGeometry,
+  yAxis: AxisGeometry,
+  axis: Axis2D,
+  props: Options,
+) => {
+  const line = createCursorLinePath(axis, cursorPoint, xAxis, yAxis, nearestDatum, props)
+  applyDrawOptionsToContext(ctx, props, axis)
+  ctx.stroke(line)
 }
 
 export const drawCursorPositionLines = (
@@ -66,17 +91,11 @@ export const drawCursorPositionLines = (
   yAxis: AxisGeometry,
   props: Options,
 ) => {
-  if (props.axesOptions?.[Axis2D.Y]?.visibilityOptions?.showCursorPositionLine ?? false) {
-    const line = createCursorLinePath(Axis2D.Y, cursorPoint, xAxis, yAxis, nearestDatum, props)
-    applyDrawOptionsToContext(ctx, props, Axis2D.Y)
-    ctx.stroke(line)
-  }
+  if (getShouldDrawCursorPositionLine(props, Axis2D.X))
+    drawCursorPositionLine(ctx, cursorPoint, nearestDatum, xAxis, yAxis, Axis2D.X, props)
 
-  if (props.axesOptions?.[Axis2D.X]?.visibilityOptions?.showCursorPositionLine ?? false) {
-    const line = createCursorLinePath(Axis2D.X, cursorPoint, xAxis, yAxis, nearestDatum, props)
-    applyDrawOptionsToContext(ctx, props, Axis2D.X)
-    ctx.stroke(line)
-  }
+  if (getShouldDrawCursorPositionLine(props, Axis2D.Y))
+    drawCursorPositionLine(ctx, cursorPoint, nearestDatum, xAxis, yAxis, Axis2D.Y, props)
 
   ctx.setLineDash([])
 }

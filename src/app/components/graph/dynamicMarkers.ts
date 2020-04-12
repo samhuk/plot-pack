@@ -7,21 +7,74 @@ import { Point2D } from '../../common/types/geometry'
 import { drawCursorPositionValueLabels } from './cursorPositionValueLabel'
 import { drawCursorPositionLines } from './cursorPositionLine'
 import DatumHighlightAppearanceType from './types/DatumHighlightAppearanceType'
-import { drawDatumHighlight } from './highlightedMarker'
+import { drawDatumHighlight } from './datumHighlight'
 import PositionedDatum from './types/PositionedDatum'
 import KdTreeNearestResult from './types/KdTreeNearestResult'
+import KdTree from './types/KdTree'
+import { mapDict } from '../../common/helpers/dict'
+import { createDatumDistanceFunction } from './geometry'
+
+type NearestDatum = PositionedDatum & {
+  dp: number
+}
 
 const determineNearestDatum = (
-  kdTree: any,
+  kdTree: KdTree<PositionedDatum>,
   cursorPoint: Point2D,
   datumFocusDistanceThresholdPx: number,
-) => {
-  // TODO: ADD THIS KDTREE OBJECT TO THE GRAPH GEOMETRY!
-  const nearestDatumResult: KdTreeNearestResult<PositionedDatum>[] = kdTree.nearest({ pX: cursorPoint.x, pY: cursorPoint.y }, 1)
-  if (datumFocusDistanceThresholdPx == null || nearestDatumResult[0][1] <= datumFocusDistanceThresholdPx)
-    return nearestDatumResult[0][0]
+): NearestDatum => {
+  // The KD tree only relies on the position of the datum, i.e. the pX and pY values
+  const point = { pX: cursorPoint.x, pY: cursorPoint.y } as PositionedDatum
+  const nearestDatumResult: KdTreeNearestResult<PositionedDatum> = kdTree.nearest(point, 1)
+  if (datumFocusDistanceThresholdPx == null || nearestDatumResult[0][1] <= datumFocusDistanceThresholdPx) {
+    return {
+      pX: nearestDatumResult[0][0].pX,
+      pY: nearestDatumResult[0][0].pY,
+      vX: nearestDatumResult[0][0].vX,
+      vY: nearestDatumResult[0][0].vY,
+      dp: nearestDatumResult[0][1],
+    }
+  }
 
   return null
+}
+
+const determineNearestDatums = (
+  kdTrees: { [seriesKey: string]: KdTree<PositionedDatum> },
+  cursorPoint: Point2D,
+  datumFocusDistanceThresholdPx: number,
+  seriesExcludedFromDatumHighlighting: string[],
+): { [seriesKey: string]: NearestDatum } => (
+  mapDict(kdTrees, (seriesKey, kdTree) => (
+    (seriesExcludedFromDatumHighlighting ?? []).indexOf(seriesKey) === -1
+      ? determineNearestDatum(kdTree, cursorPoint, datumFocusDistanceThresholdPx)
+      : null
+  ))
+)
+
+const drawDatumHighlightInternal = (ctx: CanvasRenderingContext2D, nearestDatum: PositionedDatum, props: Options) => {
+  // Draw the highlight for the nearest point to the cursor
+  if (nearestDatum != null && props.datumSnapMode !== DatumSnapMode.NONE && props.datumHighlightAppearance !== DatumHighlightAppearanceType.NONE) {
+    if (typeof props.datumHighlightAppearance !== 'function') {
+      // TODO: THERE ARE NOW MULTIPLE SERIES. IMPLEMENT CONFIGURABLE MODES FOR HIGHLIGHTING *MULTPLE* POINTS, ONE IN EACH SERIES!! :D
+      drawDatumHighlight(ctx, nearestDatum, props, '1')
+    }
+    else {
+      ctx.save()
+      props.datumHighlightAppearance(ctx, nearestDatum)
+      ctx.restore()
+    }
+  }
+}
+
+const determineNearestDatumOfAllSeries = (nearestDatums: { [seriesKey: string]: NearestDatum }) => {
+  const nearestDatumList = Object.values(nearestDatums).filter(nd => nd != null)
+  let nearestDatumOfAllSeries: NearestDatum = nearestDatumList[0]
+  nearestDatumList.forEach(nearestDatum => {
+    if (nearestDatum.dp < nearestDatumOfAllSeries.dp)
+      nearestDatumOfAllSeries = nearestDatum
+  })
+  return nearestDatumOfAllSeries
 }
 
 const draw = (
@@ -41,23 +94,28 @@ const draw = (
     return
 
   // Determine the nearest point to the cursor
-  const nearestDatum = determineNearestDatum(graphGeometry.datumKdTree, cursorPoint, props.datumSnapDistanceThresholdPx)
+  const nearestDatums = determineNearestDatums(
+    graphGeometry.datumKdTrees,
+    cursorPoint,
+    props.datumSnapDistanceThresholdPx,
+    props.seriesExcludedFromDatumHighlighting,
+  )
 
-  // Draw the highlight for the nearest point to the cursor
-  if (nearestDatum != null && props.datumSnapMode !== DatumSnapMode.NONE && props.datumHighlightAppearance !== DatumHighlightAppearanceType.NONE) {
-    if (typeof props.datumHighlightAppearance !== 'function') {
-      drawDatumHighlight(ctx, props, nearestDatum)
-    }
-    else {
-      ctx.save()
-      props.datumHighlightAppearance(ctx, nearestDatum)
-      ctx.restore()
-    }
-  }
+  const nearestDatumOfAllSeries = determineNearestDatumOfAllSeries(nearestDatums)
+
+  const distanceFn = createDatumDistanceFunction(props.datumSnapMode)
+  Object.values(nearestDatums)
+    .filter(nearestDatum => (nearestDatum != null
+      && distanceFn(nearestDatum, nearestDatumOfAllSeries) < (props.datumHighlightSeriesGroupingThresholdPx ?? 5)
+    ))
+    .forEach(nearestDatum => {
+      drawDatumHighlightInternal(ctx, nearestDatum, props)
+    })
+
   // Draw the vertical and horizontal lines, intersecting at where the cursor is
-  drawCursorPositionLines(ctx, cursorPoint, nearestDatum, graphGeometry.xAxis, graphGeometry.yAxis, props)
+  drawCursorPositionLines(ctx, cursorPoint, nearestDatumOfAllSeries, graphGeometry.xAxis, graphGeometry.yAxis, props)
   // Draw the axis value labels at the cursor co-ordinates (next to the axes)
-  drawCursorPositionValueLabels(ctx, cursorPoint, nearestDatum, graphGeometry.xAxis, graphGeometry.yAxis, props)
+  drawCursorPositionValueLabels(ctx, cursorPoint, nearestDatumOfAllSeries, graphGeometry.xAxis, graphGeometry.yAxis, props)
 }
 
 export const render = (canvas: HTMLCanvasElement, props: Options, graphGeometry: GraphGeometry) => {

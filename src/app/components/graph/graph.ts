@@ -4,7 +4,7 @@ import { draw } from './drawGraph'
 import GraphGeometry from './types/GraphGeometry'
 
 export const render = (canvas: HTMLCanvasElement, props: Options, graphGeometry: GraphGeometry) => {
-  if (props.data?.length < 1)
+  if (props.series == null || Object.keys(props.series).length === 0)
     return
 
   const ctx = get2DContext(canvas, props.widthPx, props.heightPx, props.axesMarkerLabelOptions?.fontFamily, props.axesMarkerLabelOptions?.fontSize)
