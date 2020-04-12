@@ -126,7 +126,7 @@ const draw = (
   drawCursorPositionValueLabels(ctx, cursorPoint, nearestDatumOfAllSeries, graphGeometry.xAxis, graphGeometry.yAxis, props)
 
   if (highlightedDatums != null)
-    drawTooltip(ctx, cursorPoint, highlightedDatums, props)
+    drawTooltip(ctx, cursorPoint, highlightedDatums, nearestDatumOfAllSeries, props)
 }
 
 export const render = (canvas: HTMLCanvasElement, props: Options, graphGeometry: GraphGeometry) => {
