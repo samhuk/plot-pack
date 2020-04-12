@@ -89,7 +89,7 @@ const calculateAutoDvGrid = (vl: number, vu: number, dp: number, dpMin: number) 
 
 const calculateVlPrime = (vl: number, dvGrid: number) => {
   // For a vl of 455, this is 400. For a vl of 400, this is 400 (i.e. it's inclusive)
-  const vlModDvGrid = vl % dvGrid
+  const vlModDvGrid = (vl - dvGrid) % dvGrid
   return vl - vlModDvGrid - (vlModDvGrid !== 0 ? dvGrid : 0)
 }
 

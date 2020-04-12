@@ -81,6 +81,15 @@ const getShouldShowCustomMarkers = (props: Options, seriesKey: string) => (
     && props?.markerOptions?.customOptions?.renderPath != null
 )
 
+const getShouldShowLineOfBestFit = (props: Options, seriesKey: string) => (
+  // Series visibility options takes precedence
+  props.seriesOptions?.[seriesKey]?.visibilityOptions?.showStraightLineOfBestFit
+    // ...then general visibility options
+    ?? props.visibilityOptions?.showStraightLineOfBestFit
+    // ...else default to false
+    ?? false
+)
+
 const drawDatumConnectingLine = (
   ctx: CanvasRenderingContext2D,
   positionedDatums: PositionedDatum[],
@@ -176,6 +185,6 @@ export const draw = (ctx: CanvasRenderingContext2D, g: GraphGeometry, props: Opt
 
   // Draw straight lines of best fit for each series
   Object.entries(g.bestFitStraightLineEquations)
-    .filter(([, eq]) => eq != null)
+    .filter(([seriesKey, eq]) => eq != null && getShouldShowLineOfBestFit(props, seriesKey))
     .forEach(([seriesKey, eq]) => drawStraightLineOfBestFit(ctx, eq, g, props, seriesKey))
 }

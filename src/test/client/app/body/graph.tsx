@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 
 import Graph from '../../../../app/components/graph'
-import { Axis2D } from '../../../../app/common/types/geometry'
+import { Axis2D, Point2D } from '../../../../app/common/types/geometry'
 import Notation from '../../../../app/components/graph/types/Notation'
 import BestFitLine from '../../../../app/components/graph/types/BestFitLineType'
 import MarkerType from '../../../../app/components/graph/types/MarkerType'
@@ -29,6 +29,14 @@ export const render = () => {
   const data2 = []
   for (let i = -10; i < 10; i += 1)
     data2.push({ x: i, y: i })
+
+  const data3 = []
+  for (let i = 1; i < 1000; i += 1)
+    data3.push({ x: i, y: Math.log(i) })
+
+  const data4: Point2D[] = []
+  for (let i = 1; i < 1000; i += 1)
+    data4.push({ x: i, y: (data4[i - 2]?.y ?? 0) + (1 / i) })
 
   return (
     <div className="graph">
@@ -141,8 +149,8 @@ export const render = () => {
           heightPx={height}
           widthPx={width}
           series={{
-            1: data1,
-            2: data2,
+            1: data3,
+            2: data4,
           }}
           seriesOptions={{
             1: {
@@ -159,12 +167,9 @@ export const render = () => {
             },
           }}
           visibilityOptions={{
+            showMarkers: false,
             showConnectingLine: true,
-          }}
-          markerOptions={{
-            size: 8,
-            type: MarkerType.CROSS,
-            lineWidth: 2,
+            showStraightLineOfBestFit: false,
           }}
         />
       </div>
