@@ -14,8 +14,6 @@ import { drawXAxisLine, drawYAxisLine } from './axisLines'
 import { drawStraightLineOfBestFit } from './straightLineOfBestFit'
 import drawAxisLabel from './axisLabels'
 
-// -- Axis lines
-
 export const getXAxisYPosition = (orientation: XAxisOrientation, plY: number, puY: number, yAxisPOrigin: number) => {
   switch (orientation) {
     case XAxisOrientation.TOP:
@@ -41,8 +39,6 @@ export const getYAxisXPosition = (orientation: YAxisOrientation, plX: number, pu
       return xAxisPOrigin
   }
 }
-
-// -- Axis marker lines
 
 /**
  * Determines whether markers should be shown for the given series.
