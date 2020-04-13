@@ -78,9 +78,7 @@ export const render = () => {
           }}
           axesOptions={{
             [Axis2D.Y]: {
-              titleOptions: {
-                text: 'This is the Y Axis',
-              },
+              labelText: 'This is the Y Axis',
               notation: Notation.DECIMAL,
               numFigures: 2,
               axisLineColor: '#333',
@@ -93,9 +91,7 @@ export const render = () => {
               },
             },
             [Axis2D.X]: {
-              titleOptions: {
-                text: 'This is the X Axis',
-              },
+              labelText: 'This is the X Axis',
               // dvGrid: 0.15,
               // vl: 0,
               // vu: 1,
@@ -132,6 +128,16 @@ export const render = () => {
             showMarkers: true,
             showConnectingLine: true,
             showGridLines: true,
+          }}
+          tooltipOptions={{
+            showSeriesStylePreview: true,
+            boxPaddingX: 15,
+            boxPaddingY: 15,
+            fontSize: 14,
+            borderRadius: 10,
+            backgroundColor: '#333',
+            textColor: 'white',
+            borderLineColor: '#999',
           }}
           markerOptions={{
             lineWidth: 1,
@@ -177,9 +183,6 @@ export const render = () => {
             showConnectingLine: true,
             showStraightLineOfBestFit: false,
           }}
-          tooltipOptions={{
-            showSeriesStylePreview: true,
-          }}
         />
       </div>
 
@@ -191,6 +194,72 @@ export const render = () => {
           series={{
             1: data1,
             2: data2,
+          }}
+        />
+      </div>
+
+      <div className="sandbox">
+        <h3>DARK MODE!</h3>
+        <Graph
+          heightPx={700}
+          widthPx={700}
+          series={{
+            1: data1,
+            2: data2,
+          }}
+          seriesOptions={{
+            1: {
+              lineOptions: {
+                color: 'red',
+              },
+              markerOptions: {
+                color: 'red',
+              },
+            },
+            2: {
+              lineOptions: {
+                color: 'blue',
+              },
+              markerOptions: {
+                color: 'blue',
+              },
+            },
+          }}
+          axesOptions={{
+            [Axis2D.X]: {
+              labelText: 'value of x',
+            },
+            [Axis2D.Y]: {
+              labelText: 'f(x)',
+            },
+          }}
+          backgroundColor="#222"
+          axesLabelOptions={{
+            color: 'white',
+          }}
+          axesMarkerLabelOptions={{
+            color: 'white',
+          }}
+          axesMarkerLineOptions={{
+            color: 'white',
+          }}
+          axesLineOptions={{
+            color: 'white',
+          }}
+          gridLineOptions={{
+            color: 'white',
+          }}
+          markerOptions={{
+            type: MarkerType.CROSS,
+            size: 8,
+          }}
+          tooltipOptions={{
+            backgroundColor: '#666',
+            textColor: 'white',
+            borderLineColor: '#999',
+          }}
+          visibilityOptions={{
+            showConnectingLine: true,
           }}
         />
       </div>

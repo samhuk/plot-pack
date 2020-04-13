@@ -57,7 +57,7 @@ export const drawXAxisAxisMarkerLabels = (
 ) => {
   ctx.lineWidth = 0.7
   ctx.font = getFont(props, Axis2D.X)
-  ctx.strokeStyle = getLabelColor(props, Axis2D.X)
+  ctx.fillStyle = getLabelColor(props, Axis2D.X)
 
   const y = getXAxisYPosition(props.axesOptions?.[Axis2D.X]?.orientation as XAxisOrientation, yAxis.pl, yAxis.pu, yAxis.pOrigin)
 

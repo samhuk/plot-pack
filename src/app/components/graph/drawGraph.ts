@@ -12,7 +12,7 @@ import { drawXAxisAxisMarkerLabels, drawYAxisAxisMarkerLabels } from './markerLa
 import { drawXAxisAxisMarkerLines, drawYAxisAxisMarkerLines } from './axisMarkerLines'
 import { drawXAxisLine, drawYAxisLine } from './axisLines'
 import { drawStraightLineOfBestFit } from './straightLineOfBestFit'
-import { drawAxisTitle } from './axisTitles'
+import drawAxisLabel from './axisLabels'
 
 // -- Axis lines
 
@@ -139,11 +139,22 @@ const drawDatumMarkers = (
 export const draw = (ctx: CanvasRenderingContext2D, g: GraphGeometry, props: Options) => {
   ctx.clearRect(0, 0, props.widthPx, props.heightPx)
 
+  const fillingRectPath = new Path2D()
+  fillingRectPath.rect(0, 0, props.widthPx, props.heightPx)
+  ctx.fillStyle = props.backgroundColor ?? 'white'
+  ctx.fill(fillingRectPath)
+
   // Show axis lines by default
   if (props.axesOptions?.[Axis2D.X]?.visibilityOptions?.showAxisLine ?? props.visibilityOptions?.showAxesLines ?? true)
     drawXAxisLine(ctx, g.xAxis, g.yAxis, props)
   if (props.axesOptions?.[Axis2D.Y]?.visibilityOptions?.showAxisLine ?? props.visibilityOptions?.showAxesLines ?? true)
     drawYAxisLine(ctx, g.yAxis, g.xAxis, props)
+
+  // Show grid lines by default
+  if (props.axesOptions?.[Axis2D.X]?.visibilityOptions?.showGridLines ?? props.visibilityOptions?.showGridLines ?? true)
+    drawXAxisGridLines(ctx, g.xAxis, g.yAxis, props)
+  if (props.axesOptions?.[Axis2D.Y]?.visibilityOptions?.showGridLines ?? props.visibilityOptions?.showGridLines ?? true)
+    drawYAxisGridLines(ctx, g.yAxis, g.xAxis, props)
 
   // Show axis marker lines by default
   if (props.axesOptions?.[Axis2D.X]?.visibilityOptions?.showAxisMarkerLines ?? props.visibilityOptions?.showAxesMarkerLines ?? true)
@@ -156,12 +167,6 @@ export const draw = (ctx: CanvasRenderingContext2D, g: GraphGeometry, props: Opt
     drawXAxisAxisMarkerLabels(ctx, g.xAxis, g.yAxis, props)
   if (props.axesOptions?.[Axis2D.Y]?.visibilityOptions?.showAxisMarkerLabels ?? props.visibilityOptions?.showAxesMarkerLabels ?? true)
     drawYAxisAxisMarkerLabels(ctx, g.yAxis, g.xAxis, props)
-
-  // Show grid lines by default
-  if (props.axesOptions?.[Axis2D.X]?.visibilityOptions?.showGridLines ?? props.visibilityOptions?.showGridLines ?? true)
-    drawXAxisGridLines(ctx, g.xAxis, g.yAxis, props)
-  if (props.axesOptions?.[Axis2D.Y]?.visibilityOptions?.showGridLines ?? props.visibilityOptions?.showGridLines ?? true)
-    drawYAxisGridLines(ctx, g.yAxis, g.xAxis, props)
 
   // Draw custom datum markers for each series
   Object.entries(g.positionedDatums)
@@ -189,6 +194,6 @@ export const draw = (ctx: CanvasRenderingContext2D, g: GraphGeometry, props: Opt
     .filter(([seriesKey, eq]) => eq != null && getShouldShowLineOfBestFit(props, seriesKey))
     .forEach(([seriesKey, eq]) => drawStraightLineOfBestFit(ctx, eq, g, props, seriesKey))
 
-  drawAxisTitle(ctx, Axis2D.X, g, props)
-  drawAxisTitle(ctx, Axis2D.Y, g, props)
+  drawAxisLabel(ctx, Axis2D.X, g, props)
+  drawAxisLabel(ctx, Axis2D.Y, g, props)
 }

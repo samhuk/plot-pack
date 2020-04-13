@@ -8,12 +8,16 @@ const DEFAULT_FONT_SIZE = 14
 const DEFAULT_COLOR = 'black'
 
 const createTextStyleInternal = (props: Options, axis: Axis2D) => createTextStyle(
-  props.axesOptions?.[axis]?.titleOptions?.fontFamily ?? DEFAULT_FONT_FAMILY,
-  props.axesOptions?.[axis]?.titleOptions?.fontSize ?? DEFAULT_FONT_SIZE,
+  props.axesOptions?.[axis]?.labelOptions?.fontFamily
+    ?? props.axesLabelOptions?.fontFamily
+    ?? DEFAULT_FONT_FAMILY,
+  props.axesOptions?.[axis]?.labelOptions?.fontSize
+    ?? props.axesLabelOptions?.fontSize
+    ?? DEFAULT_FONT_SIZE,
 )
 
-export const drawAxisTitle = (ctx: CanvasRenderingContext2D, axis: Axis2D, graphGeometry: GraphGeometry, props: Options) => {
-  const text = props.axesOptions?.[axis]?.titleOptions?.text
+export const drawAxisLabel = (ctx: CanvasRenderingContext2D, axis: Axis2D, graphGeometry: GraphGeometry, props: Options) => {
+  const text = props.axesOptions?.[axis]?.labelText
 
   if (text == null || text.length === 0)
     return
@@ -30,7 +34,7 @@ export const drawAxisTitle = (ctx: CanvasRenderingContext2D, axis: Axis2D, graph
     : graphGeometry.yAxis.pl + ((graphGeometry.yAxis.pu - graphGeometry.yAxis.pl) / 2) + (textWidth / 2)
 
   ctx.font = createTextStyleInternal(props, axis)
-  ctx.fillStyle = props.axesOptions?.[axis]?.titleOptions?.color ?? DEFAULT_COLOR
+  ctx.fillStyle = props.axesOptions?.[axis]?.labelOptions?.color ?? props.axesLabelOptions?.color ?? DEFAULT_COLOR
 
   ctx.save()
   ctx.translate(x, y)
@@ -40,3 +44,5 @@ export const drawAxisTitle = (ctx: CanvasRenderingContext2D, axis: Axis2D, graph
   ctx.fillText(text, x, y)
   ctx.restore()
 }
+
+export default drawAxisLabel

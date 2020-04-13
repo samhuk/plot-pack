@@ -2,7 +2,7 @@ import MarkerType from './types/MarkerType'
 import PositionedDatum from './types/PositionedDatum'
 import Options from './types/Options'
 
-export const DEFAULT_MARKER_SIZE = 6
+export const DEFAULT_MARKER_SIZE = 8
 const DEFAULT_MARKER_LINE_WIDTH = 2
 const DEFAULT_MARKET_COLOR = 'black'
 const DEFAULT_MARKER_TYPE = MarkerType.DOT

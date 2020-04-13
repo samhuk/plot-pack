@@ -8,9 +8,8 @@ import TextOptions from './TextOptions'
  * Options to customize the rendering and behavior of an axis.
  */
 export type AxisOptions = {
-  titleOptions?: TextOptions & {
-    text?: string
-  }
+  labelText?: string
+  labelOptions?: TextOptions
   dvGrid?: number
   vl?: number
   vu?: number

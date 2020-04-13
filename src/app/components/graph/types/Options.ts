@@ -17,10 +17,12 @@ import TooltipOptions from './TooltipOptions'
  */
 export type Options = {
   series: { [seriesKey: string]: Datum[] }
+  backgroundColor?: string,
   heightPx: number
   widthPx: number
   seriesOptions?: { [seriesKey: string]: SeriesOptions }
   axesOptions?: { [axis in Axis2D]?: AxisOptions }
+  axesLabelOptions?: TextOptions
   tooltipOptions?: TooltipOptions
   axesMarkerLabelOptions?: TextOptions
   axesMarkerLineOptions?: LineOptions
