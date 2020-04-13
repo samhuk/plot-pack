@@ -78,3 +78,18 @@ export const filterDict = <T>(
   })
   return outputDict
 }
+
+export const anyDict = <T>(
+  dict: { [key: string]: T },
+  fn: (key: string, value: T) => boolean,
+): boolean => {
+  if (dict == null || fn == null)
+    return false
+
+  const entries = Object.entries(dict)
+  for (let i = 0; i < entries.length; i += 1) {
+    if (fn(entries[i][0], entries[i][1]))
+      return true
+  }
+  return false
+}

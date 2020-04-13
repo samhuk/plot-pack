@@ -47,7 +47,7 @@ export const getYAxisXPosition = (orientation: YAxisOrientation, plX: number, pu
 /**
  * Determines whether markers should be shown for the given series.
  */
-const getShouldShowMarkers = (props: Options, seriesKey: string) => (
+export const getShouldShowMarkers = (props: Options, seriesKey: string) => (
   // Series visibility options takes precedence
   props.seriesOptions?.[seriesKey]?.visibilityOptions?.showMarkers
     // ...then general visibility options
@@ -61,7 +61,7 @@ const getShouldShowMarkers = (props: Options, seriesKey: string) => (
 /**
  * Determines whether a connecting line should be shown for the given series.
  */
-const getShouldShowConnectingLine = (props: Options, seriesKey: string) => (
+export const getShouldShowConnectingLine = (props: Options, seriesKey: string) => (
   // Series visibility options takes precedence
   props.seriesOptions?.[seriesKey]?.visibilityOptions?.showLine
     // ...then general visibility options

@@ -242,7 +242,7 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
     calculatePositionedDatums(datums, xAxis.p, yAxis.p, vlX, vuX, vlY, vuY)
   ))
 
-  // Create a K-D tree for the datums to provide quicker (lower time complexity) nearest neighboor searching
+  // Create a K-D tree for the datums to provide quicker (as in, O(log(n)) complexity) nearest neighboor searching
   // eslint-disable-next-line new-cap
   const datumKdTrees = mapDict(props.series, seriesKey => new kdTree.kdTree(
     positionedDatums[seriesKey],

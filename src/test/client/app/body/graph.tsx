@@ -177,6 +177,9 @@ export const render = () => {
             showConnectingLine: true,
             showStraightLineOfBestFit: false,
           }}
+          tooltipOptions={{
+            showSeriesStylePreview: true,
+          }}
         />
       </div>
 

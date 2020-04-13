@@ -10,6 +10,7 @@ import SeriesOptions from './SeriesOptions'
 import LineOptions from './lineOptions'
 import TextOptions from './TextOptions'
 import VisibilityOptions from './VisibilityOptions'
+import TooltipOptions from './TooltipOptions'
 
 /**
  * Options for the Graph
@@ -20,6 +21,7 @@ export type Options = {
   widthPx: number
   seriesOptions?: { [seriesKey: string]: SeriesOptions }
   axesOptions?: { [axis in Axis2D]?: AxisOptions }
+  tooltipOptions?: TooltipOptions
   axesMarkerLabelOptions?: TextOptions
   axesMarkerLineOptions?: LineOptions
   axesLineOptions?: LineOptions

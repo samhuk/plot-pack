@@ -106,8 +106,9 @@ export const drawStandardMarker = (
   pY: number,
   props: Options,
   seriesKey: string,
+  forcedSize?: number,
 ) => {
-  const markerSize = getMarkerSize(props, seriesKey)
+  const markerSize = forcedSize ?? getMarkerSize(props, seriesKey)
   const markerType = getMarkerType(props, seriesKey)
   const markerPath = createMarkerPath(markerSize, markerType, pX, pY)
   if (markerPath == null)
