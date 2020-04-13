@@ -104,29 +104,34 @@ const draw = (
   if (!isCursorWithinGraphArea)
     return
 
-  // Determine the nearest point to the cursor
-  const nearestDatums = determineNearestDatums(
-    graphGeometry.datumKdTrees,
-    cursorPoint,
-    props.datumSnapDistanceThresholdPx,
-    props.seriesExcludedFromDatumHighlighting,
-  )
+  let highlightedDatums: { [seriesKey: string]: NearestDatum } = null
+  let nearestDatumOfAllSeries: NearestDatum = null
 
-  const nearestDatumOfAllSeries = determineNearestDatumOfAllSeries(nearestDatums)
+  if (props.datumSnapMode !== DatumSnapMode.NONE) {
+    // Determine the nearest point to the cursor
+    const nearestDatums = determineNearestDatums(
+      graphGeometry.datumKdTrees,
+      cursorPoint,
+      props.datumSnapDistanceThresholdPx,
+      props.seriesExcludedFromDatumHighlighting,
+    )
 
-  const distanceFn = createDatumDistanceFunction(props.datumSnapMode)
-  const highlightedDatums = filterDict(nearestDatums, (_, nearestDatum) => (nearestDatum != null
-    && distanceFn(nearestDatum, nearestDatumOfAllSeries) < (props.datumHighlightSeriesGroupingThresholdPx ?? 5)))
+    nearestDatumOfAllSeries = determineNearestDatumOfAllSeries(nearestDatums)
 
-  drawDatumHighlights(ctx, highlightedDatums, props)
+    const distanceFn = createDatumDistanceFunction(props.datumSnapMode)
+    highlightedDatums = filterDict(nearestDatums, (_, nearestDatum) => (nearestDatum != null
+      && distanceFn(nearestDatum, nearestDatumOfAllSeries) < (props.datumHighlightSeriesGroupingThresholdPx ?? 5)))
+  }
 
   // Draw the vertical and horizontal lines, intersecting at where the cursor is
   drawCursorPositionLines(ctx, cursorPoint, nearestDatumOfAllSeries, graphGeometry.xAxis, graphGeometry.yAxis, props)
   // Draw the axis value labels at the cursor co-ordinates (next to the axes)
   drawCursorPositionValueLabels(ctx, cursorPoint, nearestDatumOfAllSeries, graphGeometry.xAxis, graphGeometry.yAxis, props)
 
-  if (highlightedDatums != null)
+  if (highlightedDatums != null) {
     drawTooltip(ctx, cursorPoint, highlightedDatums, nearestDatumOfAllSeries, props)
+    drawDatumHighlights(ctx, highlightedDatums, props)
+  }
 }
 
 export const render = (canvas: HTMLCanvasElement, props: Options, graphGeometry: GraphGeometry) => {

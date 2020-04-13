@@ -228,9 +228,21 @@ export const render = () => {
           axesOptions={{
             [Axis2D.X]: {
               labelText: 'value of x',
+              cursorPositionLineOptions: {
+                dashPattern: [],
+                color: 'white',
+                lineWidth: 1,
+              }
             },
             [Axis2D.Y]: {
               labelText: 'f(x)',
+              cursorPositionLineOptions: {
+                snapToNearestDatum: true,
+                color: 'white',
+              },
+              cursorPositionValueLabelOptions: {
+                snapToNearestDatum: true,
+              }
             },
           }}
           backgroundColor="#222"
@@ -261,6 +273,13 @@ export const render = () => {
           visibilityOptions={{
             showConnectingLine: true,
           }}
+          datumHighlightAppearance={{
+            type: DatumHighlightAppearanceType.CIRCLE,
+            color: 'white',
+            lineWidth: 2,
+          }}
+          datumSnapMode={DatumSnapMode.SNAP_NEAREST_X_Y}
+          datumSnapDistanceThresholdPx={30}
         />
       </div>
     </div>
