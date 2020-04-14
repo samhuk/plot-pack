@@ -32,7 +32,7 @@ const createCursorLinePath = (
       const line = new Path2D()
       // Don't snap horizontal y-axis line by default
       const shouldSnapLine = getShouldSnapCursorPositionLine(props, Axis2D.Y)
-      const yAxisLineY = nearestDatum != null && shouldSnapLine ? nearestDatum.pY : cursorPoint.y
+      const yAxisLineY = nearestDatum != null && shouldSnapLine ? nearestDatum.fpY : cursorPoint.y
       line.moveTo(xAxis.pu, yAxisLineY)
       line.lineTo(xAxis.pl, yAxisLineY)
       return line
@@ -43,7 +43,7 @@ const createCursorLinePath = (
       const line = new Path2D()
       // Snap vertical x-axis line by default
       const shouldSnapLine = getShouldSnapCursorPositionLine(props, Axis2D.X)
-      const xAxisLineX = nearestDatum != null && shouldSnapLine ? nearestDatum.pX : cursorPoint.x
+      const xAxisLineX = nearestDatum != null && shouldSnapLine ? nearestDatum.fpX : cursorPoint.x
       line.moveTo(xAxisLineX, yAxis.pu)
       line.lineTo(xAxisLineX, yAxis.pl)
       return line

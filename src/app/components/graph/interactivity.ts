@@ -22,8 +22,8 @@ const determineNearestDatum = (
   cursorPoint: Point2D,
   datumFocusDistanceThresholdPx: number,
 ): NearestDatum => {
-  // The KD tree only relies on the position of the datum, i.e. the pX and pY values
-  const point = { pX: cursorPoint.x, pY: cursorPoint.y } as PositionedDatum
+  // The KD tree only relies on the focus position of the datum, i.e. the fpX and fpY values
+  const point: PositionedDatum = { fpX: cursorPoint.x, fpY: cursorPoint.y, fvX: null, fvY: null, pX: null, pY: null, vX: null, vY: null }
   const nearestDatumResult = kdTree.nearest(point, 1)
   if (datumFocusDistanceThresholdPx == null || nearestDatumResult[0][1] <= datumFocusDistanceThresholdPx) {
     return {
@@ -31,6 +31,10 @@ const determineNearestDatum = (
       pY: nearestDatumResult[0][0].pY,
       vX: nearestDatumResult[0][0].vX,
       vY: nearestDatumResult[0][0].vY,
+      fvX: nearestDatumResult[0][0].fvX,
+      fvY: nearestDatumResult[0][0].fvY,
+      fpX: nearestDatumResult[0][0].fpX,
+      fpY: nearestDatumResult[0][0].fpY,
       dp: nearestDatumResult[0][1],
     }
   }

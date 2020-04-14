@@ -159,28 +159,39 @@ const calculatePositionedDatums = (
   vlY: number,
   vuY: number,
 ): PositionedDatum[] => datums
-  .map(datum => ({
-    vX: typeof datum.x === 'number' ? datum.x : datum.x[0],
-    vY: typeof datum.y === 'number' ? datum.y : datum.y[0],
-  }))
-  .filter(({ vX, vY }) => isInRange(vlX, vuX, vX) && isInRange(vlY, vuY, vY))
-  .map(({ vX, vY }) => ({
-    vX,
-    vY,
-    pX: xAxisPFn(vX),
-    pY: yAxisPFn(vY),
-  }))
+  .filter(({ x, y }) => (
+    typeof x === 'number' ? isInRange(vlX, vuX, x) : (isInRange(vlX, vuX, Math.min(...x)) && isInRange(vlX, vuX, Math.max(...x)))
+  ) && (
+    typeof y === 'number' ? isInRange(vlY, vuY, y) : (isInRange(vlY, vuY, Math.min(...y)) && isInRange(vlY, vuY, Math.max(...y)))
+  ))
+  .map(({ x, y }) => {
+    const isXNumber = typeof x === 'number'
+    const isYNumber = typeof y === 'number'
+    const pX = isXNumber ? xAxisPFn(x as number) : (x as number[]).map(xAxisPFn)
+    const pY = isYNumber ? yAxisPFn(y as number) : (y as number[]).map(yAxisPFn)
+    return {
+      vX: x,
+      vY: y,
+      pX,
+      pY,
+      // TODO: Make the determination of the focus point configurable!!
+      fvX: isXNumber ? x as number : (x as number[])[0],
+      fvY: isYNumber ? y as number : (y as number[])[0],
+      fpX: isXNumber ? pX as number : (pX as number[])[0],
+      fpY: isYNumber ? pY as number : (pY as number[])[0],
+    }
+  })
 
 export const createDatumDistanceFunction = (datumSnapMode: DatumSnapMode): DatumDistanceFunction => {
-  const xDistanceFunction = (datum1: PositionedDatum, datum2: PositionedDatum) => Math.abs(datum1.pX - datum2.pX)
+  const xDistanceFunction = (datum1: PositionedDatum, datum2: PositionedDatum) => Math.abs(datum1.fpX - datum2.fpX)
 
   switch (datumSnapMode) {
     case DatumSnapMode.SNAP_NEAREST_X:
       return xDistanceFunction
     case DatumSnapMode.SNAP_NEAREST_Y:
-      return (datum1: PositionedDatum, datum2: PositionedDatum) => Math.abs(datum1.pY - datum2.pY)
+      return (datum1: PositionedDatum, datum2: PositionedDatum) => Math.abs(datum1.fpY - datum2.fpY)
     case DatumSnapMode.SNAP_NEAREST_X_Y:
-      return (datum1: PositionedDatum, datum2: PositionedDatum) => Math.sqrt((datum1.pX - datum2.pX) ** 2 + (datum1.pY - datum2.pY) ** 2)
+      return (datum1: PositionedDatum, datum2: PositionedDatum) => Math.sqrt((datum1.fpX - datum2.fpX) ** 2 + (datum1.fpY - datum2.fpY) ** 2)
     default:
       return xDistanceFunction
   }
@@ -189,13 +200,13 @@ export const createDatumDistanceFunction = (datumSnapMode: DatumSnapMode): Datum
 const createDatumDimensionStringList = (datumSnapMode: DatumSnapMode): string[] => {
   switch (datumSnapMode) {
     case DatumSnapMode.SNAP_NEAREST_X:
-      return ['pX']
+      return ['fpX']
     case DatumSnapMode.SNAP_NEAREST_Y:
-      return ['pY']
+      return ['fpY']
     case DatumSnapMode.SNAP_NEAREST_X_Y:
-      return ['pX', 'pY']
+      return ['fpX', 'fpY']
     default:
-      return ['pX']
+      return ['fpX']
   }
 }
 
@@ -229,17 +240,14 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
   const xAxis = calculateAxisGeometry(vlX, vuX, plX, puX, defaultGridMinPx, props.axesOptions?.[Axis2D.X]?.dvGrid, forcedVlX != null, forcedVuX != null)
   const yAxis = calculateAxisGeometry(vlY, vuY, plY, puY, defaultGridMinPx, props.axesOptions?.[Axis2D.Y]?.dvGrid, forcedVlY != null, forcedVuY != null)
 
-  const bestFitStraightLineEquations = mapDict(props.series, (seriesKey, datums) => (
-    getBestFitLineType(props, seriesKey) === BestFitLineType.STRAIGHT
-      ? calculateStraightLineOfBestFit(datums.map(({ x, y }) => ({
-        x: typeof x === 'number' ? x : x[0],
-        y: typeof y === 'number' ? y : y[0],
-      })))
-      : null
-  ))
-
   const positionedDatums = mapDict(props.series, (seriesKey, datums) => (
     calculatePositionedDatums(datums, xAxis.p, yAxis.p, vlX, vuX, vlY, vuY)
+  ))
+
+  const bestFitStraightLineEquations = mapDict(positionedDatums, (seriesKey, datums) => (
+    getBestFitLineType(props, seriesKey) === BestFitLineType.STRAIGHT
+      ? calculateStraightLineOfBestFit(datums.map(d => ({ x: d.fpX, y: d.fpY })))
+      : null
   ))
 
   // Create a K-D tree for the datums to provide quicker (as in, O(log(n)) complexity) nearest neighboor searching

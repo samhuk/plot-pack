@@ -179,7 +179,7 @@ export const draw = (
   const boxHeight = (numSeries * lineHeight) + (2 * boxPaddingY)
   const boxWidth = largestLineWidth + (2 * boxPaddingX) + (shouldDrawAtleastOnePreview ? previewWidth + PREVIEW_RIGHT_MARGIN : 0)
   const boxRect: Rect = {
-    x: determineBoxX(props.widthPx, boxWidth, nearestDatumOfAllSeries.pX),
+    x: determineBoxX(props.widthPx, boxWidth, nearestDatumOfAllSeries.fpX),
     // Place vertically centered, ensuring that it doesn't overflow at the top (negative y position)
     y: Math.max(0, cursorPoint.y - (boxHeight / 2)),
     width: boxWidth,

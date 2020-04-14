@@ -9,13 +9,13 @@ const DEFAULT_DATUM_HIGHLIGHT_COLOR = 'black'
 
 const createCircleDatumHighlightPath = (highlightedDatum: PositionedDatum, markerSize: number) => {
   const path = new Path2D()
-  path.arc(highlightedDatum.pX, highlightedDatum.pY, 0.75 * markerSize, 0, 2 * Math.PI)
+  path.arc(highlightedDatum.fpX, highlightedDatum.fpY, 0.75 * markerSize, 0, 2 * Math.PI)
   return path
 }
 
 const createDotDatumHighlightPath = (highlightedDatum: PositionedDatum, markerSize: number) => {
   const path = new Path2D()
-  path.arc(highlightedDatum.pX, highlightedDatum.pY, 0.75 * markerSize, 0, 2 * Math.PI)
+  path.arc(highlightedDatum.fpX, highlightedDatum.fpY, 0.75 * markerSize, 0, 2 * Math.PI)
   return path
 }
 
@@ -24,17 +24,17 @@ const createCrosshairDatumHighlightPath = (highlightedDatum: PositionedDatum, ma
   const distanceFromPoint = 0.75 * markerSize
   const hairLength = boundToRange(markerSize, 3, 5)
 
-  path.moveTo(highlightedDatum.pX + distanceFromPoint, highlightedDatum.pY + distanceFromPoint)
-  path.lineTo(highlightedDatum.pX + distanceFromPoint + hairLength, highlightedDatum.pY + distanceFromPoint + hairLength)
+  path.moveTo(highlightedDatum.fpX + distanceFromPoint, highlightedDatum.fpY + distanceFromPoint)
+  path.lineTo(highlightedDatum.fpX + distanceFromPoint + hairLength, highlightedDatum.fpY + distanceFromPoint + hairLength)
 
-  path.moveTo(highlightedDatum.pX + distanceFromPoint, highlightedDatum.pY - distanceFromPoint)
-  path.lineTo(highlightedDatum.pX + distanceFromPoint + hairLength, highlightedDatum.pY - distanceFromPoint - hairLength)
+  path.moveTo(highlightedDatum.fpX + distanceFromPoint, highlightedDatum.fpY - distanceFromPoint)
+  path.lineTo(highlightedDatum.fpX + distanceFromPoint + hairLength, highlightedDatum.fpY - distanceFromPoint - hairLength)
 
-  path.moveTo(highlightedDatum.pX - distanceFromPoint, highlightedDatum.pY + distanceFromPoint)
-  path.lineTo(highlightedDatum.pX - distanceFromPoint - hairLength, highlightedDatum.pY + distanceFromPoint + hairLength)
+  path.moveTo(highlightedDatum.fpX - distanceFromPoint, highlightedDatum.fpY + distanceFromPoint)
+  path.lineTo(highlightedDatum.fpX - distanceFromPoint - hairLength, highlightedDatum.fpY + distanceFromPoint + hairLength)
 
-  path.moveTo(highlightedDatum.pX - distanceFromPoint, highlightedDatum.pY - distanceFromPoint)
-  path.lineTo(highlightedDatum.pX - distanceFromPoint - hairLength, highlightedDatum.pY - distanceFromPoint - hairLength)
+  path.moveTo(highlightedDatum.fpX - distanceFromPoint, highlightedDatum.fpY - distanceFromPoint)
+  path.lineTo(highlightedDatum.fpX - distanceFromPoint - hairLength, highlightedDatum.fpY - distanceFromPoint - hairLength)
 
   return path
 }
@@ -43,17 +43,17 @@ const createPlushairDatumHighlightPath = (highlightedDatum: PositionedDatum, mar
   const path = new Path2D()
   const length = markerSize
 
-  path.moveTo(highlightedDatum.pX, highlightedDatum.pY + length)
-  path.lineTo(highlightedDatum.pX, highlightedDatum.pY + length * 2)
+  path.moveTo(highlightedDatum.fpX, highlightedDatum.fpY + length)
+  path.lineTo(highlightedDatum.fpX, highlightedDatum.fpY + length * 2)
 
-  path.moveTo(highlightedDatum.pX, highlightedDatum.pY - length)
-  path.lineTo(highlightedDatum.pX, highlightedDatum.pY - length * 2)
+  path.moveTo(highlightedDatum.fpX, highlightedDatum.fpY - length)
+  path.lineTo(highlightedDatum.fpX, highlightedDatum.fpY - length * 2)
 
-  path.moveTo(highlightedDatum.pX + length, highlightedDatum.pY)
-  path.lineTo(highlightedDatum.pX + length * 2, highlightedDatum.pY)
+  path.moveTo(highlightedDatum.fpX + length, highlightedDatum.fpY)
+  path.lineTo(highlightedDatum.fpX + length * 2, highlightedDatum.fpY)
 
-  path.moveTo(highlightedDatum.pX - length, highlightedDatum.pY)
-  path.lineTo(highlightedDatum.pX - length * 2, highlightedDatum.pY)
+  path.moveTo(highlightedDatum.fpX - length, highlightedDatum.fpY)
+  path.lineTo(highlightedDatum.fpX - length * 2, highlightedDatum.fpY)
 
   return path
 }

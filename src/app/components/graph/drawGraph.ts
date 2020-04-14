@@ -96,15 +96,15 @@ const drawDatumConnectingLine = (
   if (positionedDatums.length === 0)
     return
 
-  ctx.moveTo(positionedDatums[0].pX, positionedDatums[0].pY)
+  ctx.moveTo(positionedDatums[0].fpX, positionedDatums[0].fpY)
   let prevPx = 0
   let prevPy = 0
   for (let i = 0; i < positionedDatums.length; i += 1) {
-    const { pX, pY } = positionedDatums[i]
+    const { fpX, fpY } = positionedDatums[i]
     if (i > 0)
-      drawConnectingLine(ctx, pX, pY, prevPx, prevPy, props, seriesKey)
-    prevPx = pX
-    prevPy = pY
+      drawConnectingLine(ctx, fpX, fpY, prevPx, prevPy, props, seriesKey)
+    prevPx = fpX
+    prevPy = fpY
   }
 }
 
@@ -115,8 +115,8 @@ const drawCustomDatumMarkers = (
   seriesKey: string,
 ) => {
   for (let i = 0; i < positionedDatums.length; i += 1) {
-    const { pX, pY } = positionedDatums[i]
-    drawCustomMarker(ctx, pX, pY, positionedDatums[i], positionedDatums[i - 1], positionedDatums[i + 1], props, seriesKey)
+    const { fpX, fpY } = positionedDatums[i]
+    drawCustomMarker(ctx, fpX, fpY, positionedDatums[i], positionedDatums[i - 1], positionedDatums[i + 1], props, seriesKey)
   }
 }
 
@@ -127,8 +127,8 @@ const drawDatumMarkers = (
   seriesKey: string,
 ) => {
   for (let i = 0; i < positionedDatums.length; i += 1) {
-    const { pX, pY } = positionedDatums[i]
-    drawStandardMarker(ctx, pX, pY, props, seriesKey)
+    const { fpX, fpY } = positionedDatums[i]
+    drawStandardMarker(ctx, fpX, fpY, props, seriesKey)
   }
 }
 
