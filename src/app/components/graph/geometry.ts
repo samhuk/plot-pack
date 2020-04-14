@@ -246,8 +246,8 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
   // eslint-disable-next-line new-cap
   const datumKdTrees = mapDict(props.series, seriesKey => new kdTree.kdTree(
     positionedDatums[seriesKey],
-    createDatumDistanceFunction(props.datumSnapMode),
-    createDatumDimensionStringList(props.datumSnapMode),
+    createDatumDistanceFunction(props.datumSnapOptions?.mode),
+    createDatumDimensionStringList(props.datumSnapOptions?.mode),
   ))
 
   return {

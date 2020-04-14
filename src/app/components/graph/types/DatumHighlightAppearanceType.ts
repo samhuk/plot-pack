@@ -3,7 +3,6 @@ export enum DatumHighlightAppearanceType {
   DOT,
   CROSSHAIR,
   PLUSHAIR,
-  NONE
 }
 
 export default DatumHighlightAppearanceType

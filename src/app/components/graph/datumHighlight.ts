@@ -2,7 +2,6 @@ import PositionedDatum from './types/PositionedDatum'
 import Options from './types/Options'
 import { getMarkerSize } from './marker'
 import DatumHighlightAppearanceType from './types/DatumHighlightAppearanceType'
-import DatumHighlightAppearance from './types/DatumHighlightAppearance'
 import { boundToRange } from '../../common/helpers/math'
 
 const DEFAULT_DATUM_HIGHLIGHT_LINE_WIDTH = 1
@@ -10,15 +9,13 @@ const DEFAULT_DATUM_HIGHLIGHT_COLOR = 'black'
 
 const createCircleDatumHighlightPath = (highlightedDatum: PositionedDatum, markerSize: number) => {
   const path = new Path2D()
-  const radius = markerSize
-  path.arc(highlightedDatum.pX, highlightedDatum.pY, radius, 0, 2 * Math.PI)
+  path.arc(highlightedDatum.pX, highlightedDatum.pY, 0.75 * markerSize, 0, 2 * Math.PI)
   return path
 }
 
 const createDotDatumHighlightPath = (highlightedDatum: PositionedDatum, markerSize: number) => {
   const path = new Path2D()
-  const radius = markerSize
-  path.arc(highlightedDatum.pX, highlightedDatum.pY, radius, 0, 2 * Math.PI)
+  path.arc(highlightedDatum.pX, highlightedDatum.pY, 0.75 * markerSize, 0, 2 * Math.PI)
   return path
 }
 
@@ -82,14 +79,13 @@ const createDatumHighlightPath = (
 
 export const drawDatumHighlight = (ctx: CanvasRenderingContext2D, highlightedDatum: PositionedDatum, props: Options, seriesKey: string) => {
   const markerSize = getMarkerSize(props, seriesKey)
-  const appearance = props.datumHighlightAppearance as DatumHighlightAppearance
-  const appearanceType = appearance?.type ?? DatumHighlightAppearanceType.CIRCLE
+  const appearanceType = props.datumHighlightOptions?.type ?? DatumHighlightAppearanceType.CIRCLE
 
   const path = createDatumHighlightPath(highlightedDatum, appearanceType, markerSize)
 
-  ctx.lineWidth = appearance?.lineWidth ?? DEFAULT_DATUM_HIGHLIGHT_LINE_WIDTH
-  ctx.strokeStyle = appearance?.color ?? DEFAULT_DATUM_HIGHLIGHT_COLOR
-  ctx.fillStyle = appearance?.color ?? DEFAULT_DATUM_HIGHLIGHT_COLOR
+  ctx.lineWidth = props.datumHighlightOptions?.lineWidth ?? DEFAULT_DATUM_HIGHLIGHT_LINE_WIDTH
+  ctx.strokeStyle = props.datumHighlightOptions?.color ?? DEFAULT_DATUM_HIGHLIGHT_COLOR
+  ctx.fillStyle = props.datumHighlightOptions?.color ?? DEFAULT_DATUM_HIGHLIGHT_COLOR
 
   if (appearanceType === DatumHighlightAppearanceType.DOT)
     ctx.fill(path)

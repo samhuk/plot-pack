@@ -7,6 +7,7 @@ export type VisibilityOptions = {
   showConnectingLine?: boolean
   showStraightLineOfBestFit?: boolean
   showTooltip?: boolean
+  showDatumHighlight?: boolean
 }
 
 export default VisibilityOptions

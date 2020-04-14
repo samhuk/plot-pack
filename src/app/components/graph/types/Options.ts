@@ -3,14 +3,13 @@ import AxisOptions from './AxisOptions'
 import { Axis2D } from '../../../common/types/geometry'
 import MarkerOptions from './MarkerOptions'
 import BestFitLineOptions from './BestFitLineOptions'
-import DatumSnapMode from './DatumSnapMode'
-import PositionedDatum from './PositionedDatum'
-import DatumFocusAppearance from './DatumHighlightAppearance'
 import SeriesOptions from './SeriesOptions'
 import LineOptions from './lineOptions'
 import TextOptions from './TextOptions'
 import VisibilityOptions from './VisibilityOptions'
 import TooltipOptions from './TooltipOptions'
+import DatumHighlightOptions from './DatumHighlightOptions'
+import DatumSnapOptions from './DatumSnapOptions'
 
 /**
  * Options for the Graph
@@ -32,11 +31,8 @@ export type Options = {
   markerOptions?: MarkerOptions
   visibilityOptions?: VisibilityOptions
   bestFitLineOptions?: BestFitLineOptions
-  datumSnapMode?: DatumSnapMode
-  datumSnapDistanceThresholdPx?: number
-  datumHighlightSeriesGroupingThresholdPx?: number
-  seriesExcludedFromDatumHighlighting?: string[]
-  datumHighlightAppearance?: DatumFocusAppearance | ((ctx: CanvasRenderingContext2D, highlightedDatum: PositionedDatum) => void)
+  datumHighlightOptions?: DatumHighlightOptions
+  datumSnapOptions?: DatumSnapOptions
 }
 
 export default Options

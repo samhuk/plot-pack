@@ -17,6 +17,7 @@ const DEFAULT_BORDER_LINE_WIDTH = 1
 const DEFAULT_BORDER_LINE_COLOR = ''
 const DEFAULT_BORDER_RADIUS = 3
 const DEFAULT_BACKGROUND_COLOR = '#f0f0f0'
+const DEFAULT_TOOLTIP_MARGIN_FROM_MARKER = 10
 
 const getPreviewWidth = (lineHeight: number) => Math.max(10, 1.5 * lineHeight)
 
@@ -36,11 +37,11 @@ const createTextStyleInternal = (props: Options, bold: boolean) => createTextSty
 
 const determineBoxX = (canvasWidth: number, boxWidth: number, x: number) => {
   // Try placing on RHS
-  let prospectiveBoxX = x + 5
+  let prospectiveBoxX = x + DEFAULT_TOOLTIP_MARGIN_FROM_MARKER
   // Determine if the box is overflowing on the RHS
   const rhsOverflow = Math.max(0, prospectiveBoxX + boxWidth - canvasWidth)
   // If not overflowing, remain on RHS, else try placing on LHS
-  prospectiveBoxX = rhsOverflow === 0 ? prospectiveBoxX : x - 5 - boxWidth
+  prospectiveBoxX = rhsOverflow === 0 ? prospectiveBoxX : x - DEFAULT_TOOLTIP_MARGIN_FROM_MARKER - boxWidth
   // If not overflowing, remain on LHS, else place in the middle
   return prospectiveBoxX > 0 ? prospectiveBoxX : x - (boxWidth / 2)
 }

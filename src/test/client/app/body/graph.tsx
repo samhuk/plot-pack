@@ -145,13 +145,15 @@ export const render = () => {
             type: MarkerType.DOT,
             color: '#333',
           }}
-          datumSnapMode={DatumSnapMode.SNAP_NEAREST_X}
-          datumHighlightAppearance={{
+          datumSnapOptions={{
+            mode: DatumSnapMode.SNAP_NEAREST_X,
+            excludedSeriesKeys: [],
+          }}
+          datumHighlightOptions={{
             type: DatumHighlightAppearanceType.CROSSHAIR,
             lineWidth: 2,
             color: 'blue',
           }}
-          seriesExcludedFromDatumHighlighting={[]}
         />
       </div>
 
@@ -182,6 +184,7 @@ export const render = () => {
             showMarkers: false,
             showConnectingLine: true,
             showStraightLineOfBestFit: false,
+            showDatumHighlight: false,
           }}
         />
       </div>
@@ -232,7 +235,7 @@ export const render = () => {
                 dashPattern: [],
                 color: 'white',
                 lineWidth: 1,
-              }
+              },
             },
             [Axis2D.Y]: {
               labelText: 'f(x)',
@@ -242,7 +245,7 @@ export const render = () => {
               },
               cursorPositionValueLabelOptions: {
                 snapToNearestDatum: true,
-              }
+              },
             },
           }}
           backgroundColor="#222"
@@ -273,13 +276,15 @@ export const render = () => {
           visibilityOptions={{
             showConnectingLine: true,
           }}
-          datumHighlightAppearance={{
+          datumSnapOptions={{
+            mode: DatumSnapMode.SNAP_NEAREST_X_Y,
+            distanceThresholdPx: 30,
+          }}
+          datumHighlightOptions={{
             type: DatumHighlightAppearanceType.CIRCLE,
             color: 'white',
             lineWidth: 2,
           }}
-          datumSnapMode={DatumSnapMode.SNAP_NEAREST_X_Y}
-          datumSnapDistanceThresholdPx={30}
         />
       </div>
     </div>

@@ -50,8 +50,13 @@ const getCursorPositionValueLabelColor = (props: Options, axis: Axis2D) => (
 const drawLabelBackgroundRect = (ctx: CanvasRenderingContext2D, rectPath: Path2D, axis: Axis2D, props: Options) => {
   ctx.fillStyle = getCursorPositionValueLabelBackgroundColor(props, axis)
   ctx.fill(rectPath)
+  const borderLineWidth = getCursorPositionValueLabelBorderLineWidth(props, axis)
+
+  if (borderLineWidth <= 0)
+    return
+
+  ctx.lineWidth = borderLineWidth
   ctx.strokeStyle = getCursorPositionValueLabelBorderColor(props, axis)
-  ctx.lineWidth = getCursorPositionValueLabelBorderLineWidth(props, axis)
   ctx.stroke(rectPath)
 }
 
