@@ -30,6 +30,11 @@ export const render = () => {
   for (let i = -10; i < 10; i += 1)
     data2.push({ x: i, y: i })
 
+  const data1WithErrorBars = data1.map(({ x, y }) => ({
+    x,
+    y: [y, y + 0.5 * y, y - 0.5 * y],
+  }))
+
   const data3 = []
   for (let i = 1; i < 1000; i += 1)
     data3.push({ x: i, y: Math.log(i) })
@@ -202,12 +207,12 @@ export const render = () => {
       </div>
 
       <div className="sandbox">
-        <h3>DARK MODE!</h3>
+        <h3>DARK MODE (with error bars)!</h3>
         <Graph
           heightPx={700}
           widthPx={700}
           series={{
-            1: data1,
+            1: data1WithErrorBars,
             2: data2,
           }}
           seriesOptions={{
@@ -267,6 +272,23 @@ export const render = () => {
           markerOptions={{
             type: MarkerType.CROSS,
             size: 8,
+            customOptions: {
+              complimentStandardOptions: true,
+              createPath: (x, y, datum) => {
+                const path = new Path2D()
+                path.moveTo(datum.pX as number - 10, (datum.pY as number[])[1])
+                path.lineTo(datum.pX as number + 10, (datum.pY as number[])[1])
+                path.moveTo(datum.pX as number, (datum.pY as number[])[1])
+                path.lineTo(datum.pX as number, (datum.pY as number[])[2])
+                path.moveTo(datum.pX as number - 10, (datum.pY as number[])[2])
+                path.lineTo(datum.pX as number + 10, (datum.pY as number[])[2])
+                return path
+              },
+              renderPath: (ctx, path) => {
+                ctx.lineWidth = 1.5
+                ctx.stroke(path)
+              },
+            },
           }}
           tooltipOptions={{
             backgroundColor: '#666',

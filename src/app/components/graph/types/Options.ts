@@ -19,7 +19,7 @@ import DatumFocusPoint from './DatumFocusPoint'
  */
 export type Options = {
   series: { [seriesKey: string]: Datum[] }
-  datumFocusPointDeterminationMode: DatumFocusPointDeterminationMode | ((datum: UnfocusedPositionedDatum) => DatumFocusPoint),
+  datumFocusPointDeterminationMode?: DatumFocusPointDeterminationMode | ((datum: UnfocusedPositionedDatum) => DatumFocusPoint),
   backgroundColor?: string,
   heightPx: number
   widthPx: number
