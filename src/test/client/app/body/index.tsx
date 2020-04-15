@@ -10,7 +10,8 @@ import FormExample from './formExample'
 import MultipartTextInput from './multiPartTextInput'
 import TextInput from './textInput'
 import PieChart from './pieChart'
-import Graph from './graph'
+import Graph from './graph/graph'
+import Candlestick from './graph/candlestick'
 
 export const render = () => (
   <Router>
@@ -38,6 +39,9 @@ export const render = () => (
           <li>
             <Link to="/graph">Graph</Link>
           </li>
+          <li>
+            <Link to="/graph-candlestick">Graph - Candlestick</Link>
+          </li>
         </ul>
         <Switch>
           <Route path="/" exact>
@@ -60,6 +64,9 @@ export const render = () => (
           </Route>
           <Route path="/graph">
             <Graph />
+          </Route>
+          <Route path="/graph-candlestick">
+            <Candlestick />
           </Route>
         </Switch>
       </div>

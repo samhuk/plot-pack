@@ -18,13 +18,13 @@ import { normalizeDatumsErrorBarsValues } from './errorBars'
 
 const kdTree: any = require('kd-tree-javascript')
 
-const getValueRangeOfDatums = (datum: Datum) => ({
+const getValueRangeOfDatum = (datum: Datum) => ({
   x: {
     min: typeof datum.x === 'number' ? datum.x : Math.min(...datum.x),
     max: typeof datum.x === 'number' ? datum.x : Math.max(...datum.x),
   },
   y: {
-    min: typeof datum.y === 'number' ? datum.y : Math.max(...datum.y),
+    min: typeof datum.y === 'number' ? datum.y : Math.min(...datum.y),
     max: typeof datum.y === 'number' ? datum.y : Math.max(...datum.y),
   },
 })
@@ -36,13 +36,13 @@ const calculateValueRangesOfDatums = (datums: Datum[]): AxesRange => {
   if (datums.length === 0)
     return { vlX: 0, vuX: 0, vlY: 0, vuY: 0 }
 
-  const firstDatumValueRange = getValueRangeOfDatums(datums[0])
+  const firstDatumValueRange = getValueRangeOfDatum(datums[0])
   let xMin = firstDatumValueRange.x.min
   let xMax = firstDatumValueRange.x.max
   let yMin = firstDatumValueRange.y.min
   let yMax = firstDatumValueRange.y.max
   for (let i = 1; i < datums.length; i += 1) {
-    const datumValueRanges = getValueRangeOfDatums(datums[i])
+    const datumValueRanges = getValueRangeOfDatum(datums[i])
     if (datumValueRanges.x.max > xMax)
       xMax = datumValueRanges.x.max
     if (datumValueRanges.x.min < xMin)
@@ -93,8 +93,8 @@ const calculateAutoDvGrid = (vl: number, vu: number, dp: number, dpMin: number) 
 
 const calculateVlPrime = (vl: number, dvGrid: number) => {
   // For a vl of 455, this is 400. For a vl of 400, this is 400 (i.e. it's inclusive)
-  const vlModDvGrid = (vl - dvGrid) % dvGrid
-  return vl - vlModDvGrid - (vlModDvGrid !== 0 ? dvGrid : 0)
+  const vlModDvGrid = vl % dvGrid
+  return vl - vlModDvGrid
 }
 
 const calculateVuPrime = (vu: number, dvGrid: number) => {
