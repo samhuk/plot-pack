@@ -9,6 +9,7 @@ import XAxisOrientation from '../../../../app/components/graph/types/xAxisOrient
 import YAxisOrientation from '../../../../app/components/graph/types/yAxisOrientation'
 import DatumSnapMode from '../../../../app/components/graph/types/DatumSnapMode'
 import { DatumHighlightAppearanceType } from '../../../../app/components/graph/types/DatumHighlightAppearanceType'
+import ErrorBarsMode from '../../../../app/components/graph/types/ErrorBarsMode'
 
 export const render = () => {
   const [height, setHeight] = useState(500)
@@ -32,7 +33,7 @@ export const render = () => {
 
   const data1WithErrorBars = data1.map(({ x, y }) => ({
     x,
-    y: [y, y + 0.5 * y, y - 0.5 * y],
+    y: [y, 2, 2],
   }))
 
   const data3 = []
@@ -223,6 +224,16 @@ export const render = () => {
               markerOptions: {
                 color: 'red',
               },
+              errorBarsOptions: {
+                [Axis2D.Y]: {
+                  mode: ErrorBarsMode.TWO_ABSOLUTE_DIFFERENCE,
+                  color: 'red',
+                },
+                [Axis2D.X]: {
+                  mode: ErrorBarsMode.TWO_ABSOLUTE_DIFFERENCE,
+                  color: 'red',
+                },
+              },
             },
             2: {
               lineOptions: {
@@ -272,20 +283,6 @@ export const render = () => {
           markerOptions={{
             type: MarkerType.CROSS,
             size: 8,
-            customOptions: {
-              doesCompliment: true,
-              customRenderFunction: (ctx, datum) => {
-                const path = new Path2D()
-                path.moveTo(datum.pX as number - 10, (datum.pY as number[])[1])
-                path.lineTo(datum.pX as number + 10, (datum.pY as number[])[1])
-                path.moveTo(datum.pX as number, (datum.pY as number[])[1])
-                path.lineTo(datum.pX as number, (datum.pY as number[])[2])
-                path.moveTo(datum.pX as number - 10, (datum.pY as number[])[2])
-                path.lineTo(datum.pX as number + 10, (datum.pY as number[])[2])
-                ctx.lineWidth = 1.5
-                ctx.stroke(path)
-              },
-            },
           }}
           tooltipOptions={{
             backgroundColor: '#666',

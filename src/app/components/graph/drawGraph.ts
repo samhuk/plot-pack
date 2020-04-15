@@ -13,6 +13,7 @@ import { drawXAxisAxisMarkerLines, drawYAxisAxisMarkerLines } from './axisMarker
 import { drawXAxisLine, drawYAxisLine } from './axisLines'
 import { drawStraightLineOfBestFit } from './straightLineOfBestFit'
 import drawAxisLabel from './axisLabels'
+import drawDatumErrorBarsForDatums from './errorBars'
 
 export const getXAxisYPosition = (orientation: XAxisOrientation, plY: number, puY: number, yAxisPOrigin: number) => {
   switch (orientation) {
@@ -65,6 +66,11 @@ export const getShouldShowConnectingLine = (props: Options, seriesKey: string) =
     // ...else default to false
     ?? false
 )
+
+const getShouldShowErrorBars = (props: Options, seriesKey: string, axis: Axis2D) => (
+  props.seriesOptions?.[seriesKey]?.errorBarsOptions?.[axis]?.mode
+    ?? props?.errorBarsOptions?.[axis]?.mode
+) != null
 
 /**
  * Determines whether to draw a custom marker, via determining if the functions
@@ -172,6 +178,20 @@ export const draw = (ctx: CanvasRenderingContext2D, g: GraphGeometry, props: Opt
     .forEach(([seriesKey, positionedDatums]) => (
       drawDatumMarkers(ctx, positionedDatums, props, seriesKey)
     ))
+
+  // Draw error bars for x axis of each series
+  Object.entries(g.positionedDatums)
+    .filter(([seriesKey]) => getShouldShowErrorBars(props, seriesKey, Axis2D.X))
+    .forEach(([seriesKey, positionedDatums]) => {
+      drawDatumErrorBarsForDatums(ctx, positionedDatums, props, seriesKey, Axis2D.X)
+    })
+
+  // Draw error bars for y axis of each series
+  Object.entries(g.positionedDatums)
+    .filter(([seriesKey]) => getShouldShowErrorBars(props, seriesKey, Axis2D.Y))
+    .forEach(([seriesKey, positionedDatums]) => {
+      drawDatumErrorBarsForDatums(ctx, positionedDatums, props, seriesKey, Axis2D.Y)
+    })
 
   // Draw datum connecting line for each series
   Object.entries(g.positionedDatums)

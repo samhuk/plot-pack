@@ -14,6 +14,7 @@ import { mapDict } from '../../common/helpers/dict'
 import DatumFocusPointDeterminationMode from './types/DatumFocusPointDeterminationMode'
 import UnfocusedPositionedDatum from './types/UnfocusedPositionedDatum'
 import DatumFocusPoint from './types/DatumFocusPoint'
+import { normalizeDatumsErrorBarsValues } from './errorBars'
 
 const kdTree: any = require('kd-tree-javascript')
 
@@ -188,6 +189,12 @@ const determineDatumFocusPoint = (
   }
 }
 
+const mapDatumValueCoordinateToScreenPositionValue = (value: number | number[], transformationFunction: (value: number) => number) => (
+  typeof value === 'number'
+    ? (value != null ? transformationFunction(value as number) : null)
+    : (value as number[]).map(subValue => (subValue != null ? transformationFunction(subValue) : null))
+)
+
 const calculatePositionedDatums = (
   datums: Datum[],
   xAxisPFn: (v: number) => number,
@@ -204,10 +211,8 @@ const calculatePositionedDatums = (
     typeof y === 'number' ? isInRange(vlY, vuY, y) : (isInRange(vlY, vuY, Math.min(...y)) && isInRange(vlY, vuY, Math.max(...y)))
   ))
   .map(({ x, y }) => {
-    const isXNumber = typeof x === 'number'
-    const isYNumber = typeof y === 'number'
-    const pX = isXNumber ? xAxisPFn(x as number) : (x as number[]).map(xAxisPFn)
-    const pY = isYNumber ? yAxisPFn(y as number) : (y as number[]).map(yAxisPFn)
+    const pX = mapDatumValueCoordinateToScreenPositionValue(x, xAxisPFn)
+    const pY = mapDatumValueCoordinateToScreenPositionValue(y, yAxisPFn)
     const unfocusedPositioneDatum: UnfocusedPositionedDatum = { vX: x, vY: y, pX, pY }
     const focusPoint = typeof datumFocusPointDeterminationMode === 'function'
       ? datumFocusPointDeterminationMode(unfocusedPositioneDatum)
@@ -261,7 +266,9 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
   const paddingY = props.axesOptions?.[Axis2D.Y]?.padding ?? 40
   const defaultGridMinPx = 30
 
-  const axesValueRange = calculateValueRangesOfSeries(props.series)
+  const normalizedSeries = mapDict(props.series, (seriesKey, datums) => normalizeDatumsErrorBarsValues(datums, props, seriesKey))
+
+  const axesValueRange = calculateValueRangesOfSeries(normalizedSeries)
 
   const forcedVlX = props.axesOptions?.[Axis2D.X]?.vl
   const forcedVlY = props.axesOptions?.[Axis2D.Y]?.vl
@@ -282,7 +289,7 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
   const xAxis = calculateAxisGeometry(vlX, vuX, plX, puX, defaultGridMinPx, props.axesOptions?.[Axis2D.X]?.dvGrid, forcedVlX != null, forcedVuX != null)
   const yAxis = calculateAxisGeometry(vlY, vuY, plY, puY, defaultGridMinPx, props.axesOptions?.[Axis2D.Y]?.dvGrid, forcedVlY != null, forcedVuY != null)
 
-  const positionedDatums = mapDict(props.series, (seriesKey, datums) => (
+  const positionedDatums = mapDict(normalizedSeries, (seriesKey, datums) => (
     calculatePositionedDatums(datums, xAxis.p, yAxis.p, vlX, vuX, vlY, vuY, props.datumFocusPointDeterminationMode)
   ))
 
@@ -294,7 +301,7 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
 
   // Create a K-D tree for the datums to provide quicker (as in, O(log(n)) complexity) nearest neighboor searching
   // eslint-disable-next-line new-cap
-  const datumKdTrees = mapDict(props.series, seriesKey => new kdTree.kdTree(
+  const datumKdTrees = mapDict(normalizedSeries, seriesKey => new kdTree.kdTree(
     positionedDatums[seriesKey],
     createDatumDistanceFunction(props.datumSnapOptions?.mode),
     createDatumDimensionStringList(props.datumSnapOptions?.mode),

@@ -13,6 +13,7 @@ import DatumSnapOptions from './DatumSnapOptions'
 import DatumFocusPointDeterminationMode from './DatumFocusPointDeterminationMode'
 import UnfocusedPositionedDatum from './UnfocusedPositionedDatum'
 import DatumFocusPoint from './DatumFocusPoint'
+import ErrorBarsOptions from './ErrorBarsOptions'
 
 /**
  * Options for the Graph
@@ -33,6 +34,7 @@ export type Options = {
   gridLineOptions?: LineOptions
   connectingLineOptions?: LineOptions
   markerOptions?: MarkerOptions
+  errorBarsOptions?: { [axis in Axis2D]?: ErrorBarsOptions }
   visibilityOptions?: VisibilityOptions
   bestFitLineOptions?: BestFitLineOptions
   datumHighlightOptions?: DatumHighlightOptions
