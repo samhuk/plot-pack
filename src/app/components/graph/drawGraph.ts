@@ -52,7 +52,9 @@ export const getShouldShowMarkers = (props: Options, seriesKey: string) => (
     // ...else default to true
     ?? true
 ) && (
-  props.markerOptions?.customOptions?.doesCompliment ?? true
+  props.seriesOptions?.[seriesKey]?.markerOptions?.customOptions?.doesCompliment
+    ?? props.markerOptions?.customOptions?.doesCompliment
+    ?? true
 )
 
 /**

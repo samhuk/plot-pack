@@ -23,7 +23,7 @@ export const drawXAxisLine = (ctx: CanvasRenderingContext2D, xAxis: AxisGeometry
   ctx.strokeStyle = getAxisLineColor(props, Axis2D.X)
   ctx.lineWidth = lineWidth
 
-  const y = getXAxisYPosition(props.axesOptions?.[Axis2D.X].orientation as XAxisOrientation, yAxis.pl, yAxis.pu, yAxis.pOrigin)
+  const y = getXAxisYPosition(props.axesOptions?.[Axis2D.X]?.orientation as XAxisOrientation, yAxis.pl, yAxis.pu, yAxis.pOrigin)
 
   const path = new Path2D()
   path.moveTo(xAxis.pl, y)
@@ -39,7 +39,7 @@ export const drawYAxisLine = (ctx: CanvasRenderingContext2D, yAxis: AxisGeometry
   ctx.strokeStyle = getAxisLineColor(props, Axis2D.Y)
   ctx.lineWidth = lineWidth
 
-  const x = getYAxisXPosition(props.axesOptions?.[Axis2D.Y].orientation as YAxisOrientation, xAxis.pl, xAxis.pu, xAxis.pOrigin)
+  const x = getYAxisXPosition(props.axesOptions?.[Axis2D.Y]?.orientation as YAxisOrientation, xAxis.pl, xAxis.pu, xAxis.pOrigin)
 
   const path = new Path2D()
   path.moveTo(x, yAxis.pl)

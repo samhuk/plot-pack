@@ -24,7 +24,7 @@ export const drawXAxisAxisMarkerLines = (
   ctx.strokeStyle = getMarkerLineColor(props, Axis2D.X)
   ctx.lineWidth = getMarkerLineWidth(props, Axis2D.X)
 
-  const y = getXAxisYPosition(props.axesOptions?.[Axis2D.X].orientation as XAxisOrientation, yAxis.pl, yAxis.pu, yAxis.pOrigin)
+  const y = getXAxisYPosition(props.axesOptions?.[Axis2D.X]?.orientation as XAxisOrientation, yAxis.pl, yAxis.pu, yAxis.pOrigin)
 
   const path = new Path2D()
   for (let i = 0; i < xAxis.numGridLines; i += 1) {
@@ -44,7 +44,7 @@ export const drawYAxisAxisMarkerLines = (
   ctx.strokeStyle = getMarkerLineColor(props, Axis2D.Y)
   ctx.lineWidth = getMarkerLineWidth(props, Axis2D.Y)
 
-  const x = getYAxisXPosition(props.axesOptions?.[Axis2D.Y].orientation as YAxisOrientation, xAxis.pl, xAxis.pu, xAxis.pOrigin)
+  const x = getYAxisXPosition(props.axesOptions?.[Axis2D.Y]?.orientation as YAxisOrientation, xAxis.pl, xAxis.pu, xAxis.pOrigin)
 
   const path = new Path2D()
   for (let i = 0; i < yAxis.numGridLines; i += 1) {
