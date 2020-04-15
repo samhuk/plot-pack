@@ -10,12 +10,16 @@ import VisibilityOptions from './VisibilityOptions'
 import TooltipOptions from './TooltipOptions'
 import DatumHighlightOptions from './DatumHighlightOptions'
 import DatumSnapOptions from './DatumSnapOptions'
+import DatumFocusPointDeterminationMode from './DatumFocusPointDeterminationMode'
+import UnfocusedPositionedDatum from './UnfocusedPositionedDatum'
+import DatumFocusPoint from './DatumFocusPoint'
 
 /**
  * Options for the Graph
  */
 export type Options = {
   series: { [seriesKey: string]: Datum[] }
+  datumFocusPointDeterminationMode: DatumFocusPointDeterminationMode | ((datum: UnfocusedPositionedDatum) => DatumFocusPoint),
   backgroundColor?: string,
   heightPx: number
   widthPx: number

@@ -4,13 +4,16 @@ import AxisGeometry from './types/AxisGeometry'
 import Options from './types/Options'
 import GraphGeometry from './types/GraphGeometry'
 import BestFitLineType from './types/BestFitLineType'
-import { calculateStraightLineOfBestFit } from '../../common/helpers/stat'
+import { calculateStraightLineOfBestFit, calculateMean } from '../../common/helpers/stat'
 import { boundToRange, isInRange } from '../../common/helpers/math'
 import PositionedDatum from './types/PositionedDatum'
 import { Axis2D } from '../../common/types/geometry'
 import DatumSnapMode from './types/DatumSnapMode'
 import DatumDistanceFunction from './types/DatumDistanceFunction'
 import { mapDict } from '../../common/helpers/dict'
+import DatumFocusPointDeterminationMode from './types/DatumFocusPointDeterminationMode'
+import UnfocusedPositionedDatum from './types/UnfocusedPositionedDatum'
+import DatumFocusPoint from './types/DatumFocusPoint'
 
 const kdTree: any = require('kd-tree-javascript')
 
@@ -150,6 +153,41 @@ const calculateAxisGeometry = (
   }
 }
 
+const determineDatumFocusPoint = (
+  unfocusedPositionedDatum: UnfocusedPositionedDatum,
+  datumFocusPointDeterminationMode: DatumFocusPointDeterminationMode,
+): DatumFocusPoint => {
+  const { vX, vY, pX, pY } = unfocusedPositionedDatum
+  const isXNumber = typeof unfocusedPositionedDatum.vX === 'number'
+  const isYNumber = typeof unfocusedPositionedDatum.vY === 'number'
+
+  switch (datumFocusPointDeterminationMode ?? DatumFocusPointDeterminationMode.FIRST) {
+    case DatumFocusPointDeterminationMode.FIRST:
+      return {
+        fvX: isXNumber ? (vX as number) : (vX as number[])[0],
+        fvY: isYNumber ? (vY as number) : (vY as number[])[0],
+        fpX: isXNumber ? (pX as number) : (pX as number[])[0],
+        fpY: isYNumber ? (pY as number) : (pY as number[])[0],
+      }
+    case DatumFocusPointDeterminationMode.SECOND:
+      return {
+        fvX: isXNumber ? (vX as number) : (vX as number[])[1],
+        fvY: isYNumber ? (vY as number) : (vY as number[])[1],
+        fpX: isXNumber ? (pX as number) : (pX as number[])[1],
+        fpY: isYNumber ? (pY as number) : (pY as number[])[1],
+      }
+    case DatumFocusPointDeterminationMode.AVERAGE:
+      return {
+        fvX: isXNumber ? (vX as number) : calculateMean(vX as number[]),
+        fvY: isYNumber ? (vY as number) : calculateMean(vY as number[]),
+        fpX: isXNumber ? (pX as number) : calculateMean(pX as number[]),
+        fpY: isYNumber ? (pY as number) : calculateMean(pY as number[]),
+      }
+    default:
+      return null
+  }
+}
+
 const calculatePositionedDatums = (
   datums: Datum[],
   xAxisPFn: (v: number) => number,
@@ -158,6 +196,7 @@ const calculatePositionedDatums = (
   vuX: number,
   vlY: number,
   vuY: number,
+  datumFocusPointDeterminationMode: DatumFocusPointDeterminationMode | ((datum: UnfocusedPositionedDatum) => DatumFocusPoint),
 ): PositionedDatum[] => datums
   .filter(({ x, y }) => (
     typeof x === 'number' ? isInRange(vlX, vuX, x) : (isInRange(vlX, vuX, Math.min(...x)) && isInRange(vlX, vuX, Math.max(...x)))
@@ -169,16 +208,19 @@ const calculatePositionedDatums = (
     const isYNumber = typeof y === 'number'
     const pX = isXNumber ? xAxisPFn(x as number) : (x as number[]).map(xAxisPFn)
     const pY = isYNumber ? yAxisPFn(y as number) : (y as number[]).map(yAxisPFn)
+    const unfocusedPositioneDatum: UnfocusedPositionedDatum = { vX: x, vY: y, pX, pY }
+    const focusPoint = typeof datumFocusPointDeterminationMode === 'function'
+      ? datumFocusPointDeterminationMode(unfocusedPositioneDatum)
+      : determineDatumFocusPoint(unfocusedPositioneDatum, datumFocusPointDeterminationMode)
     return {
       vX: x,
       vY: y,
       pX,
       pY,
-      // TODO: Make the determination of the focus point configurable!!
-      fvX: isXNumber ? x as number : (x as number[])[0],
-      fvY: isYNumber ? y as number : (y as number[])[0],
-      fpX: isXNumber ? pX as number : (pX as number[])[0],
-      fpY: isYNumber ? pY as number : (pY as number[])[0],
+      fvX: focusPoint.fvX,
+      fvY: focusPoint.fvY,
+      fpX: focusPoint.fpX,
+      fpY: focusPoint.fpY,
     }
   })
 
@@ -241,7 +283,7 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
   const yAxis = calculateAxisGeometry(vlY, vuY, plY, puY, defaultGridMinPx, props.axesOptions?.[Axis2D.Y]?.dvGrid, forcedVlY != null, forcedVuY != null)
 
   const positionedDatums = mapDict(props.series, (seriesKey, datums) => (
-    calculatePositionedDatums(datums, xAxis.p, yAxis.p, vlX, vuX, vlY, vuY)
+    calculatePositionedDatums(datums, xAxis.p, yAxis.p, vlX, vuX, vlY, vuY, props.datumFocusPointDeterminationMode)
   ))
 
   const bestFitStraightLineEquations = mapDict(positionedDatums, (seriesKey, datums) => (

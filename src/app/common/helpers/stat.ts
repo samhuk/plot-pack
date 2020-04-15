@@ -20,3 +20,13 @@ export const calculateStraightLineOfBestFit = (points: Point2D[]): StraightLineE
     x: y => (y - C) / m,
   }
 }
+
+export const calculateMean = (arr: number[]): number => {
+  if (arr == null || arr.length === 0)
+    return null
+
+  if (arr.length === 1)
+    return arr[0]
+
+  return sum(arr) / arr.length
+}
