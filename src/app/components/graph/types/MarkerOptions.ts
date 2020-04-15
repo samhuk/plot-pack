@@ -7,15 +7,13 @@ export type MarkerOptions = {
   color?: string
   lineWidth?: number
   customOptions?: {
-    complimentStandardOptions?: boolean
-    createPath: (
-      x: number,
-      y: number,
+    doesCompliment?: boolean
+    customRenderFunction: (
+      ctx: CanvasRenderingContext2D,
       datum: PositionedDatum,
       preceedingDatum: PositionedDatum,
       proceedingDatum: PositionedDatum,
-    ) => Path2D
-    renderPath: (ctx: CanvasRenderingContext2D, createdPath: Path2D) => void
+    ) => void
   }
 }
 

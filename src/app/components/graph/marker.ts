@@ -133,22 +133,19 @@ export const drawStandardMarker = (
 
 export const drawCustomMarker = (
   ctx: CanvasRenderingContext2D,
-  pX: number,
-  pY: number,
   datum: PositionedDatum,
   preceedingDatum: PositionedDatum,
   proceedingDatum: PositionedDatum,
   props: Options,
   seriesKey: string,
 ) => {
-  const createPathFn = props.seriesOptions?.[seriesKey]?.markerOptions?.customOptions?.createPath
-    ?? props?.markerOptions?.customOptions?.createPath
-  const renderPathFn = props.seriesOptions?.[seriesKey]?.markerOptions?.customOptions?.renderPath
-    ?? props?.markerOptions?.customOptions?.renderPath
+  const customRenderFunction = props.seriesOptions?.[seriesKey]?.markerOptions?.customOptions?.customRenderFunction
+    ?? props?.markerOptions?.customOptions?.customRenderFunction
+
+  if (customRenderFunction == null)
+    return
 
   ctx.save()
-  const path = createPathFn(pX, pY, datum, preceedingDatum, proceedingDatum)
-  if (path != null)
-    renderPathFn(ctx, path)
+  customRenderFunction(ctx, datum, preceedingDatum, proceedingDatum)
   ctx.restore()
 }

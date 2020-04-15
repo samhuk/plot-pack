@@ -51,7 +51,7 @@ export const getShouldShowMarkers = (props: Options, seriesKey: string) => (
     // ...else default to true
     ?? true
 ) && (
-  props.markerOptions?.customOptions?.complimentStandardOptions ?? true
+  props.markerOptions?.customOptions?.doesCompliment ?? true
 )
 
 /**
@@ -71,11 +71,8 @@ export const getShouldShowConnectingLine = (props: Options, seriesKey: string) =
  * required to do so have been defined.
  */
 const getShouldShowCustomMarkers = (props: Options, seriesKey: string) => (
-  props.seriesOptions?.[seriesKey]?.markerOptions?.customOptions?.createPath != null
-    && props.seriesOptions?.[seriesKey]?.markerOptions?.customOptions?.renderPath != null
-) || (
-  props?.markerOptions?.customOptions?.createPath != null
-    && props?.markerOptions?.customOptions?.renderPath != null
+  props.seriesOptions?.[seriesKey]?.markerOptions?.customOptions?.customRenderFunction
+    ?? props?.markerOptions?.customOptions?.customRenderFunction != null
 )
 
 const getShouldShowLineOfBestFit = (props: Options, seriesKey: string) => (
@@ -114,10 +111,8 @@ const drawCustomDatumMarkers = (
   props: Options,
   seriesKey: string,
 ) => {
-  for (let i = 0; i < positionedDatums.length; i += 1) {
-    const { fpX, fpY } = positionedDatums[i]
-    drawCustomMarker(ctx, fpX, fpY, positionedDatums[i], positionedDatums[i - 1], positionedDatums[i + 1], props, seriesKey)
-  }
+  for (let i = 0; i < positionedDatums.length; i += 1)
+    drawCustomMarker(ctx, positionedDatums[i], positionedDatums[i - 1], positionedDatums[i + 1], props, seriesKey)
 }
 
 const drawDatumMarkers = (

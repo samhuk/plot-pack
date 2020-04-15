@@ -8,7 +8,12 @@ export type DatumHighlightOptions = {
   fillColor?: string
   lineWidth?: number
   customHighlightOptions?: {
-    customHighlightFunction?: (ctx: CanvasRenderingContext2D, highlightedDatum: PositionedDatum, props: Options, seriesKey: string) => void
+    customHighlightFunction: (
+      ctx: CanvasRenderingContext2D,
+      highlightedDatum: PositionedDatum,
+      props: Options,
+      seriesKey: string
+    ) => void
     doesCompliment?: boolean
   }
 }

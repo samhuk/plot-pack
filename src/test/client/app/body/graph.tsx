@@ -273,8 +273,8 @@ export const render = () => {
             type: MarkerType.CROSS,
             size: 8,
             customOptions: {
-              complimentStandardOptions: true,
-              createPath: (x, y, datum) => {
+              doesCompliment: true,
+              customRenderFunction: (ctx, datum) => {
                 const path = new Path2D()
                 path.moveTo(datum.pX as number - 10, (datum.pY as number[])[1])
                 path.lineTo(datum.pX as number + 10, (datum.pY as number[])[1])
@@ -282,9 +282,6 @@ export const render = () => {
                 path.lineTo(datum.pX as number, (datum.pY as number[])[2])
                 path.moveTo(datum.pX as number - 10, (datum.pY as number[])[2])
                 path.lineTo(datum.pX as number + 10, (datum.pY as number[])[2])
-                return path
-              },
-              renderPath: (ctx, path) => {
                 ctx.lineWidth = 1.5
                 ctx.stroke(path)
               },
