@@ -5,7 +5,7 @@ import Options from './types/Options'
 import GraphGeometry from './types/GraphGeometry'
 import BestFitLineType from './types/BestFitLineType'
 import { calculateStraightLineOfBestFit, calculateMean } from '../../common/helpers/stat'
-import { boundToRange, isInRange } from '../../common/helpers/math'
+import { boundToRange, isInRange, mod } from '../../common/helpers/math'
 import PositionedDatum from './types/PositionedDatum'
 import { Axis2D } from '../../common/types/geometry'
 import DatumSnapMode from './types/DatumSnapMode'
@@ -93,14 +93,14 @@ const calculateAutoDvGrid = (vl: number, vu: number, dp: number, dpMin: number) 
 
 const calculateVlPrime = (vl: number, dvGrid: number) => {
   // For a vl of 455, this is 400. For a vl of 400, this is 400 (i.e. it's inclusive)
-  const vlModDvGrid = vl % dvGrid
+  const vlModDvGrid = mod(vl, dvGrid)
   return vl - vlModDvGrid
 }
 
 const calculateVuPrime = (vu: number, dvGrid: number) => {
   // For a vu of 880, this is 1200. For a vl of 800, this is 800 (i.e. it's inclusive)
-  const vuModDvGrid = vu % dvGrid
-  return vu - vuModDvGrid + (vuModDvGrid !== 0 ? dvGrid : 0)
+  const vuModDvGrid = mod(vu, dvGrid)
+  return vu + (vuModDvGrid !== 0 ? dvGrid : 0) - vuModDvGrid
 }
 
 /**
@@ -138,7 +138,14 @@ const calculateAxisGeometry = (
 
   const dvPrime = vlPrime - vuPrime
 
-  const shouldAddOneDueToFloatingPointImprecision = Math.abs(((dvPrime + _dvGrid / 2) % _dvGrid) - _dvGrid / 2) <= Number.EPSILON
+  /* Solves floating-point imprecision errors made when calculating vlPrime or vuPrime.
+   * Sometimes, and seemingly randomly, it will come out as, for example, 7.9999999...
+   * This essentially inspects the size of the error of dvPrime from the nearest whole
+   * grid value (e.g. 8). In that example, it's 1 * Number.EPSILON, but it can occasionally
+   * be 2 * Number.EPSILON, 4 * ..., and so on.
+   */
+  const floatingPointError = mod(dvPrime + _dvGrid / 2, _dvGrid) - _dvGrid / 2
+  const shouldAddOneDueToFloatingPointImprecision = [1, 2, 4, 8, 16, 32, 64].indexOf(floatingPointError / Number.EPSILON) !== -1
 
   return {
     vl: vlPrime,

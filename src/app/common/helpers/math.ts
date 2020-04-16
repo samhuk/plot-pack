@@ -20,3 +20,8 @@ export const roundDecimalPlaces = (value: number, numPlaces: number = 0) => {
   const roundedValue = parseFloat((value * multiplicator).toFixed(11))
   return Math.round(roundedValue) / multiplicator
 }
+
+/**
+ * Fixed modulo operator. Javascript does not correctly implement negative numbers for it.
+ */
+export const mod = (x: number, n: number) => ((x % n) + n) % n
