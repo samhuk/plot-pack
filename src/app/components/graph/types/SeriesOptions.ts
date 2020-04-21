@@ -3,12 +3,10 @@ import BestFitLineOptions from './BestFitLineOptions'
 import SeriesVisibilityOptions from './SeriesVisibilityOptions'
 import ErrorBarsOptions from './ErrorBarsOptions'
 import { Axis2D } from '../../../common/types/geometry'
+import LineOptions from './lineOptions'
 
 export type SeriesOptions = {
-  lineOptions?: {
-    width?: number
-    color?: string
-  }
+  connectingLineOptions?: LineOptions
   markerOptions?: MarkerOptions
   bestFitLineOptions?: BestFitLineOptions
   visibilityOptions?: SeriesVisibilityOptions

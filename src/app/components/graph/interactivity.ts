@@ -2,7 +2,7 @@ import GraphGeometry from './types/GraphGeometry'
 import { get2DContext } from '../../common/helpers/canvas'
 import { Options } from './types/Options'
 import { isInRange } from '../../common/helpers/math'
-import { Point2D } from '../../common/types/geometry'
+import { Point2D, Axis2D } from '../../common/types/geometry'
 import { drawCursorPositionValueLabels } from './cursorPositionValueLabel'
 import { drawCursorPositionLines } from './cursorPositionLine'
 import { drawDatumHighlight } from './datumHighlight'
@@ -105,8 +105,8 @@ const draw = (
   ctx.clearRect(0, 0, props.widthPx, props.heightPx)
 
   // Determine if the cursor is within the graph area
-  const isCursorWithinGraphArea = isInRange(graphGeometry.xAxis.pl, graphGeometry.xAxis.pu, cursorPoint.x)
-    && isInRange(graphGeometry.yAxis.pl, graphGeometry.yAxis.pu, cursorPoint.y)
+  const isCursorWithinGraphArea = isInRange(graphGeometry.axesGeometry[Axis2D.X].pl, graphGeometry.axesGeometry[Axis2D.X].pu, cursorPoint.x)
+    && isInRange(graphGeometry.axesGeometry[Axis2D.Y].pl, graphGeometry.axesGeometry[Axis2D.Y].pu, cursorPoint.y)
 
   // Don't draw anything if cursor isn't within the graph area (this excludes the padding area too)
   if (!isCursorWithinGraphArea)
@@ -132,9 +132,9 @@ const draw = (
   }
 
   // Draw the vertical and horizontal lines, intersecting at where the cursor is
-  drawCursorPositionLines(ctx, cursorPoint, nearestDatumOfAllSeries, graphGeometry.xAxis, graphGeometry.yAxis, props)
+  drawCursorPositionLines(ctx, cursorPoint, nearestDatumOfAllSeries, graphGeometry.axesGeometry, props)
   // Draw the axis value labels at the cursor co-ordinates (next to the axes)
-  drawCursorPositionValueLabels(ctx, cursorPoint, nearestDatumOfAllSeries, graphGeometry.xAxis, graphGeometry.yAxis, props)
+  drawCursorPositionValueLabels(ctx, cursorPoint, nearestDatumOfAllSeries, graphGeometry.axesGeometry, props)
 
   if (highlightedDatums != null) {
     if (props.visibilityOptions?.showTooltip ?? true)

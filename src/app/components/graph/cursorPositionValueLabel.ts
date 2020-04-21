@@ -2,7 +2,7 @@ import { Options } from './types/Options'
 import { Axis2D, Point2D } from '../../common/types/geometry'
 import { createTextStyle, measureTextLineHeight, createRoundedRect } from '../../common/helpers/canvas'
 import PositionedDatum from './types/PositionedDatum'
-import AxisGeometry from './types/AxisGeometry'
+import AxesGeometry from './types/AxesGeometry'
 
 const DEFAULT_FONT_FAMILY = 'Helvetica'
 const DEFAULT_FONT_SIZE = 12
@@ -64,13 +64,12 @@ export const drawCursorPositionValueLabels = (
   ctx: CanvasRenderingContext2D,
   cursorPoint: Point2D,
   nearestDatum: PositionedDatum,
-  xAxis: AxisGeometry,
-  yAxis: AxisGeometry,
+  axesGeometry: AxesGeometry,
   props: Options,
 ) => {
   if (props.axesOptions?.[Axis2D.X]?.visibilityOptions?.showCursorPositionValueLabel ?? true) {
     const pX = nearestDatum != null && getCursorPositionValueLabelSnapTo(props, Axis2D.X) ? nearestDatum.fpX : cursorPoint.x
-    const xAxisText = xAxis.v(pX).toFixed(2)
+    const xAxisText = axesGeometry[Axis2D.X].v(pX).toFixed(2)
 
     const bgRectPaddingPx = getCursorPositionValueLabelPadding(props, Axis2D.X)
     ctx.font = getCursorPositionValueLabelFont(props, Axis2D.X)
@@ -78,7 +77,7 @@ export const drawCursorPositionValueLabels = (
     const lineHeight = measureTextLineHeight(ctx)
     const textBoxWidth = ctx.measureText(xAxisText).width
     const bgRectX = pX - textBoxWidth / 2 - bgRectPaddingPx
-    const bgRectY = yAxis.pl - lineHeight - 2 * bgRectPaddingPx
+    const bgRectY = axesGeometry[Axis2D.Y].pl - lineHeight - 2 * bgRectPaddingPx
     const bgRectWidth = textBoxWidth + 2 * bgRectPaddingPx
     const bgRectHeight = lineHeight + 2 * bgRectPaddingPx
     const bgRectRadius = getCursorPositionValueLabelBorderRadius(props, Axis2D.X)
@@ -88,11 +87,11 @@ export const drawCursorPositionValueLabels = (
 
     // Create label
     ctx.fillStyle = getCursorPositionValueLabelColor(props, Axis2D.X)
-    ctx.fillText(xAxisText, pX - textBoxWidth / 2, yAxis.pl - bgRectPaddingPx - 2)
+    ctx.fillText(xAxisText, pX - textBoxWidth / 2, axesGeometry[Axis2D.Y].pl - bgRectPaddingPx - 2)
   }
   if (props.axesOptions?.[Axis2D.Y]?.visibilityOptions?.showCursorPositionValueLabel ?? true) {
     const pY = nearestDatum != null && getCursorPositionValueLabelSnapTo(props, Axis2D.Y) ? nearestDatum.fpY : cursorPoint.y
-    const yAxisText = yAxis.v(pY).toFixed(2)
+    const yAxisText = axesGeometry[Axis2D.Y].v(pY).toFixed(2)
 
     const bgRectPaddingPx = getCursorPositionValueLabelPadding(props, Axis2D.Y)
     // Set font now early on so we can get the line height to size the bgRect correctly
@@ -101,7 +100,7 @@ export const drawCursorPositionValueLabels = (
     const lineHeight = measureTextLineHeight(ctx)
     // Create background rect
     const textBoxWidth = ctx.measureText(yAxisText).width
-    const bgRectX = xAxis.pl
+    const bgRectX = axesGeometry[Axis2D.X].pl
     const bgRectY = pY - lineHeight / 2 - bgRectPaddingPx
     const bgRectWidth = textBoxWidth + 2 * bgRectPaddingPx
     const bgRectHeight = lineHeight + 2 * bgRectPaddingPx
@@ -112,6 +111,6 @@ export const drawCursorPositionValueLabels = (
 
     // Create label
     ctx.fillStyle = getCursorPositionValueLabelColor(props, Axis2D.Y)
-    ctx.fillText(yAxisText, xAxis.pl + bgRectPaddingPx, pY + lineHeight / 2 - 2)
+    ctx.fillText(yAxisText, axesGeometry[Axis2D.X].pl + bgRectPaddingPx, pY + lineHeight / 2 - 2)
   }
 }

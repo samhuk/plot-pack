@@ -1,5 +1,5 @@
 import Datum from './types/Datum'
-import AxesRange from './types/AxesRange'
+import AxesBound from './types/AxesBound'
 import AxisGeometry from './types/AxisGeometry'
 import Options from './types/Options'
 import GraphGeometry from './types/GraphGeometry'
@@ -15,6 +15,7 @@ import DatumFocusPointDeterminationMode from './types/DatumFocusPointDeterminati
 import UnfocusedPositionedDatum from './types/UnfocusedPositionedDatum'
 import DatumFocusPoint from './types/DatumFocusPoint'
 import { normalizeDatumsErrorBarsValues } from './errorBars'
+import Bound from './types/Bound'
 
 const kdTree: any = require('kd-tree-javascript')
 
@@ -32,9 +33,9 @@ const getValueRangeOfDatum = (datum: Datum) => ({
 /**
  * Determines the minimum and maximum values for each axis
  */
-const calculateValueRangesOfDatums = (datums: Datum[]): AxesRange => {
+const calculateValueRangesOfDatums = (datums: Datum[]): AxesBound => {
   if (datums.length === 0)
-    return { vlX: 0, vuX: 0, vlY: 0, vuY: 0 }
+    return { [Axis2D.X]: { lower: 0, upper: 0 }, [Axis2D.Y]: { lower: 0, upper: 0 } }
 
   const firstDatumValueRange = getValueRangeOfDatum(datums[0])
   let xMin = firstDatumValueRange.x.min
@@ -53,25 +54,23 @@ const calculateValueRangesOfDatums = (datums: Datum[]): AxesRange => {
       yMin = datumValueRanges.y.min
   }
 
-  return {
-    vlX: xMin,
-    vuX: xMax,
-    vlY: yMin,
-    vuY: yMax,
-  }
+  return { [Axis2D.X]: { lower: xMin, upper: xMax }, [Axis2D.Y]: { lower: yMin, upper: yMax } }
 }
 
-const calculateValueRangesOfSeries = (series: { [seriesKey: string]: Datum[] }): AxesRange => (
+const calculateValueRangesOfSeries = (series: { [seriesKey: string]: Datum[] }): AxesBound => (
   Object.values(mapDict(series, (_, datums) => calculateValueRangesOfDatums(datums)))
     .reduce((acc, axesRange) => (acc == null
       ? axesRange
       : {
-        vlX: Math.min(axesRange.vlX, acc.vlX),
-        vlY: Math.min(axesRange.vlY, acc.vlY),
-        vuX: Math.max(axesRange.vuX, acc.vuX),
-        vuY: Math.max(axesRange.vuY, acc.vuY),
-      }),
-      null as AxesRange)
+        [Axis2D.X]: {
+          lower: Math.min(axesRange[Axis2D.X].lower, acc[Axis2D.X].lower),
+          upper: Math.max(axesRange[Axis2D.X].upper, acc[Axis2D.X].upper),
+        },
+        [Axis2D.Y]: {
+          lower: Math.min(axesRange[Axis2D.Y].lower, acc[Axis2D.Y].lower),
+          upper: Math.max(axesRange[Axis2D.Y].upper, acc[Axis2D.Y].upper),
+        },
+      }), null)
 )
 
 
@@ -105,25 +104,26 @@ const calculateVuPrime = (vu: number, dvGrid: number) => {
 
 /**
  * Calculates the geometrical properties of an axis given some initial details.
- * @param vl The lower value bound (i.e. minimum value) of the data
- * @param vu The upper value bound (i.e. the maximum value) of the data
- * @param pl The lower position bound (i.e. the minimum possible position in units of px)
- * @param pu The upper position bound (i.e. the maximum possible position in units of px)
+ * @param valueBound The lower and upper value bound (i.e. min and max value) of the data
+ * @param pixelScreenBound The lower and upper position bound (i.e. min and max possible position in units of px)
  * @param dpMin The minimum possible grid spacing in units of px
  * @param dvGrid Optional forced grid spacing in the value units
- * @param forceVl True to force the lower axis bound to the lower bound of the data, `vl`
- * @param forceVu True to force the upper axis bound to the upper bound of the data, `vu`
+ * @param forceVl True to force the lower axis bound to be exactly the given `vl` value.
+ * @param forceVu True to force the lower axis bound to be exactly the given `vu` value.
  */
 const calculateAxisGeometry = (
-  vl: number,
-  vu: number,
-  pl: number,
-  pu: number,
+  valueBound: Bound,
+  pixelScreenBound: Bound,
   dpMin: number,
   dvGrid?: number,
   forceVl: boolean = false,
   forceVu: boolean = false,
 ): AxisGeometry => {
+  const pl = pixelScreenBound.lower
+  const pu = pixelScreenBound.upper
+  const vl = valueBound.lower
+  const vu = valueBound.upper
+
   const dp = pu - pl
 
   const _dvGrid = dvGrid ?? calculateAutoDvGrid(vl, vu, dp, dpMin)
@@ -160,6 +160,22 @@ const calculateAxisGeometry = (
     numGridLines: Math.floor(Math.abs(dvPrime / _dvGrid)) + 1 + (shouldAddOneDueToFloatingPointImprecision ? 1 : 0),
   }
 }
+
+const calculateAxesGeometry = (
+  axesValueBound: AxesBound,
+  axesPixelScreenBound: AxesBound,
+  dpMinX: number,
+  dpMinY: number,
+  dvGridX?: number,
+  dvGridY?: number,
+  forceVlX: boolean = false,
+  forceVuX: boolean = false,
+  forceVlY: boolean = false,
+  forceVuY: boolean = false,
+) => ({
+  [Axis2D.X]: calculateAxisGeometry(axesValueBound[Axis2D.X], axesPixelScreenBound[Axis2D.X], dpMinX, dvGridX, forceVlX, forceVuX),
+  [Axis2D.Y]: calculateAxisGeometry(axesValueBound[Axis2D.Y], axesPixelScreenBound[Axis2D.Y], dpMinY, dvGridY, forceVlY, forceVuY),
+})
 
 const determineDatumFocusPoint = (
   unfocusedPositionedDatum: UnfocusedPositionedDatum,
@@ -206,17 +222,20 @@ const calculatePositionedDatums = (
   datums: Datum[],
   xAxisPFn: (v: number) => number,
   yAxisPFn: (v: number) => number,
-  vlX: number,
-  vuX: number,
-  vlY: number,
-  vuY: number,
+  axesValueBound: AxesBound,
   datumFocusPointDeterminationMode: DatumFocusPointDeterminationMode | ((datum: UnfocusedPositionedDatum) => DatumFocusPoint),
 ): PositionedDatum[] => datums
-  .filter(({ x, y }) => (
-    typeof x === 'number' ? isInRange(vlX, vuX, x) : (isInRange(vlX, vuX, Math.min(...x)) && isInRange(vlX, vuX, Math.max(...x)))
-  ) && (
-    typeof y === 'number' ? isInRange(vlY, vuY, y) : (isInRange(vlY, vuY, Math.min(...y)) && isInRange(vlY, vuY, Math.max(...y)))
-  ))
+  .filter(({ x, y }) => {
+    const vlX = axesValueBound[Axis2D.X].lower
+    const vuX = axesValueBound[Axis2D.X].upper
+    const vlY = axesValueBound[Axis2D.Y].lower
+    const vuY = axesValueBound[Axis2D.Y].upper
+    return (
+      typeof x === 'number' ? isInRange(vlX, vuX, x) : (isInRange(vlX, vuX, Math.min(...x)) && isInRange(vlX, vuX, Math.max(...x)))
+    ) && (
+      typeof y === 'number' ? isInRange(vlY, vuY, y) : (isInRange(vlY, vuY, Math.min(...y)) && isInRange(vlY, vuY, Math.max(...y)))
+    )
+  })
   .map(({ x, y }) => {
     const pX = mapDatumValueCoordinateToScreenPositionValue(x, xAxisPFn)
     const pY = mapDatumValueCoordinateToScreenPositionValue(y, yAxisPFn)
@@ -275,34 +294,56 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
 
   const normalizedSeries = mapDict(props.series, (seriesKey, datums) => normalizeDatumsErrorBarsValues(datums, props, seriesKey))
 
-  const axesValueRange = calculateValueRangesOfSeries(normalizedSeries)
+  const datumValueRange = calculateValueRangesOfSeries(normalizedSeries)
 
-  const forcedVlX = props.axesOptions?.[Axis2D.X]?.vl
-  const forcedVlY = props.axesOptions?.[Axis2D.Y]?.vl
-  const forcedVuX = props.axesOptions?.[Axis2D.X]?.vu
-  const forcedVuY = props.axesOptions?.[Axis2D.Y]?.vu
+  const forcedVlX = props.axesOptions?.[Axis2D.X]?.valueBound?.lower
+  const forcedVlY = props.axesOptions?.[Axis2D.Y]?.valueBound?.lower
+  const forcedVuX = props.axesOptions?.[Axis2D.X]?.valueBound?.upper
+  const forcedVuY = props.axesOptions?.[Axis2D.Y]?.valueBound?.upper
 
-  const vlX = forcedVlX ?? axesValueRange.vlX
-  const vlY = forcedVlY ?? axesValueRange.vlY
-  const vuX = forcedVuX ?? axesValueRange.vuX
-  const vuY = forcedVuY ?? axesValueRange.vuY
-
+  // Determine value bounds
+  const axesValueBound: AxesBound = {
+    [Axis2D.X]: {
+      lower: forcedVlX ?? datumValueRange[Axis2D.X].lower,
+      upper: forcedVuX ?? datumValueRange[Axis2D.X].upper,
+    },
+    [Axis2D.Y]: {
+      lower: forcedVlY ?? datumValueRange[Axis2D.Y].lower,
+      upper: forcedVuY ?? datumValueRange[Axis2D.Y].upper,
+    },
+  }
   // Calculate pixel bounds of axes
-  const plX = paddingX
-  const puX = props.widthPx - paddingX
-  const plY = props.heightPx - paddingY
-  const puY = paddingY
-  // Calculate the various properties of the axes
-  const xAxis = calculateAxisGeometry(vlX, vuX, plX, puX, defaultGridMinPx, props.axesOptions?.[Axis2D.X]?.dvGrid, forcedVlX != null, forcedVuX != null)
-  const yAxis = calculateAxisGeometry(vlY, vuY, plY, puY, defaultGridMinPx, props.axesOptions?.[Axis2D.Y]?.dvGrid, forcedVlY != null, forcedVuY != null)
+  const axesPixelScreenBound: AxesBound = {
+    [Axis2D.X]: {
+      lower: paddingX,
+      upper: props.widthPx - paddingX,
+    },
+    [Axis2D.Y]: {
+      lower: props.heightPx - paddingY,
+      upper: paddingY,
+    },
+  }
 
+  // Calculate the geometry of the axes
+  const axesGeometry = calculateAxesGeometry(
+    axesValueBound,
+    axesPixelScreenBound,
+    defaultGridMinPx,
+    defaultGridMinPx,
+    props.axesOptions?.[Axis2D.X]?.dvGrid,
+    props.axesOptions?.[Axis2D.Y]?.dvGrid,
+    forcedVlX != null,
+    forcedVuX != null,
+    forcedVlY != null,
+    forcedVuY != null,
+  )
   const positionedDatums = mapDict(normalizedSeries, (seriesKey, datums) => (
-    calculatePositionedDatums(datums, xAxis.p, yAxis.p, vlX, vuX, vlY, vuY, props.datumFocusPointDeterminationMode)
+    calculatePositionedDatums(datums, axesGeometry[Axis2D.X].p, axesGeometry[Axis2D.Y].p, axesValueBound, props.datumFocusPointDeterminationMode)
   ))
 
   const bestFitStraightLineEquations = mapDict(positionedDatums, (seriesKey, datums) => (
     getBestFitLineType(props, seriesKey) === BestFitLineType.STRAIGHT
-      ? calculateStraightLineOfBestFit(datums.map(d => ({ x: d.fpX, y: d.fpY })))
+      ? calculateStraightLineOfBestFit(datums.map(d => ({ x: d.fvX, y: d.fvY })))
       : null
   ))
 
@@ -315,8 +356,7 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
   ))
 
   return {
-    xAxis,
-    yAxis,
+    axesGeometry,
     bestFitStraightLineEquations,
     positionedDatums,
     datumKdTrees,

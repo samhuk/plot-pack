@@ -1,13 +1,13 @@
 import Options from './types/Options'
 import { Axis2D } from '../../common/types/geometry'
 import { createTextStyle } from '../../common/helpers/canvas'
-import AxisGeometry from './types/AxisGeometry'
 import XAxisOrientation from './types/xAxisOrientation'
 import YAxisOrientation from './types/yAxisOrientation'
 import { getXAxisYPosition, getYAxisXPosition } from './drawGraph'
 import AxisOptions from './types/AxisOptions'
 import Notation from './types/Notation'
 import { roundDecimalPlaces } from '../../common/helpers/math'
+import AxesGeometry from './types/AxesGeometry'
 
 const DEFAULT_AXIS_MARKER_LABEL_FONT_FAMILY = 'Helvetica'
 const DEFAULT_AXIS_MARKER_LABEL_FONT_SIZE = 9
@@ -51,19 +51,23 @@ const getFont = (props: Options, axis: Axis2D) => createTextStyle(getFontFamily(
 
 export const drawXAxisAxisMarkerLabels = (
   ctx: CanvasRenderingContext2D,
-  xAxis: AxisGeometry,
-  yAxis: AxisGeometry,
+  axesGeometry: AxesGeometry,
   props: Options,
 ) => {
   ctx.lineWidth = 0.7
   ctx.font = getFont(props, Axis2D.X)
   ctx.fillStyle = getLabelColor(props, Axis2D.X)
 
-  const y = getXAxisYPosition(props.axesOptions?.[Axis2D.X]?.orientation as XAxisOrientation, yAxis.pl, yAxis.pu, yAxis.pOrigin)
+  const y = getXAxisYPosition(
+    props.axesOptions?.[Axis2D.X]?.orientation as XAxisOrientation,
+    axesGeometry[Axis2D.Y].pl,
+    axesGeometry[Axis2D.Y].pu,
+    axesGeometry[Axis2D.Y].pOrigin,
+  )
 
-  for (let i = 0; i < xAxis.numGridLines; i += 1) {
-    const value = xAxis.vl + xAxis.dvGrid * i
-    const x = xAxis.p(value)
+  for (let i = 0; i < axesGeometry[Axis2D.X].numGridLines; i += 1) {
+    const value = axesGeometry[Axis2D.X].vl + axesGeometry[Axis2D.X].dvGrid * i
+    const x = axesGeometry[Axis2D.X].p(value)
     const _y = y + 15
     ctx.fillText(createAxisGridLabelText(value, props.axesOptions?.[Axis2D.X]), x, _y)
   }
@@ -71,20 +75,24 @@ export const drawXAxisAxisMarkerLabels = (
 
 export const drawYAxisAxisMarkerLabels = (
   ctx: CanvasRenderingContext2D,
-  yAxis: AxisGeometry,
-  xAxis: AxisGeometry,
+  axesGeometry: AxesGeometry,
   props: Options,
 ) => {
   ctx.lineWidth = 0.7
   ctx.font = getFont(props, Axis2D.Y)
   ctx.strokeStyle = getLabelColor(props, Axis2D.Y)
 
-  const x = getYAxisXPosition(props.axesOptions?.[Axis2D.Y]?.orientation as YAxisOrientation, xAxis.pl, xAxis.pu, xAxis.pOrigin)
+  const x = getYAxisXPosition(
+    props.axesOptions?.[Axis2D.Y]?.orientation as YAxisOrientation,
+    axesGeometry[Axis2D.X].pl,
+    axesGeometry[Axis2D.X].pu,
+    axesGeometry[Axis2D.X].pOrigin,
+  )
 
-  for (let i = 0; i < yAxis.numGridLines; i += 1) {
-    const value = yAxis.vl + yAxis.dvGrid * i
+  for (let i = 0; i < axesGeometry[Axis2D.Y].numGridLines; i += 1) {
+    const value = axesGeometry[Axis2D.Y].vl + axesGeometry[Axis2D.Y].dvGrid * i
     const _x = x - 30
-    const y = yAxis.p(value) - 5
+    const y = axesGeometry[Axis2D.Y].p(value) - 5
     ctx.fillText(createAxisGridLabelText(value, props.axesOptions?.[Axis2D.Y]), _x, y)
   }
 }

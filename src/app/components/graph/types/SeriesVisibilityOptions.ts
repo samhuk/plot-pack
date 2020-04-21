@@ -1,6 +1,6 @@
 export type SeriesVisibilityOptions = {
   showMarkers?: boolean
-  showLine?: boolean
+  showConnectingLine?: boolean
   showStraightLineOfBestFit?: boolean
 }
 

@@ -1,7 +1,7 @@
 import { Options } from './types/Options'
 import PositionedDatum from './types/PositionedDatum'
-import AxisGeometry from './types/AxisGeometry'
 import { Axis2D, Point2D } from '../../common/types/geometry'
+import AxesGeometry from './types/AxesGeometry'
 
 const DEFAULT_LINE_WIDTH_X = 2
 const DEFAULT_LINE_WIDTH_Y = 1
@@ -20,8 +20,7 @@ const getShouldSnapCursorPositionLine = (props: Options, axis: Axis2D) => (
 const createCursorLinePath = (
   axis: Axis2D,
   cursorPoint: Point2D,
-  xAxis: AxisGeometry,
-  yAxis: AxisGeometry,
+  axesGeometry: AxesGeometry,
   nearestDatum: PositionedDatum,
   props: Options,
 ) => {
@@ -33,8 +32,8 @@ const createCursorLinePath = (
       // Don't snap horizontal y-axis line by default
       const shouldSnapLine = getShouldSnapCursorPositionLine(props, Axis2D.Y)
       const yAxisLineY = nearestDatum != null && shouldSnapLine ? nearestDatum.fpY : cursorPoint.y
-      line.moveTo(xAxis.pu, yAxisLineY)
-      line.lineTo(xAxis.pl, yAxisLineY)
+      line.moveTo(axesGeometry[Axis2D.X].pu, yAxisLineY)
+      line.lineTo(axesGeometry[Axis2D.X].pl, yAxisLineY)
       return line
     }
     // The vertical line
@@ -44,8 +43,8 @@ const createCursorLinePath = (
       // Snap vertical x-axis line by default
       const shouldSnapLine = getShouldSnapCursorPositionLine(props, Axis2D.X)
       const xAxisLineX = nearestDatum != null && shouldSnapLine ? nearestDatum.fpX : cursorPoint.x
-      line.moveTo(xAxisLineX, yAxis.pu)
-      line.lineTo(xAxisLineX, yAxis.pl)
+      line.moveTo(xAxisLineX, axesGeometry[Axis2D.Y].pu)
+      line.lineTo(xAxisLineX, axesGeometry[Axis2D.Y].pl)
       return line
     }
     default:
@@ -73,12 +72,11 @@ export const drawCursorPositionLine = (
   ctx: CanvasRenderingContext2D,
   cursorPoint: Point2D,
   nearestDatum: PositionedDatum,
-  xAxis: AxisGeometry,
-  yAxis: AxisGeometry,
+  axesGeometry: AxesGeometry,
   axis: Axis2D,
   props: Options,
 ) => {
-  const line = createCursorLinePath(axis, cursorPoint, xAxis, yAxis, nearestDatum, props)
+  const line = createCursorLinePath(axis, cursorPoint, axesGeometry, nearestDatum, props)
   applyDrawOptionsToContext(ctx, props, axis)
   ctx.stroke(line)
 }
@@ -87,15 +85,14 @@ export const drawCursorPositionLines = (
   ctx: CanvasRenderingContext2D,
   cursorPoint: Point2D,
   nearestDatum: PositionedDatum,
-  xAxis: AxisGeometry,
-  yAxis: AxisGeometry,
+  axesGeometry: AxesGeometry,
   props: Options,
 ) => {
   if (getShouldDrawCursorPositionLine(props, Axis2D.X))
-    drawCursorPositionLine(ctx, cursorPoint, nearestDatum, xAxis, yAxis, Axis2D.X, props)
+    drawCursorPositionLine(ctx, cursorPoint, nearestDatum, axesGeometry, Axis2D.X, props)
 
   if (getShouldDrawCursorPositionLine(props, Axis2D.Y))
-    drawCursorPositionLine(ctx, cursorPoint, nearestDatum, xAxis, yAxis, Axis2D.Y, props)
+    drawCursorPositionLine(ctx, cursorPoint, nearestDatum, axesGeometry, Axis2D.Y, props)
 
   ctx.setLineDash([])
 }

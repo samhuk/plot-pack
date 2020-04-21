@@ -3,6 +3,7 @@ import XAxisOrientation from './xAxisOrientation'
 import YAxisOrientation from './yAxisOrientation'
 import AxisVisibilityOptions from './AxisVisibilityOptions'
 import TextOptions from './TextOptions'
+import Bound from './Bound'
 
 /**
  * Options to customize the rendering and behavior of an axis.
@@ -11,8 +12,7 @@ export type AxisOptions = {
   labelText?: string
   labelOptions?: TextOptions
   dvGrid?: number
-  vl?: number
-  vu?: number
+  valueBound?: Bound
   notation?: Notation
   numFigures?: number
   axisLineWidth?: number

@@ -2,6 +2,31 @@ import React from 'react'
 import Graph from '../../../../../app/components/graph'
 import DatumFocusPointDeterminationMode from '../../../../../app/components/graph/types/DatumFocusPointDeterminationMode'
 import { Axis2D } from '../../../../../app/common/types/geometry'
+import PositionedDatum from '../../../../../app/components/graph/types/PositionedDatum'
+
+const drawCandlestickMarker = (ctx: CanvasRenderingContext2D, datum: PositionedDatum) => {
+  const sticksPath = new Path2D()
+  sticksPath.moveTo(datum.fpX, datum.pY[0]) // open
+  sticksPath.lineTo(datum.fpX, datum.pY[1]) // high
+
+  sticksPath.moveTo(datum.fpX, datum.pY[3]) // close
+  sticksPath.lineTo(datum.fpX, datum.pY[2]) // low
+
+  const boxWidth = 6
+
+  const halfBoxWith = boxWidth / 2
+
+  const boxRect = new Path2D()
+  boxRect.rect(datum.fpX - halfBoxWith, Math.min(datum.pY[0], datum.pY[3]), boxWidth, Math.abs(datum.pY[0] - datum.pY[3]))
+
+  const isLoss = datum.vY[0] > datum.vY[3]
+  ctx.strokeStyle = isLoss ? 'red' : 'green'
+  ctx.fillStyle = isLoss ? 'red' : 'green'
+
+  ctx.lineWidth = 1
+  ctx.stroke(sticksPath)
+  ctx.fill(boxRect)
+}
 
 export const Candlestick = () => {
   return (
@@ -276,29 +301,7 @@ export const Candlestick = () => {
               markerOptions: {
                 customOptions: {
                   doesCompliment: false,
-                  customRenderFunction: (ctx, datum) => {
-                    const sticksPath = new Path2D()
-                    sticksPath.moveTo(datum.fpX, datum.pY[0]) // open
-                    sticksPath.lineTo(datum.fpX, datum.pY[1]) // high
-
-                    sticksPath.moveTo(datum.fpX, datum.pY[3]) // close
-                    sticksPath.lineTo(datum.fpX, datum.pY[2]) // low
-
-                    const boxWidth = 6
-
-                    const halfBoxWith = boxWidth / 2
-
-                    const boxRect = new Path2D()
-                    boxRect.rect(datum.fpX - halfBoxWith, Math.min(datum.pY[0], datum.pY[3]), boxWidth, Math.abs(datum.pY[0] - datum.pY[3]))
-
-                    const isLoss = datum.vY[0] > datum.vY[3]
-                    ctx.strokeStyle = isLoss ? 'red' : 'green'
-                    ctx.fillStyle = isLoss ? 'red' : 'green'
-
-                    ctx.lineWidth = 1
-                    ctx.stroke(sticksPath)
-                    ctx.fill(boxRect)
-                  }
+                  customRenderFunction: drawCandlestickMarker,
                 }
               },
             }

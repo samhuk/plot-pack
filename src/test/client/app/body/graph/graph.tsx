@@ -44,6 +44,10 @@ export const render = () => {
   for (let i = 1; i < 1000; i += 1)
     data4.push({ x: i, y: (data4[i - 2]?.y ?? 0) + (1 / i) })
 
+  const randomData1: Point2D[] = []
+  for (let i = 1; i < 50; i += 1)
+    randomData1.push({ x: Math.random(), y: Math.random() })
+
   return (
     <div className="graph">
       <h2>Graph</h2>
@@ -68,11 +72,11 @@ export const render = () => {
           seriesOptions={{
             1: {
               visibilityOptions: {
-                showLine: true,
+                showConnectingLine: true,
               },
-              lineOptions: {
+              connectingLineOptions: {
                 color: 'red',
-                width: 2,
+                lineWidth: 2,
               },
               markerOptions: {
                 color: 'purple',
@@ -134,6 +138,7 @@ export const render = () => {
             showMarkers: true,
             showConnectingLine: true,
             showGridLines: true,
+            showStraightLineOfBestFit: true,
           }}
           tooltipOptions={{
             showSeriesStylePreview: true,
@@ -174,15 +179,15 @@ export const render = () => {
           }}
           seriesOptions={{
             1: {
-              lineOptions: {
+              connectingLineOptions: {
                 color: 'red',
-                width: 2,
+                lineWidth: 2,
               },
             },
             2: {
-              lineOptions: {
+              connectingLineOptions: {
                 color: 'blue',
-                width: 2,
+                lineWidth: 2,
               },
             },
           }}
@@ -208,6 +213,25 @@ export const render = () => {
       </div>
 
       <div className="sandbox">
+        <h3>Some random data</h3>
+        <Graph
+          heightPx={height}
+          widthPx={width}
+          series={{
+            1: randomData1,
+          }}
+          seriesOptions={{
+            1: {
+              visibilityOptions: {
+                showConnectingLine: true,
+                showStraightLineOfBestFit: true,
+              },
+            },
+          }}
+        />
+      </div>
+
+      <div className="sandbox">
         <h3>DARK MODE (with error bars)!</h3>
         <Graph
           heightPx={700}
@@ -218,7 +242,7 @@ export const render = () => {
           }}
           seriesOptions={{
             1: {
-              lineOptions: {
+              connectingLineOptions: {
                 color: 'red',
               },
               markerOptions: {
@@ -236,7 +260,7 @@ export const render = () => {
               },
             },
             2: {
-              lineOptions: {
+              connectingLineOptions: {
                 color: 'blue',
               },
               markerOptions: {
