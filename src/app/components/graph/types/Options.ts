@@ -14,6 +14,7 @@ import DatumFocusPointDeterminationMode from './DatumFocusPointDeterminationMode
 import UnfocusedPositionedDatum from './UnfocusedPositionedDatum'
 import DatumFocusPoint from './DatumFocusPoint'
 import ErrorBarsOptions from './ErrorBarsOptions'
+import AxisMarkerLineOptions from './AxisMarkerLineOptions'
 
 /**
  * Options for the Graph
@@ -29,7 +30,7 @@ export type Options = {
   axesLabelOptions?: TextOptions
   tooltipOptions?: TooltipOptions
   axesMarkerLabelOptions?: TextOptions
-  axesMarkerLineOptions?: LineOptions
+  axesMarkerLineOptions?: AxisMarkerLineOptions
   axesLineOptions?: LineOptions
   gridLineOptions?: LineOptions
   connectingLineOptions?: LineOptions

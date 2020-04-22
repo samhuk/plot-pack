@@ -95,6 +95,7 @@ export const render = () => {
               axisMarkerLineColor: '#333',
               axisMarkerLabelColor: '#333',
               orientation: YAxisOrientation.ORIGIN,
+              axisMarkerPosition: null,
               visibilityOptions: {
                 showCursorPositionLine: true,
                 showCursorPositionValueLabel: true,
@@ -102,14 +103,14 @@ export const render = () => {
             },
             [Axis2D.X]: {
               labelText: 'This is the X Axis',
-              // dvGrid: 0.15,
-              // vl: 0,
-              // vu: 1,
+              // dvGrid: 0.5,
+              // valueBound: { lower: -1.25, upper: 5 },
               notation: Notation.DECIMAL,
               numFigures: 2,
               axisLineColor: '#333',
               axisMarkerLineColor: '#333',
               orientation: XAxisOrientation.ORIGIN,
+              axisMarkerPosition: null,
               visibilityOptions: {
                 showCursorPositionLine: true,
                 showCursorPositionValueLabel: true,
