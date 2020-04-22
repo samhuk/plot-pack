@@ -22,6 +22,9 @@ const drawAxisLabel = (ctx: CanvasRenderingContext2D, axis: Axis2D, axesGeometry
   if (text == null || text.length === 0)
     return
 
+  // Set font early to get accurate text measurement
+  ctx.font = createTextStyleInternal(props, axis)
+
   const textWidth = ctx.measureText(text).width
   const lineHeight = measureTextLineHeight(ctx)
 
@@ -33,7 +36,6 @@ const drawAxisLabel = (ctx: CanvasRenderingContext2D, axis: Axis2D, axesGeometry
     ? axesGeometry[Axis2D.Y].pl + lineHeight + 10
     : axesGeometry[Axis2D.Y].pl + ((axesGeometry[Axis2D.Y].pu - axesGeometry[Axis2D.Y].pl) / 2) + (textWidth / 2)
 
-  ctx.font = createTextStyleInternal(props, axis)
   ctx.fillStyle = props.axesOptions?.[axis]?.labelOptions?.color ?? props.axesLabelOptions?.color ?? DEFAULT_COLOR
 
   ctx.save()
