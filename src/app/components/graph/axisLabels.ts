@@ -1,5 +1,4 @@
 import Options from './types/Options'
-import GraphGeometry from './types/GraphGeometry'
 import { Axis2D } from '../../common/types/geometry'
 import { measureTextLineHeight, createTextStyle } from '../../common/helpers/canvas'
 import AxesGeometry from './types/AxesGeometry'

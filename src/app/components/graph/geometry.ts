@@ -1,6 +1,6 @@
 import Datum from './types/Datum'
 import AxesBound from './types/AxesBound'
-import AxisGeometry from './types/AxisGeometry'
+import UnpositionedAxisGeometry from './types/UnpositionedAxisGeometry'
 import Options from './types/Options'
 import GraphGeometry from './types/GraphGeometry'
 import BestFitLineType from './types/BestFitLineType'
@@ -16,6 +16,9 @@ import UnfocusedPositionedDatum from './types/UnfocusedPositionedDatum'
 import DatumFocusPoint from './types/DatumFocusPoint'
 import { normalizeDatumsErrorBarsValues } from './errorBars'
 import Bound from './types/Bound'
+import XAxisOrientation from './types/xAxisOrientation'
+import YAxisOrientation from './types/yAxisOrientation'
+import AxesGeometry from './types/AxesGeometry'
 
 const kdTree: any = require('kd-tree-javascript')
 
@@ -102,6 +105,32 @@ const calculateVuPrime = (vu: number, dvGrid: number) => {
   return vu + (vuModDvGrid !== 0 ? dvGrid : 0) - vuModDvGrid
 }
 
+const getXAxisYPosition = (orientation: XAxisOrientation, plY: number, puY: number, yAxisPOrigin: number) => {
+  switch (orientation) {
+    case XAxisOrientation.TOP:
+      return puY
+    case XAxisOrientation.BOTTOM:
+      return plY
+    case XAxisOrientation.ORIGIN:
+      return yAxisPOrigin
+    default:
+      return yAxisPOrigin
+  }
+}
+
+const getYAxisXPosition = (orientation: YAxisOrientation, plX: number, puX: number, xAxisPOrigin: number) => {
+  switch (orientation) {
+    case YAxisOrientation.LEFT:
+      return plX
+    case YAxisOrientation.RIGHT:
+      return puX
+    case YAxisOrientation.ORIGIN:
+      return xAxisPOrigin
+    default:
+      return xAxisPOrigin
+  }
+}
+
 /**
  * Calculates the geometrical properties of an axis given some initial details.
  * @param valueBound The lower and upper value bound (i.e. min and max value) of the data
@@ -111,14 +140,14 @@ const calculateVuPrime = (vu: number, dvGrid: number) => {
  * @param forceVl True to force the lower axis bound to be exactly the given `vl` value.
  * @param forceVu True to force the lower axis bound to be exactly the given `vu` value.
  */
-const calculateAxisGeometry = (
+const calculateUnpositionedAxisGeometry = (
   valueBound: Bound,
   pixelScreenBound: Bound,
   dpMin: number,
   dvGrid?: number,
   forceVl: boolean = false,
   forceVu: boolean = false,
-): AxisGeometry => {
+): UnpositionedAxisGeometry => {
   const pl = pixelScreenBound.lower
   const pu = pixelScreenBound.upper
   const vl = valueBound.lower
@@ -156,12 +185,13 @@ const calculateAxisGeometry = (
     dpGrid,
     p,
     v: _p => ((_p - pl) / dpdv) + vlPrime,
-    pOrigin: boundToRange(p(0), pl, pu),
     numGridLines: Math.floor(Math.abs(dvPrime / _dvGrid)) + 1 + (shouldAddOneDueToFloatingPointImprecision ? 1 : 0),
   }
 }
 
 const calculateAxesGeometry = (
+  xAxisOrientation: XAxisOrientation,
+  yAxisOrientation: YAxisOrientation,
   axesValueBound: AxesBound,
   axesPixelScreenBound: AxesBound,
   dpMinX: number,
@@ -172,10 +202,27 @@ const calculateAxesGeometry = (
   forceVuX: boolean = false,
   forceVlY: boolean = false,
   forceVuY: boolean = false,
-) => ({
-  [Axis2D.X]: calculateAxisGeometry(axesValueBound[Axis2D.X], axesPixelScreenBound[Axis2D.X], dpMinX, dvGridX, forceVlX, forceVuX),
-  [Axis2D.Y]: calculateAxisGeometry(axesValueBound[Axis2D.Y], axesPixelScreenBound[Axis2D.Y], dpMinY, dvGridY, forceVlY, forceVuY),
-})
+): AxesGeometry => {
+  const unpositionedXAxisGeometry = calculateUnpositionedAxisGeometry(axesValueBound[Axis2D.X], axesPixelScreenBound[Axis2D.X], dpMinX, dvGridX, forceVlX, forceVuX)
+  const unpositionedYAxisGeometry = calculateUnpositionedAxisGeometry(axesValueBound[Axis2D.Y], axesPixelScreenBound[Axis2D.Y], dpMinY, dvGridY, forceVlY, forceVuY)
+
+  const boundedXAxisOrigin = boundToRange(unpositionedXAxisGeometry.p(0), unpositionedXAxisGeometry.pl, unpositionedXAxisGeometry.pu)
+  const boundedYAxisOrigin = boundToRange(unpositionedYAxisGeometry.p(0), unpositionedYAxisGeometry.pl, unpositionedYAxisGeometry.pu)
+
+  const xAxisYPosition = getXAxisYPosition(xAxisOrientation, unpositionedYAxisGeometry.pl, unpositionedYAxisGeometry.pu, boundedYAxisOrigin)
+  const yAxisXPosition = getYAxisXPosition(yAxisOrientation, unpositionedXAxisGeometry.pl, unpositionedXAxisGeometry.pu, boundedXAxisOrigin)
+
+  return {
+    [Axis2D.X]: {
+      ...unpositionedXAxisGeometry,
+      orthogonalScreenPosition: xAxisYPosition,
+    },
+    [Axis2D.Y]: {
+      ...unpositionedYAxisGeometry,
+      orthogonalScreenPosition: yAxisXPosition,
+    },
+  }
+}
 
 const determineDatumFocusPoint = (
   unfocusedPositionedDatum: UnfocusedPositionedDatum,
@@ -326,6 +373,8 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
 
   // Calculate the geometry of the axes
   const axesGeometry = calculateAxesGeometry(
+    props.axesOptions?.[Axis2D.X]?.orientation as XAxisOrientation,
+    props.axesOptions?.[Axis2D.Y]?.orientation as YAxisOrientation,
     axesValueBound,
     axesPixelScreenBound,
     defaultGridMinPx,

@@ -1,9 +1,6 @@
 import Options from './types/Options'
 import { Axis2D } from '../../common/types/geometry'
 import { createTextStyle } from '../../common/helpers/canvas'
-import XAxisOrientation from './types/xAxisOrientation'
-import YAxisOrientation from './types/yAxisOrientation'
-import { getXAxisYPosition, getYAxisXPosition } from './drawGraph'
 import AxisOptions from './types/AxisOptions'
 import Notation from './types/Notation'
 import { roundDecimalPlaces } from '../../common/helpers/math'
@@ -58,12 +55,7 @@ export const drawXAxisAxisMarkerLabels = (
   ctx.font = getFont(props, Axis2D.X)
   ctx.fillStyle = getLabelColor(props, Axis2D.X)
 
-  const y = getXAxisYPosition(
-    props.axesOptions?.[Axis2D.X]?.orientation as XAxisOrientation,
-    axesGeometry[Axis2D.Y].pl,
-    axesGeometry[Axis2D.Y].pu,
-    axesGeometry[Axis2D.Y].pOrigin,
-  )
+  const y = axesGeometry[Axis2D.X].orthogonalScreenPosition
 
   for (let i = 0; i < axesGeometry[Axis2D.X].numGridLines; i += 1) {
     const value = axesGeometry[Axis2D.X].vl + axesGeometry[Axis2D.X].dvGrid * i
@@ -82,12 +74,7 @@ export const drawYAxisAxisMarkerLabels = (
   ctx.font = getFont(props, Axis2D.Y)
   ctx.strokeStyle = getLabelColor(props, Axis2D.Y)
 
-  const x = getYAxisXPosition(
-    props.axesOptions?.[Axis2D.Y]?.orientation as YAxisOrientation,
-    axesGeometry[Axis2D.X].pl,
-    axesGeometry[Axis2D.X].pu,
-    axesGeometry[Axis2D.X].pOrigin,
-  )
+  const x = axesGeometry[Axis2D.Y].orthogonalScreenPosition
 
   for (let i = 0; i < axesGeometry[Axis2D.Y].numGridLines; i += 1) {
     const value = axesGeometry[Axis2D.Y].vl + axesGeometry[Axis2D.Y].dvGrid * i

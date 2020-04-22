@@ -1,5 +1,5 @@
 /**
- * Geometric properties of an axis.
+ * Geometric properties of an axis, without a position.
  *
  * @param vl Lower (minimum) value
  * @param vu Upper (maxiumum) value
@@ -9,12 +9,10 @@
  * @param dpGrid Grid spacing in pixel units
  * @param p Function to convert a value to a pixel position
  * @param v Function to convert a pixel position to a value
- * @param orthogonalScreenPosition Position of the axis in the orthogonal axis. For example,
- * for the X Axis, this would be it's vertical position (Y coordinate).
  * @param numGridLines Number of grid lines that fit on the axis for the
  * calculated dvGrid (i.e. this is `Math.abs((vl - vu) / dvGrid)`
  */
-export type AxisGeometry = {
+export type UnpositionedAxisGeometry = {
   vl: number
   vu: number
   pl: number
@@ -23,8 +21,7 @@ export type AxisGeometry = {
   dpGrid: number
   p: (v: number) => number
   v: (p: number) => number
-  orthogonalScreenPosition: number
   numGridLines: number
 }
 
-export default AxisGeometry
+export default UnpositionedAxisGeometry

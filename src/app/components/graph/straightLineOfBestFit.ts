@@ -1,6 +1,6 @@
 import Options from './types/Options'
-import { StraightLineEquation, Axis2D, Point2D } from '../../common/types/geometry'
-import { boundToRange, isInRange } from '../../common/helpers/math'
+import { StraightLineEquation, Axis2D } from '../../common/types/geometry'
+import { isInRange } from '../../common/helpers/math'
 import AxesGeometry from './types/AxesGeometry'
 
 const DEFAULT_BEST_FIT_LINE_WIDTH = 2
