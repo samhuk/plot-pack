@@ -95,7 +95,7 @@ export const render = () => {
               axisMarkerLineColor: '#333',
               axisMarkerLabelColor: '#333',
               orientation: YAxisOrientation.ORIGIN,
-              axisMarkerPosition: null,
+              axisMarkerOrientation: null,
               visibilityOptions: {
                 showCursorPositionLine: true,
                 showCursorPositionValueLabel: true,
@@ -110,7 +110,7 @@ export const render = () => {
               axisLineColor: '#333',
               axisMarkerLineColor: '#333',
               orientation: XAxisOrientation.ORIGIN,
-              axisMarkerPosition: null,
+              axisMarkerOrientation: null,
               visibilityOptions: {
                 showCursorPositionLine: true,
                 showCursorPositionValueLabel: true,

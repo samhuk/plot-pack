@@ -121,7 +121,6 @@ const createYAxisMarkerLabels = (
   ctx.fillStyle = getLabelColor(props, Axis2D.Y)
 
   const axisX = axesGeometry[Axis2D.Y].orthogonalScreenPosition
-
   const lineHeight = measureTextLineHeight(ctx)
   const markerLineLength = getMarkerLineLength(props, Axis2D.Y)
   const markerPosition = getYAxisMarkerOrientation(props)
