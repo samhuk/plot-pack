@@ -4,8 +4,8 @@ import YAxisOrientation from './yAxisOrientation'
 import AxisVisibilityOptions from './AxisVisibilityOptions'
 import TextOptions from './TextOptions'
 import Bound from './Bound'
-import XAxisMarkerPosition from './XAxixMarkerPosition'
-import YAxisMarkerPosition from './YAxisMarkerPosition'
+import XAxisMarkerOrientation from './XAxixMarkerOrientation'
+import YAxisMarkerOrientation from './YAxisMarkerOrientation'
 
 /**
  * Options to customize the rendering and behavior of an axis.
@@ -27,7 +27,7 @@ export type AxisOptions = {
   axisMarkerLineWidth?: number
   axisMarkerLineColor?: string
   axisMarkerLineLength?: number
-  axisMarkerPosition?: XAxisMarkerPosition | YAxisMarkerPosition
+  axisMarkerOrientation?: XAxisMarkerOrientation | YAxisMarkerOrientation
   visibilityOptions?: AxisVisibilityOptions
   padding?: number
   orientation?: XAxisOrientation | YAxisOrientation

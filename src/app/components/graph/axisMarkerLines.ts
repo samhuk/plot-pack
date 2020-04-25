@@ -2,8 +2,8 @@ import Options from './types/Options'
 import { Axis2D } from '../../common/types/geometry'
 import AxesGeometry from './types/AxesGeometry'
 import { determineXAxisMarkerPositioning, determineYAxisMarkerPositioning } from './axisMarkerPositioning'
-import XAxisMarkerPosition from './types/XAxixMarkerPosition'
-import YAxisMarkerPosition from './types/YAxisMarkerPosition'
+import XAxisMarkerOrientation from './types/XAxixMarkerOrientation'
+import YAxisMarkerOrientation from './types/YAxisMarkerOrientation'
 
 const DEFAULT_MARKER_LINE_WIDTH = 3
 const DEFAULT_MARKER_LINE_LENGTH = 5
@@ -32,7 +32,7 @@ export const drawXAxisAxisMarkerLines = (
   const y = axesGeometry[Axis2D.X].orthogonalScreenPosition
   const markerLength = getMarkerLineLength(props, Axis2D.X)
 
-  const markerPosition = props.axesOptions?.[Axis2D.X]?.axisMarkerPosition as XAxisMarkerPosition
+  const markerPosition = props.axesOptions?.[Axis2D.X]?.axisMarkerOrientation as XAxisMarkerOrientation
   const { shouldPlaceBelow } = determineXAxisMarkerPositioning(axesGeometry, markerPosition)
   const markerEndY = y + (shouldPlaceBelow ? 1 : -1) * markerLength
 
@@ -56,7 +56,7 @@ export const drawYAxisAxisMarkerLines = (
   const x = axesGeometry[Axis2D.Y].orthogonalScreenPosition
   const markerLength = getMarkerLineLength(props, Axis2D.Y)
 
-  const markerPosition = props.axesOptions?.[Axis2D.Y]?.axisMarkerPosition as YAxisMarkerPosition
+  const markerPosition = props.axesOptions?.[Axis2D.Y]?.axisMarkerOrientation as YAxisMarkerOrientation
   const { shouldPlaceLeft } = determineYAxisMarkerPositioning(axesGeometry, markerPosition)
   const markerEndX = x + (shouldPlaceLeft ? -1 : 1) * markerLength
 
