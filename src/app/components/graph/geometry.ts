@@ -22,6 +22,8 @@ import AxesGeometry from './types/AxesGeometry'
 import { getAxisLabelText } from './axisLabels'
 import { measureTextLineHeight, get2DContext } from '../../common/helpers/canvas'
 import { applyTextOptionsToContext } from './drawGraph'
+import { createXAxisMarkerLabels, createYAxisMarkerLabels } from './axisMarkerLabels'
+import AxisMarkerLabel from './types/AxisMarkerLabel'
 
 const kdTree: any = require('kd-tree-javascript')
 
@@ -370,6 +372,32 @@ const createAxesPixelScreenBound = (ctx: CanvasRenderingContext2D, props: Option
   return axesPixelScreenBound
 }
 
+const getBoundingScreenRectOfAxisMarkerLabels = (labels: AxisMarkerLabel[]): { left: number, right: number, top: number, bottom: number } => {
+  if (labels.length === 0)
+    return { left: 0, right: 0, top: 0, bottom: 0 }
+
+  const firstLabel = labels[0]
+  const lastLabel = labels[labels.length - 1]
+
+  let left = firstLabel.pX
+  let right = lastLabel.pX + lastLabel.textWidth
+  let top = firstLabel.pY - firstLabel.textHeight
+  let bottom = lastLabel.pY
+
+  labels.forEach(label => {
+    if (label.pX < left)
+      left = label.pX
+    if (label.pX + label.textWidth > right)
+      right = label.pX + label.textWidth
+    if (label.pY - label.textHeight < top)
+      top = label.pY - label.textHeight
+    if (label.pY > bottom)
+      bottom = label.pY
+  })
+
+  return { left, right, top, bottom }
+}
+
 const getBestFitLineType = (props: Options, seriesKey: string) => props.seriesOptions?.[seriesKey]?.bestFitLineOptions?.type
   ?? props.bestFitLineOptions?.type
   ?? BestFitLineType.STRAIGHT
@@ -417,6 +445,31 @@ export const createGraphGeometry = (canvas: HTMLCanvasElement, props: Options): 
     forcedVlY != null,
     forcedVuY != null,
   )
+
+  const xAxisMarkerLabels = createXAxisMarkerLabels(ctx, axesGeometry, props)
+  const yAxisMarkerLabels = createYAxisMarkerLabels(ctx, axesGeometry, props)
+
+  const xAxisMarkerLabelsBoundingRect = getBoundingScreenRectOfAxisMarkerLabels(xAxisMarkerLabels)
+  const yAxisMarkerLabelsBoundingRect = getBoundingScreenRectOfAxisMarkerLabels(yAxisMarkerLabels)
+
+  setTimeout(() => {
+    ctx.strokeStyle = 'black'
+    ctx.lineWidth = 1
+    ctx.strokeRect(
+      xAxisMarkerLabelsBoundingRect.left,
+      xAxisMarkerLabelsBoundingRect.top,
+      xAxisMarkerLabelsBoundingRect.right - xAxisMarkerLabelsBoundingRect.left,
+      xAxisMarkerLabelsBoundingRect.bottom - xAxisMarkerLabelsBoundingRect.top,
+    )
+
+    ctx.strokeRect(
+      yAxisMarkerLabelsBoundingRect.left,
+      yAxisMarkerLabelsBoundingRect.top,
+      yAxisMarkerLabelsBoundingRect.right - yAxisMarkerLabelsBoundingRect.left,
+      yAxisMarkerLabelsBoundingRect.bottom - yAxisMarkerLabelsBoundingRect.top,
+    )
+  }, 50)
+
   const positionedDatums = mapDict(normalizedSeries, (seriesKey, datums) => (
     calculatePositionedDatums(datums, axesGeometry[Axis2D.X].p, axesGeometry[Axis2D.Y].p, axesValueBound, props.datumFocusPointDeterminationMode)
   ))

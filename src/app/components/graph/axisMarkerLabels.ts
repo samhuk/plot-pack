@@ -84,7 +84,7 @@ const calculateYAxisMarkerLabelOffsetVector = (
   }
 }
 
-const createXAxisMarkerLabels = (
+export const createXAxisMarkerLabels = (
   ctx: CanvasRenderingContext2D,
   axesGeometry: AxesGeometry,
   props: Options,
@@ -111,7 +111,7 @@ const createXAxisMarkerLabels = (
   return axisMarkerLabels
 }
 
-const createYAxisMarkerLabels = (
+export const createYAxisMarkerLabels = (
   ctx: CanvasRenderingContext2D,
   axesGeometry: AxesGeometry,
   props: Options,
@@ -126,7 +126,7 @@ const createYAxisMarkerLabels = (
   const markerPosition = getYAxisMarkerOrientation(props)
 
   const axisMarkerLabels: AxisMarkerLabel[] = []
-  for (let i = 0; i < axesGeometry[Axis2D.X].numGridLines; i += 1) {
+  for (let i = 0; i < axesGeometry[Axis2D.Y].numGridLines; i += 1) {
     const value = axesGeometry[Axis2D.Y].vl + axesGeometry[Axis2D.Y].dvGrid * i
     const text = createAxisMarkerLabelText(value, props.axesOptions?.[Axis2D.Y])
     const textWidth = measureTextWidth(ctx, text)
