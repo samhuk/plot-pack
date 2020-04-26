@@ -7,6 +7,8 @@ const DEFAULT_FONT_FAMILY = 'Helvetica'
 const DEFAULT_FONT_SIZE = 14
 const DEFAULT_COLOR = 'black'
 
+const DEFAULT_EXTERIOR_MARGIN = 15
+
 const createTextStyleInternal = (props: Options, axis: Axis2D) => createTextStyle(
   props.axesOptions?.[axis]?.labelOptions?.fontFamily
     ?? props.axesLabelOptions?.fontFamily
@@ -18,7 +20,7 @@ const createTextStyleInternal = (props: Options, axis: Axis2D) => createTextStyl
 
 export const getAxisLabelText = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.labelText
 
-export const getExteriorMargin = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.labelOptions?.exteriorMargin ?? 15
+export const getExteriorMargin = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.labelOptions?.exteriorMargin ?? DEFAULT_EXTERIOR_MARGIN
 
 const drawAxisLabel = (ctx: CanvasRenderingContext2D, axis: Axis2D, axesGeometry: AxesGeometry, props: Options) => {
   const text = getAxisLabelText(props, axis)
