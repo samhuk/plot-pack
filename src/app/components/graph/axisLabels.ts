@@ -18,6 +18,8 @@ const createTextStyleInternal = (props: Options, axis: Axis2D) => createTextStyl
 
 export const getAxisLabelText = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.labelText
 
+export const getExteriorMargin = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.labelOptions?.exteriorMargin ?? 15
+
 const drawAxisLabel = (ctx: CanvasRenderingContext2D, axis: Axis2D, axesGeometry: AxesGeometry, props: Options) => {
   const text = getAxisLabelText(props, axis)
 
@@ -30,12 +32,14 @@ const drawAxisLabel = (ctx: CanvasRenderingContext2D, axis: Axis2D, axesGeometry
   const textWidth = ctx.measureText(text).width
   const lineHeight = measureTextLineHeight(ctx)
 
+  const exteriorMargin = getExteriorMargin(props, axis)
+
   const x = axis === Axis2D.X
     ? axesGeometry[Axis2D.X].pl + ((axesGeometry[Axis2D.X].pu - axesGeometry[Axis2D.X].pl) / 2) - (textWidth / 2)
-    : axesGeometry[Axis2D.X].pl - 10
+    : exteriorMargin + lineHeight
 
   const y = axis === Axis2D.X
-    ? axesGeometry[Axis2D.Y].pl + lineHeight + 10
+    ? props.heightPx - (exteriorMargin)
     : axesGeometry[Axis2D.Y].pl + ((axesGeometry[Axis2D.Y].pu - axesGeometry[Axis2D.Y].pl) / 2) + (textWidth / 2)
 
   ctx.fillStyle = props.axesOptions?.[axis]?.labelOptions?.color ?? props.axesLabelOptions?.color ?? DEFAULT_COLOR

@@ -19,7 +19,7 @@ import Bound from './types/Bound'
 import XAxisOrientation from './types/xAxisOrientation'
 import YAxisOrientation from './types/yAxisOrientation'
 import AxesGeometry from './types/AxesGeometry'
-import { getAxisLabelText } from './axisLabels'
+import { getAxisLabelText, getExteriorMargin } from './axisLabels'
 import { measureTextLineHeight, get2DContext } from '../../common/helpers/canvas'
 import { applyTextOptionsToContext } from './drawGraph'
 import { createXAxisMarkerLabels, createYAxisMarkerLabels } from './axisMarkerLabels'
@@ -343,8 +343,8 @@ const getMarginDueToAxisLabel = (
   const xAxisLabelText = getAxisLabelText(props, Axis2D.X)
   if (xAxisLabelText == null)
     return 0
-  const exteriorMargin = props.axesOptions?.[axis]?.labelOptions?.exteriorMargin ?? 10
-  applyTextOptionsToContext(ctx, props.axesOptions?.[Axis2D.X]?.labelOptions)
+  const exteriorMargin = getExteriorMargin(props, axis)
+  applyTextOptionsToContext(ctx, props.axesOptions?.[axis]?.labelOptions)
   const axisLabelLineHeight = measureTextLineHeight(ctx)
   return axisLabelLineHeight + exteriorMargin
 }
