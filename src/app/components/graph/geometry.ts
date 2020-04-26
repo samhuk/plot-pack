@@ -421,6 +421,7 @@ const getBestFitLineType = (props: Options, seriesKey: string) => props.seriesOp
 
 /**
  * ### Introduction
+ *
  * The core function of the Graph component. This will determine and calculate all the required
  * geometrical properties of the graph, such as the axes value and screen space bounds, the
  * grid spacing, number of grid lines, a K-D tree of the datums, and so on.
