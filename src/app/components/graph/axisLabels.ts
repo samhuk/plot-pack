@@ -9,6 +9,12 @@ const DEFAULT_COLOR = 'black'
 
 const DEFAULT_EXTERIOR_MARGIN = 15
 
+const getTextColor = (props: Options, axis: Axis2D) => (
+  props.axesOptions?.[axis]?.labelOptions?.color
+    ?? props.axesLabelOptions?.color
+    ?? DEFAULT_COLOR
+)
+
 const createTextStyleInternal = (props: Options, axis: Axis2D) => createTextStyle(
   props.axesOptions?.[axis]?.labelOptions?.fontFamily
     ?? props.axesLabelOptions?.fontFamily
@@ -30,6 +36,7 @@ const drawAxisLabel = (ctx: CanvasRenderingContext2D, axis: Axis2D, axesGeometry
 
   // Set font early to get accurate text measurement
   ctx.font = createTextStyleInternal(props, axis)
+  ctx.fillStyle = getTextColor(props, axis)
 
   const textWidth = ctx.measureText(text).width
   const lineHeight = measureTextLineHeight(ctx)
@@ -43,8 +50,6 @@ const drawAxisLabel = (ctx: CanvasRenderingContext2D, axis: Axis2D, axesGeometry
   const y = axis === Axis2D.X
     ? props.heightPx - (exteriorMargin)
     : axesGeometry[Axis2D.Y].pl + ((axesGeometry[Axis2D.Y].pu - axesGeometry[Axis2D.Y].pl) / 2) + (textWidth / 2)
-
-  ctx.fillStyle = props.axesOptions?.[axis]?.labelOptions?.color ?? props.axesLabelOptions?.color ?? DEFAULT_COLOR
 
   ctx.save()
   ctx.translate(x, y)

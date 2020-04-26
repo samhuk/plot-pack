@@ -66,6 +66,12 @@ export const render = () => {
           heightPx={height}
           widthPx={width}
           title="This is the title for the graph"
+          titleOptions={{
+            color: 'blue',
+            fontSize: 22,
+            exteriorMargin: 20,
+            fontFamily: 'Times New Roman',
+          }}
           series={{
             1: data1,
             2: data2,

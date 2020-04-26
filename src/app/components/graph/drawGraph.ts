@@ -19,12 +19,21 @@ import TextOptions from './types/TextOptions'
 import { createTextStyle } from '../../common/helpers/canvas'
 import drawTitle from './title'
 
-export const applyTextOptionsToContext = (ctx: CanvasRenderingContext2D, options: TextOptions) => {
+export const applyTextOptionsToContext = (
+  ctx: CanvasRenderingContext2D,
+  options: TextOptions,
+  defaultFontFamily?: string,
+  defaultFontSize?: number,
+  defaultColor?: string,
+) => {
   if (options == null)
     return
   ctx.lineWidth = 0.7
-  ctx.font = createTextStyle(options.fontFamily, options.fontSize)
-  ctx.fillStyle = options.color
+  ctx.font = createTextStyle(
+    options.fontFamily ?? defaultFontFamily ?? 'Helvetica',
+    options.fontSize ?? defaultFontSize ?? 14,
+  )
+  ctx.fillStyle = options.color ?? defaultColor ?? 'black'
 }
 
 const getShouldShowAxisLine = (props: Options, axis: Axis2D) => (
