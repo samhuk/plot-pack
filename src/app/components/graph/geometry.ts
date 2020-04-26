@@ -24,7 +24,7 @@ import { measureTextLineHeight, get2DContext } from '../../common/helpers/canvas
 import { applyTextOptionsToContext } from './drawGraph'
 import { createXAxisMarkerLabels, createYAxisMarkerLabels } from './axisMarkerLabels'
 import AxisMarkerLabel from './types/AxisMarkerLabel'
-import { getTitleOptions, getExteriorMargin as getTitleExteriorMargin } from './title'
+import { getTitleOptions, getExteriorMargin as getTitleExteriorMargin, getTitle } from './title'
 
 const kdTree: any = require('kd-tree-javascript')
 
@@ -355,6 +355,9 @@ const getMarginDueToTitle = (
   ctx: CanvasRenderingContext2D,
   props: Options,
 ): number => {
+  const titleText = getTitle(props)
+  if (titleText == null)
+    return 0
   applyTextOptionsToContext(ctx, getTitleOptions(props))
   return getTitleExteriorMargin(props) + measureTextLineHeight(ctx)
 }

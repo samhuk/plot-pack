@@ -13,7 +13,7 @@ export const getTitle = (props: Options) => props.title
 export const getTitleOptions = (props: Options) => props.titleOptions
 
 export const drawTitle = (ctx:CanvasRenderingContext2D, props: Options) => {
-  const text = props.title
+  const text = getTitle(props)
 
   if (text == null)
     return
