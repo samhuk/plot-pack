@@ -198,7 +198,7 @@ const calculateAxesGeometry = (
   xAxisOrientation: XAxisOrientation,
   yAxisOrientation: YAxisOrientation,
   axesValueBound: AxesBound,
-  axesPixelScreenBound: AxesBound,
+  axesScreenBound: AxesBound,
   dpMinX: number,
   dpMinY: number,
   dvGridX?: number,
@@ -208,8 +208,8 @@ const calculateAxesGeometry = (
   forceVlY: boolean = false,
   forceVuY: boolean = false,
 ): AxesGeometry => {
-  const unpositionedXAxisGeometry = calculateUnpositionedAxisGeometry(axesValueBound[Axis2D.X], axesPixelScreenBound[Axis2D.X], dpMinX, dvGridX, forceVlX, forceVuX)
-  const unpositionedYAxisGeometry = calculateUnpositionedAxisGeometry(axesValueBound[Axis2D.Y], axesPixelScreenBound[Axis2D.Y], dpMinY, dvGridY, forceVlY, forceVuY)
+  const unpositionedXAxisGeometry = calculateUnpositionedAxisGeometry(axesValueBound[Axis2D.X], axesScreenBound[Axis2D.X], dpMinX, dvGridX, forceVlX, forceVuX)
+  const unpositionedYAxisGeometry = calculateUnpositionedAxisGeometry(axesValueBound[Axis2D.Y], axesScreenBound[Axis2D.Y], dpMinY, dvGridY, forceVlY, forceVuY)
 
   const boundedXAxisOrigin = boundToRange(unpositionedXAxisGeometry.p(0), unpositionedXAxisGeometry.pl, unpositionedXAxisGeometry.pu)
   const boundedYAxisOrigin = boundToRange(unpositionedYAxisGeometry.p(0), unpositionedYAxisGeometry.pl, unpositionedYAxisGeometry.pu)
@@ -349,7 +349,7 @@ const getMarginDueToAxisLabel = (
   return axisLabelLineHeight + exteriorMargin
 }
 
-const createAxesPixelScreenBound = (ctx: CanvasRenderingContext2D, props: Options): AxesBound => {
+const createAxesScreenBound = (ctx: CanvasRenderingContext2D, props: Options): AxesBound => {
   const isXAxisLabelOnBottom = true
   const isYAxisLabelOnLeft = true
 
@@ -359,7 +359,7 @@ const createAxesPixelScreenBound = (ctx: CanvasRenderingContext2D, props: Option
   const xAxisMarginDueToLabel = getMarginDueToAxisLabel(ctx, props, Axis2D.X)
   const yAxisMarginDueToLabel = getMarginDueToAxisLabel(ctx, props, Axis2D.Y)
 
-  const axesPixelScreenBound: AxesBound = {
+  const axesScreenBound: AxesBound = {
     [Axis2D.X]: {
       lower: yAxisMargin + (isYAxisLabelOnLeft ? yAxisMarginDueToLabel : 0),
       upper: props.widthPx - yAxisMargin - (isYAxisLabelOnLeft ? 0 : yAxisMarginDueToLabel),
@@ -369,7 +369,7 @@ const createAxesPixelScreenBound = (ctx: CanvasRenderingContext2D, props: Option
       upper: xAxisMargin + (isXAxisLabelOnBottom ? 0 : xAxisMarginDueToLabel),
     },
   }
-  return axesPixelScreenBound
+  return axesScreenBound
 }
 
 const getBoundingScreenRectOfAxisMarkerLabels = (labels: AxisMarkerLabel[]): { left: number, right: number, top: number, bottom: number } => {
@@ -428,14 +428,14 @@ export const createGraphGeometry = (canvas: HTMLCanvasElement, props: Options): 
     },
   }
   // Calculate pixel bounds of axes
-  const axesPixelScreenBound: AxesBound = createAxesPixelScreenBound(ctx, props)
+  const axesScreenBound: AxesBound = createAxesScreenBound(ctx, props)
 
   // Calculate the geometry of the axes
   const axesGeometry = calculateAxesGeometry(
     props.axesOptions?.[Axis2D.X]?.orientation as XAxisOrientation,
     props.axesOptions?.[Axis2D.Y]?.orientation as YAxisOrientation,
     axesValueBound,
-    axesPixelScreenBound,
+    axesScreenBound,
     defaultGridMinPx,
     defaultGridMinPx,
     props.axesOptions?.[Axis2D.X]?.dvGrid,
@@ -446,34 +446,50 @@ export const createGraphGeometry = (canvas: HTMLCanvasElement, props: Options): 
     forcedVuY != null,
   )
 
+  // Create axis marker labels to determine how much, if at all, they overrun the pixel screen bounds
   const xAxisMarkerLabels = createXAxisMarkerLabels(ctx, axesGeometry, props)
   const yAxisMarkerLabels = createYAxisMarkerLabels(ctx, axesGeometry, props)
-
+  // Get the bounding rect of each axis' marker labels
   const xAxisMarkerLabelsBoundingRect = getBoundingScreenRectOfAxisMarkerLabels(xAxisMarkerLabels)
   const yAxisMarkerLabelsBoundingRect = getBoundingScreenRectOfAxisMarkerLabels(yAxisMarkerLabels)
+  // Calculate the overrun for each direction
+  const leftMarkerLabelOverrun = Math.max(0, axesScreenBound[Axis2D.X].lower - Math.min(xAxisMarkerLabelsBoundingRect.left, yAxisMarkerLabelsBoundingRect.left))
+  const rightMarkerLabelOverrun = Math.max(0, Math.max(xAxisMarkerLabelsBoundingRect.right, yAxisMarkerLabelsBoundingRect.right) - axesScreenBound[Axis2D.X].upper)
+  const topMarkerLabelOverrun = Math.max(0, axesScreenBound[Axis2D.Y].upper - Math.min(xAxisMarkerLabelsBoundingRect.top, yAxisMarkerLabelsBoundingRect.top))
+  const bottomMarkerLabelOverrun = Math.max(0, Math.max(xAxisMarkerLabelsBoundingRect.bottom, yAxisMarkerLabelsBoundingRect.bottom) - axesScreenBound[Axis2D.Y].lower)
+  // Adjust screen bounds to account for any overruns
+  const adjustedAxesScreenBound: AxesBound = {
+    [Axis2D.X]: {
+      lower: axesScreenBound[Axis2D.X].lower + leftMarkerLabelOverrun,
+      upper: axesScreenBound[Axis2D.X].upper - rightMarkerLabelOverrun,
+    },
+    [Axis2D.Y]: {
+      lower: axesScreenBound[Axis2D.Y].lower - bottomMarkerLabelOverrun,
+      upper: axesScreenBound[Axis2D.Y].upper + topMarkerLabelOverrun,
+    },
+  }
+  // Calculate new axes geometry, accounting for any overruns
+  const adjustedAxesGeometry = calculateAxesGeometry(
+    props.axesOptions?.[Axis2D.X]?.orientation as XAxisOrientation,
+    props.axesOptions?.[Axis2D.Y]?.orientation as YAxisOrientation,
+    axesValueBound,
+    adjustedAxesScreenBound,
+    defaultGridMinPx,
+    defaultGridMinPx,
+    props.axesOptions?.[Axis2D.X]?.dvGrid,
+    props.axesOptions?.[Axis2D.Y]?.dvGrid,
+    forcedVlX != null,
+    forcedVuX != null,
+    forcedVlY != null,
+    forcedVuY != null,
+  )
 
-  setTimeout(() => {
-    ctx.strokeStyle = 'black'
-    ctx.lineWidth = 1
-    ctx.strokeRect(
-      xAxisMarkerLabelsBoundingRect.left,
-      xAxisMarkerLabelsBoundingRect.top,
-      xAxisMarkerLabelsBoundingRect.right - xAxisMarkerLabelsBoundingRect.left,
-      xAxisMarkerLabelsBoundingRect.bottom - xAxisMarkerLabelsBoundingRect.top,
-    )
-
-    ctx.strokeRect(
-      yAxisMarkerLabelsBoundingRect.left,
-      yAxisMarkerLabelsBoundingRect.top,
-      yAxisMarkerLabelsBoundingRect.right - yAxisMarkerLabelsBoundingRect.left,
-      yAxisMarkerLabelsBoundingRect.bottom - yAxisMarkerLabelsBoundingRect.top,
-    )
-  }, 50)
-
+  // Calculate positioned datums, adding screen position and a focus point to each datum.
   const positionedDatums = mapDict(normalizedSeries, (seriesKey, datums) => (
-    calculatePositionedDatums(datums, axesGeometry[Axis2D.X].p, axesGeometry[Axis2D.Y].p, axesValueBound, props.datumFocusPointDeterminationMode)
+    calculatePositionedDatums(datums, adjustedAxesGeometry[Axis2D.X].p, adjustedAxesGeometry[Axis2D.Y].p, axesValueBound, props.datumFocusPointDeterminationMode)
   ))
 
+  // Calculate best fit straight lines for each series
   const bestFitStraightLineEquations = mapDict(positionedDatums, (seriesKey, datums) => (
     getBestFitLineType(props, seriesKey) === BestFitLineType.STRAIGHT
       ? calculateStraightLineOfBestFit(datums.map(d => ({ x: d.fvX, y: d.fvY })))
@@ -489,7 +505,7 @@ export const createGraphGeometry = (canvas: HTMLCanvasElement, props: Options): 
   ))
 
   return {
-    axesGeometry,
+    axesGeometry: adjustedAxesGeometry,
     bestFitStraightLineEquations,
     positionedDatums,
     datumKdTrees,
