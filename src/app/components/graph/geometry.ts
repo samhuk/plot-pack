@@ -19,11 +19,12 @@ import Bound from './types/Bound'
 import XAxisOrientation from './types/xAxisOrientation'
 import YAxisOrientation from './types/yAxisOrientation'
 import AxesGeometry from './types/AxesGeometry'
-import { getAxisLabelText, getExteriorMargin } from './axisLabels'
+import { getAxisLabelText, getExteriorMargin as getAxisLabelExteriorMargin } from './axisLabels'
 import { measureTextLineHeight, get2DContext } from '../../common/helpers/canvas'
 import { applyTextOptionsToContext } from './drawGraph'
 import { createXAxisMarkerLabels, createYAxisMarkerLabels } from './axisMarkerLabels'
 import AxisMarkerLabel from './types/AxisMarkerLabel'
+import { getTitleOptions, getExteriorMargin as getTitleExteriorMargin } from './title'
 
 const kdTree: any = require('kd-tree-javascript')
 
@@ -346,10 +347,16 @@ const getMarginDueToAxisLabel = (
   const xAxisLabelText = getAxisLabelText(props, Axis2D.X)
   if (xAxisLabelText == null)
     return 0
-  const exteriorMargin = getExteriorMargin(props, axis)
   applyTextOptionsToContext(ctx, props.axesOptions?.[axis]?.labelOptions)
-  const axisLabelLineHeight = measureTextLineHeight(ctx)
-  return axisLabelLineHeight + exteriorMargin
+  return getAxisLabelExteriorMargin(props, axis) + measureTextLineHeight(ctx)
+}
+
+const getMarginDueToTitle = (
+  ctx: CanvasRenderingContext2D,
+  props: Options,
+): number => {
+  applyTextOptionsToContext(ctx, getTitleOptions(props))
+  return getTitleExteriorMargin(props) + measureTextLineHeight(ctx)
 }
 
 const getAxisMargin = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.axisMargin ?? DEFAULT_AXIS_MARGIN
@@ -364,6 +371,8 @@ const createAxesScreenBound = (ctx: CanvasRenderingContext2D, props: Options): A
   const xAxisMarginDueToLabel = getMarginDueToAxisLabel(ctx, props, Axis2D.X)
   const yAxisMarginDueToLabel = getMarginDueToAxisLabel(ctx, props, Axis2D.Y)
 
+  const yAxisUpperMarginDueToTitle = getMarginDueToTitle(ctx, props)
+
   const axesScreenBound: AxesBound = {
     [Axis2D.X]: {
       lower: yAxisMargin + (isYAxisLabelOnLeft ? yAxisMarginDueToLabel : 0),
@@ -371,7 +380,7 @@ const createAxesScreenBound = (ctx: CanvasRenderingContext2D, props: Options): A
     },
     [Axis2D.Y]: {
       lower: props.heightPx - xAxisMargin - (isXAxisLabelOnBottom ? xAxisMarginDueToLabel : 0),
-      upper: xAxisMargin + (isXAxisLabelOnBottom ? 0 : xAxisMarginDueToLabel),
+      upper: xAxisMargin + (isXAxisLabelOnBottom ? 0 : xAxisMarginDueToLabel) + yAxisUpperMarginDueToTitle,
     },
   }
   return axesScreenBound

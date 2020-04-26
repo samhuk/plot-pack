@@ -20,9 +20,13 @@ import AxisMarkerLineOptions from './AxisMarkerLineOptions'
  * Options for the Graph
  */
 export type Options = {
+  title?: string
+  titleOptions?: TextOptions & {
+    exteriorMargin?: number
+  }
   series: { [seriesKey: string]: Datum[] }
-  datumFocusPointDeterminationMode?: DatumFocusPointDeterminationMode | ((datum: UnfocusedPositionedDatum) => DatumFocusPoint),
-  backgroundColor?: string,
+  datumFocusPointDeterminationMode?: DatumFocusPointDeterminationMode | ((datum: UnfocusedPositionedDatum) => DatumFocusPoint)
+  backgroundColor?: string
   heightPx: number
   widthPx: number
   seriesOptions?: { [seriesKey: string]: SeriesOptions }

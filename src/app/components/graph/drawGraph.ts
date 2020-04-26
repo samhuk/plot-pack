@@ -17,6 +17,7 @@ import drawDatumErrorBarsForDatums from './errorBars'
 import AxesGeometry from './types/AxesGeometry'
 import TextOptions from './types/TextOptions'
 import { createTextStyle } from '../../common/helpers/canvas'
+import drawTitle from './title'
 
 export const applyTextOptionsToContext = (ctx: CanvasRenderingContext2D, options: TextOptions) => {
   if (options == null)
@@ -180,6 +181,8 @@ const drawGraph = (
     drawYAxisAxisMarkerLabels(ctx, axesGeometry, props)
 
   drawAxesLabels(ctx, axesGeometry, props)
+
+  drawTitle(ctx, props)
 }
 
 const drawSeriesData = (

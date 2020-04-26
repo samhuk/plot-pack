@@ -65,6 +65,7 @@ export const render = () => {
         <Graph
           heightPx={height}
           widthPx={width}
+          title="This is the title for the graph"
           series={{
             1: data1,
             2: data2,
