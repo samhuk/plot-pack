@@ -419,6 +419,25 @@ const getBestFitLineType = (props: Options, seriesKey: string) => props.seriesOp
   ?? props.bestFitLineOptions?.type
   ?? BestFitLineType.STRAIGHT
 
+/**
+ * ### Introduction
+ * The core function of the Graph component. This will determine and calculate all the required
+ * geometrical properties of the graph, such as the axes value and screen space bounds, the
+ * grid spacing, number of grid lines, a K-D tree of the datums, and so on.
+ *
+ * ### Approach
+ *
+ * The approach taken here is highly involved. This is mainly due to the cyclical dependence of
+ * the axes geometry on their marker labels and vice versa. To expand, the axes marker labels
+ * depend on the axes geometry (i.e. number of grid lines, grid spacing, etc.), however the
+ * axes geometry depends on the bounding rect of the marker labels.
+ *
+ * To attack this challenge, a "tentative" axes geometry is created, under the assumption
+ * that no axes marker labels exist. Then, the marker labels are created for this intial
+ * axes geometry. Then, the overrun of the axes marker labels over the allowed screen space
+ * for the axes is calculated. Finally, this overrun is accounted for when next calculating
+ * the "adjusted" axes geometry.
+ */
 export const createGraphGeometry = (canvas: HTMLCanvasElement, props: Options): GraphGeometry => {
   const ctx = get2DContext(canvas, props.widthPx, props.heightPx)
 
