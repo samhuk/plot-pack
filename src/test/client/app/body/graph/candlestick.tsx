@@ -38,19 +38,22 @@ export const Candlestick = () => {
         <Graph
           heightPx={700}
           widthPx={700}
+          title="APPL Price (FTSE)"
           datumFocusPointDeterminationMode={DatumFocusPointDeterminationMode.AVERAGE}
           axesOptions={{
             [Axis2D.X]: {
+              labelText: 'Time',
               visibilityOptions: {
                 showGridLines: false,
-              }
+              },
             },
             [Axis2D.Y]: {
+              labelText: 'Price (GBX)',
               visibilityOptions: {
                 showAxisMarkerLines: false,
                 showAxisLine: false,
-              }
-            }
+              },
+            },
           }}
           series={{
             1: [
@@ -302,9 +305,9 @@ export const Candlestick = () => {
                 customOptions: {
                   doesCompliment: false,
                   customRenderFunction: drawCandlestickMarker,
-                }
+                },
               },
-            }
+            },
           }}
           visibilityOptions={{
             showDatumHighlight: false,

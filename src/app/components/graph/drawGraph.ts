@@ -26,14 +26,12 @@ export const applyTextOptionsToContext = (
   defaultFontSize?: number,
   defaultColor?: string,
 ) => {
-  if (options == null)
-    return
   ctx.lineWidth = 0.7
   ctx.font = createTextStyle(
-    options.fontFamily ?? defaultFontFamily ?? 'Helvetica',
-    options.fontSize ?? defaultFontSize ?? 14,
+    options?.fontFamily ?? defaultFontFamily ?? 'Helvetica',
+    options?.fontSize ?? defaultFontSize ?? 14,
   )
-  ctx.fillStyle = options.color ?? defaultColor ?? 'black'
+  ctx.fillStyle = options?.color ?? defaultColor ?? 'black'
 }
 
 const getShouldShowAxisLine = (props: Options, axis: Axis2D) => (
