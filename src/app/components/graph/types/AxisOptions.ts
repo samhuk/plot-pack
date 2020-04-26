@@ -12,7 +12,10 @@ import YAxisMarkerOrientation from './YAxisMarkerOrientation'
  */
 export type AxisOptions = {
   labelText?: string
-  labelOptions?: TextOptions
+  axisMargin?: number
+  labelOptions?: TextOptions & {
+    exteriorMargin?: number
+  }
   dvGrid?: number
   valueBound?: Bound
   notation?: Notation

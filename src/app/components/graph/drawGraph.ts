@@ -15,6 +15,16 @@ import { drawStraightLineOfBestFit } from './straightLineOfBestFit'
 import drawAxesLabels from './axisLabels'
 import drawDatumErrorBarsForDatums from './errorBars'
 import AxesGeometry from './types/AxesGeometry'
+import TextOptions from './types/TextOptions'
+import { createTextStyle } from '../../common/helpers/canvas'
+
+export const applyTextOptionsToContext = (ctx: CanvasRenderingContext2D, options: TextOptions) => {
+  if (options == null)
+    return
+  ctx.lineWidth = 0.7
+  ctx.font = createTextStyle(options.fontFamily, options.fontSize)
+  ctx.fillStyle = options.color
+}
 
 const getShouldShowAxisLine = (props: Options, axis: Axis2D) => (
   props.axesOptions?.[axis]?.visibilityOptions?.showAxisLine

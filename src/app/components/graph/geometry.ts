@@ -19,6 +19,9 @@ import Bound from './types/Bound'
 import XAxisOrientation from './types/xAxisOrientation'
 import YAxisOrientation from './types/yAxisOrientation'
 import AxesGeometry from './types/AxesGeometry'
+import { getAxisLabelText } from './axisLabels'
+import { measureTextLineHeight, get2DContext } from '../../common/helpers/canvas'
+import { applyTextOptionsToContext } from './drawGraph'
 
 const kdTree: any = require('kd-tree-javascript')
 
@@ -330,13 +333,50 @@ const createDatumDimensionStringList = (datumSnapMode: DatumSnapMode): string[] 
   }
 }
 
+const getMarginDueToAxisLabel = (
+  ctx: CanvasRenderingContext2D,
+  props: Options,
+  axis: Axis2D,
+): number => {
+  const xAxisLabelText = getAxisLabelText(props, Axis2D.X)
+  if (xAxisLabelText == null)
+    return 0
+  const exteriorMargin = props.axesOptions?.[axis]?.labelOptions?.exteriorMargin ?? 10
+  applyTextOptionsToContext(ctx, props.axesOptions?.[Axis2D.X]?.labelOptions)
+  const axisLabelLineHeight = measureTextLineHeight(ctx)
+  return axisLabelLineHeight + exteriorMargin
+}
+
+const createAxesPixelScreenBound = (ctx: CanvasRenderingContext2D, props: Options): AxesBound => {
+  const isXAxisLabelOnBottom = true
+  const isYAxisLabelOnLeft = true
+
+  const xAxisMargin = props.axesOptions?.[Axis2D.X]?.axisMargin ?? 20
+  const yAxisMargin = props.axesOptions?.[Axis2D.Y]?.axisMargin ?? 20
+
+  const xAxisMarginDueToLabel = getMarginDueToAxisLabel(ctx, props, Axis2D.X)
+  const yAxisMarginDueToLabel = getMarginDueToAxisLabel(ctx, props, Axis2D.Y)
+
+  const axesPixelScreenBound: AxesBound = {
+    [Axis2D.X]: {
+      lower: yAxisMargin + (isYAxisLabelOnLeft ? yAxisMarginDueToLabel : 0),
+      upper: props.widthPx - yAxisMargin - (isYAxisLabelOnLeft ? 0 : yAxisMarginDueToLabel),
+    },
+    [Axis2D.Y]: {
+      lower: props.heightPx - xAxisMargin - (isXAxisLabelOnBottom ? xAxisMarginDueToLabel : 0),
+      upper: xAxisMargin + (isXAxisLabelOnBottom ? 0 : xAxisMarginDueToLabel),
+    },
+  }
+  return axesPixelScreenBound
+}
+
 const getBestFitLineType = (props: Options, seriesKey: string) => props.seriesOptions?.[seriesKey]?.bestFitLineOptions?.type
   ?? props.bestFitLineOptions?.type
   ?? BestFitLineType.STRAIGHT
 
-export const createGraphGeometry = (props: Options): GraphGeometry => {
-  const paddingX = props.axesOptions?.[Axis2D.X]?.padding ?? 40
-  const paddingY = props.axesOptions?.[Axis2D.Y]?.padding ?? 40
+export const createGraphGeometry = (canvas: HTMLCanvasElement, props: Options): GraphGeometry => {
+  const ctx = get2DContext(canvas, props.widthPx, props.heightPx)
+
   const defaultGridMinPx = 30
 
   const normalizedSeries = mapDict(props.series, (seriesKey, datums) => normalizeDatumsErrorBarsValues(datums, props, seriesKey))
@@ -360,16 +400,7 @@ export const createGraphGeometry = (props: Options): GraphGeometry => {
     },
   }
   // Calculate pixel bounds of axes
-  const axesPixelScreenBound: AxesBound = {
-    [Axis2D.X]: {
-      lower: paddingX,
-      upper: props.widthPx - paddingX,
-    },
-    [Axis2D.Y]: {
-      lower: props.heightPx - paddingY,
-      upper: paddingY,
-    },
-  }
+  const axesPixelScreenBound: AxesBound = createAxesPixelScreenBound(ctx, props)
 
   // Calculate the geometry of the axes
   const axesGeometry = calculateAxesGeometry(

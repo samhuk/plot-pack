@@ -16,8 +16,10 @@ const createTextStyleInternal = (props: Options, axis: Axis2D) => createTextStyl
     ?? DEFAULT_FONT_SIZE,
 )
 
+export const getAxisLabelText = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.labelText
+
 const drawAxisLabel = (ctx: CanvasRenderingContext2D, axis: Axis2D, axesGeometry: AxesGeometry, props: Options) => {
-  const text = props.axesOptions?.[axis]?.labelText
+  const text = getAxisLabelText(props, axis)
 
   if (text == null || text.length === 0)
     return
