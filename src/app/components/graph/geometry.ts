@@ -1,11 +1,10 @@
 import Datum from './types/Datum'
 import AxesBound from './types/AxesBound'
-import UnpositionedAxisGeometry from './types/UnpositionedAxisGeometry'
 import Options from './types/Options'
 import GraphGeometry from './types/GraphGeometry'
 import BestFitLineType from './types/BestFitLineType'
 import { calculateStraightLineOfBestFit, calculateMean } from '../../common/helpers/stat'
-import { boundToRange, isInRange, mod } from '../../common/helpers/math'
+import { isInRange } from '../../common/helpers/math'
 import PositionedDatum from './types/PositionedDatum'
 import { Axis2D } from '../../common/types/geometry'
 import DatumSnapMode from './types/DatumSnapMode'
@@ -15,21 +14,21 @@ import DatumFocusPointDeterminationMode from './types/DatumFocusPointDeterminati
 import UnfocusedPositionedDatum from './types/UnfocusedPositionedDatum'
 import DatumFocusPoint from './types/DatumFocusPoint'
 import { normalizeDatumsErrorBarsValues } from './errorBars'
-import Bound from './types/Bound'
-import XAxisOrientation from './types/xAxisOrientation'
-import YAxisOrientation from './types/yAxisOrientation'
-import AxesGeometry from './types/AxesGeometry'
-import { getAxisLabelText, getExteriorMargin as getAxisLabelExteriorMargin } from './axisLabels'
-import { measureTextLineHeight, get2DContext } from '../../common/helpers/canvas'
-import { applyTextOptionsToContext } from './drawGraph'
-import { createXAxisMarkerLabels, createYAxisMarkerLabels } from './axisMarkerLabels'
-import AxisMarkerLabel from './types/AxisMarkerLabel'
-import { getTitleOptions, getExteriorMargin as getTitleExteriorMargin, getTitle } from './title'
+import { get2DContext } from '../../common/helpers/canvas'
+import { createAxesGeometry } from './axesGeometry'
 
 const kdTree: any = require('kd-tree-javascript')
 
-const DEFAULT_AXIS_MARGIN = 15
-const DEFAULT_DP_GRID_MIN = 30
+export type AxisValueRangeForceOptions = {
+  forceLower: boolean;
+  forceUpper: boolean;
+}
+
+export type AxesValueRangeForceOptions = { [axis in Axis2D]: AxisValueRangeForceOptions }
+
+const getBestFitLineType = (props: Options, seriesKey: string) => props.seriesOptions?.[seriesKey]?.bestFitLineOptions?.type
+  ?? props.bestFitLineOptions?.type
+  ?? BestFitLineType.STRAIGHT
 
 const getValueRangeOfDatum = (datum: Datum) => ({
   x: {
@@ -84,154 +83,6 @@ const calculateValueRangesOfSeries = (series: { [seriesKey: string]: Datum[] }):
         },
       }), null)
 )
-
-
-const calculateAutoDvGrid = (vl: number, vu: number, dp: number, dpMin: number) => {
-  // Calculate minimum possible value grid increment
-  const dvGridMin = Math.abs(dpMin * ((vu - vl) / dp))
-  // i.e. Given a dvGridMin of 360...
-  // This is 2
-  const magDvGridMin = Math.floor(Math.log10(dvGridMin))
-  // This is 100
-  const magMultiplier = 10 ** magDvGridMin
-  // This is 3.6
-  const normDvGridMin = dvGridMin / magMultiplier
-  // This is 4
-  const normPrimeDvGridMin = [2, 4, 5, 10].find(inc => inc > normDvGridMin)
-  // This is 400
-  return normPrimeDvGridMin * magMultiplier
-}
-
-const calculateVlPrime = (vl: number, dvGrid: number) => {
-  // For a vl of 455, this is 400. For a vl of 400, this is 400 (i.e. it's inclusive)
-  const vlModDvGrid = mod(vl, dvGrid)
-  return vl - vlModDvGrid
-}
-
-const calculateVuPrime = (vu: number, dvGrid: number) => {
-  // For a vu of 880, this is 1200. For a vl of 800, this is 800 (i.e. it's inclusive)
-  const vuModDvGrid = mod(vu, dvGrid)
-  return vu + (vuModDvGrid !== 0 ? dvGrid : 0) - vuModDvGrid
-}
-
-const getXAxisYPosition = (orientation: XAxisOrientation, plY: number, puY: number, yAxisPOrigin: number) => {
-  switch (orientation) {
-    case XAxisOrientation.TOP:
-      return puY
-    case XAxisOrientation.BOTTOM:
-      return plY
-    case XAxisOrientation.ORIGIN:
-      return yAxisPOrigin
-    default:
-      return yAxisPOrigin
-  }
-}
-
-const getYAxisXPosition = (orientation: YAxisOrientation, plX: number, puX: number, xAxisPOrigin: number) => {
-  switch (orientation) {
-    case YAxisOrientation.LEFT:
-      return plX
-    case YAxisOrientation.RIGHT:
-      return puX
-    case YAxisOrientation.ORIGIN:
-      return xAxisPOrigin
-    default:
-      return xAxisPOrigin
-  }
-}
-
-/**
- * Calculates the geometrical properties of an axis given some initial details.
- * @param valueBound The lower and upper value bound (i.e. min and max value) of the data
- * @param pixelScreenBound The lower and upper position bound (i.e. min and max possible position in units of px)
- * @param dpMin The minimum possible grid spacing in units of px
- * @param dvGrid Optional forced grid spacing in the value units
- * @param forceVl True to force the lower axis bound to be exactly the given `vl` value.
- * @param forceVu True to force the lower axis bound to be exactly the given `vu` value.
- */
-const calculateUnpositionedAxisGeometry = (
-  valueBound: Bound,
-  pixelScreenBound: Bound,
-  dpMin: number,
-  dvGrid?: number,
-  forceVl: boolean = false,
-  forceVu: boolean = false,
-): UnpositionedAxisGeometry => {
-  const pl = pixelScreenBound.lower
-  const pu = pixelScreenBound.upper
-  const vl = valueBound.lower
-  const vu = valueBound.upper
-
-  const dp = pu - pl
-
-  const _dvGrid = dvGrid ?? calculateAutoDvGrid(vl, vu, dp, dpMin)
-  const vlPrime = forceVl ? vl : calculateVlPrime(vl, _dvGrid)
-  const vuPrime = forceVu ? vu : calculateVuPrime(vu, _dvGrid)
-
-  const dpdv = dp / (vuPrime - vlPrime)
-
-  const dpGrid = _dvGrid * dpdv
-
-  const p = (v: number) => dpdv * (v - vlPrime) + pl
-
-  const dvPrime = vlPrime - vuPrime
-
-  /* Solves floating-point imprecision errors made when calculating vlPrime or vuPrime.
-   * Sometimes, and seemingly randomly, it will come out as, for example, 7.9999999...
-   * This essentially inspects the size of the error of dvPrime from the nearest whole
-   * grid value (e.g. 8). In that example, it's 1 * Number.EPSILON, but it can occasionally
-   * be 2 * Number.EPSILON, 4 * ..., and so on.
-   */
-  const floatingPointError = mod(dvPrime + _dvGrid / 2, _dvGrid) - _dvGrid / 2
-  const shouldAddOneDueToFloatingPointImprecision = [1, 2, 4, 8, 16, 32, 64].indexOf(floatingPointError / Number.EPSILON) !== -1
-
-  return {
-    vl: vlPrime,
-    vu: vuPrime,
-    pl,
-    pu,
-    dvGrid: _dvGrid,
-    dpGrid,
-    p,
-    v: _p => ((_p - pl) / dpdv) + vlPrime,
-    numGridLines: Math.floor(Math.abs(dvPrime / _dvGrid)) + 1 + (shouldAddOneDueToFloatingPointImprecision ? 1 : 0),
-  }
-}
-
-const calculateAxesGeometry = (
-  xAxisOrientation: XAxisOrientation,
-  yAxisOrientation: YAxisOrientation,
-  axesValueBound: AxesBound,
-  axesScreenBound: AxesBound,
-  dpMinX: number,
-  dpMinY: number,
-  dvGridX?: number,
-  dvGridY?: number,
-  forceVlX: boolean = false,
-  forceVuX: boolean = false,
-  forceVlY: boolean = false,
-  forceVuY: boolean = false,
-): AxesGeometry => {
-  const unpositionedXAxisGeometry = calculateUnpositionedAxisGeometry(axesValueBound[Axis2D.X], axesScreenBound[Axis2D.X], dpMinX, dvGridX, forceVlX, forceVuX)
-  const unpositionedYAxisGeometry = calculateUnpositionedAxisGeometry(axesValueBound[Axis2D.Y], axesScreenBound[Axis2D.Y], dpMinY, dvGridY, forceVlY, forceVuY)
-
-  const boundedXAxisOrigin = boundToRange(unpositionedXAxisGeometry.p(0), unpositionedXAxisGeometry.pl, unpositionedXAxisGeometry.pu)
-  const boundedYAxisOrigin = boundToRange(unpositionedYAxisGeometry.p(0), unpositionedYAxisGeometry.pl, unpositionedYAxisGeometry.pu)
-
-  const xAxisYPosition = getXAxisYPosition(xAxisOrientation, unpositionedYAxisGeometry.pl, unpositionedYAxisGeometry.pu, boundedYAxisOrigin)
-  const yAxisXPosition = getYAxisXPosition(yAxisOrientation, unpositionedXAxisGeometry.pl, unpositionedXAxisGeometry.pu, boundedXAxisOrigin)
-
-  return {
-    [Axis2D.X]: {
-      ...unpositionedXAxisGeometry,
-      orthogonalScreenPosition: xAxisYPosition,
-    },
-    [Axis2D.Y]: {
-      ...unpositionedYAxisGeometry,
-      orthogonalScreenPosition: yAxisXPosition,
-    },
-  }
-}
 
 const determineDatumFocusPoint = (
   unfocusedPositionedDatum: UnfocusedPositionedDatum,
@@ -339,86 +190,6 @@ const createDatumDimensionStringList = (datumSnapMode: DatumSnapMode): string[] 
   }
 }
 
-const getMarginDueToAxisLabel = (
-  ctx: CanvasRenderingContext2D,
-  props: Options,
-  axis: Axis2D,
-): number => {
-  const xAxisLabelText = getAxisLabelText(props, Axis2D.X)
-  if (xAxisLabelText == null)
-    return 0
-  applyTextOptionsToContext(ctx, props.axesOptions?.[axis]?.labelOptions)
-  return getAxisLabelExteriorMargin(props, axis) + measureTextLineHeight(ctx)
-}
-
-const getMarginDueToTitle = (
-  ctx: CanvasRenderingContext2D,
-  props: Options,
-): number => {
-  const titleText = getTitle(props)
-  if (titleText == null)
-    return 0
-  applyTextOptionsToContext(ctx, getTitleOptions(props))
-  return getTitleExteriorMargin(props) + measureTextLineHeight(ctx)
-}
-
-const getAxisMargin = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.axisMargin ?? DEFAULT_AXIS_MARGIN
-
-const createAxesScreenBound = (ctx: CanvasRenderingContext2D, props: Options): AxesBound => {
-  const isXAxisLabelOnBottom = true
-  const isYAxisLabelOnLeft = true
-
-  const xAxisMargin = getAxisMargin(props, Axis2D.X)
-  const yAxisMargin = getAxisMargin(props, Axis2D.Y)
-
-  const xAxisMarginDueToLabel = getMarginDueToAxisLabel(ctx, props, Axis2D.X)
-  const yAxisMarginDueToLabel = getMarginDueToAxisLabel(ctx, props, Axis2D.Y)
-
-  const yAxisUpperMarginDueToTitle = getMarginDueToTitle(ctx, props)
-
-  const axesScreenBound: AxesBound = {
-    [Axis2D.X]: {
-      lower: yAxisMargin + (isYAxisLabelOnLeft ? yAxisMarginDueToLabel : 0),
-      upper: props.widthPx - yAxisMargin - (isYAxisLabelOnLeft ? 0 : yAxisMarginDueToLabel),
-    },
-    [Axis2D.Y]: {
-      lower: props.heightPx - xAxisMargin - (isXAxisLabelOnBottom ? xAxisMarginDueToLabel : 0),
-      upper: xAxisMargin + (isXAxisLabelOnBottom ? 0 : xAxisMarginDueToLabel) + yAxisUpperMarginDueToTitle,
-    },
-  }
-  return axesScreenBound
-}
-
-const getBoundingScreenRectOfAxisMarkerLabels = (labels: AxisMarkerLabel[]): { left: number, right: number, top: number, bottom: number } => {
-  if (labels.length === 0)
-    return { left: 0, right: 0, top: 0, bottom: 0 }
-
-  const firstLabel = labels[0]
-  const lastLabel = labels[labels.length - 1]
-
-  let left = firstLabel.pX
-  let right = lastLabel.pX + lastLabel.textWidth
-  let top = firstLabel.pY - firstLabel.textHeight
-  let bottom = lastLabel.pY
-
-  labels.forEach(label => {
-    if (label.pX < left)
-      left = label.pX
-    if (label.pX + label.textWidth > right)
-      right = label.pX + label.textWidth
-    if (label.pY - label.textHeight < top)
-      top = label.pY - label.textHeight
-    if (label.pY > bottom)
-      bottom = label.pY
-  })
-
-  return { left, right, top, bottom }
-}
-
-const getBestFitLineType = (props: Options, seriesKey: string) => props.seriesOptions?.[seriesKey]?.bestFitLineOptions?.type
-  ?? props.bestFitLineOptions?.type
-  ?? BestFitLineType.STRAIGHT
-
 /**
  * ### Introduction
  *
@@ -431,13 +202,16 @@ const getBestFitLineType = (props: Options, seriesKey: string) => props.seriesOp
  * The approach taken here is highly involved. This is mainly due to the cyclical dependence of
  * the axes geometry on their marker labels and vice versa. To expand, the axes marker labels
  * depend on the axes geometry (i.e. number of grid lines, grid spacing, etc.), however the
- * axes geometry depends on the bounding rect of the marker labels.
+ * axes geometry depends on the bounding rect of the marker labels, (i.e. the larger the marker labels,
+ * the less space is available for the axes).
  *
  * To attack this challenge, a "tentative" axes geometry is created, under the assumption
- * that no axes marker labels exist. Then, the marker labels are created for this intial
- * axes geometry. Then, the overrun of the axes marker labels over the allowed screen space
- * for the axes is calculated. Finally, this overrun is accounted for when next calculating
- * the "adjusted" axes geometry.
+ * that no axes marker labels exist. The axis marker labels for these axes will likely overrun the allowed
+ * space of the axes in at least 2 directions. This overrun is calculated for each direction, then
+ * accounted for when next calculating the "adjusted" axes geometry. There is no guarantee that second time
+ * around there is also no overrun, since recalculation of the axes could change the axes marker labels to
+ * then overrun again, however this is an exceptional case. One can manually define the margin and padding
+ * in that case...
  */
 export const createGraphGeometry = (canvas: HTMLCanvasElement, props: Options): GraphGeometry => {
   const ctx = get2DContext(canvas, props.widthPx, props.heightPx)
@@ -451,6 +225,16 @@ export const createGraphGeometry = (canvas: HTMLCanvasElement, props: Options): 
   const forcedVuX = props.axesOptions?.[Axis2D.X]?.valueBound?.upper
   const forcedVuY = props.axesOptions?.[Axis2D.Y]?.valueBound?.upper
 
+  const axesValueRangeForceOptions: AxesValueRangeForceOptions = {
+    [Axis2D.X]: {
+      forceLower: forcedVlX != null,
+      forceUpper: forcedVuX != null,
+    },
+    [Axis2D.Y]: {
+      forceLower: forcedVlY != null,
+      forceUpper: forcedVuY != null,
+    },
+  }
   // Determine value bounds
   const axesValueBound: AxesBound = {
     [Axis2D.X]: {
@@ -462,64 +246,12 @@ export const createGraphGeometry = (canvas: HTMLCanvasElement, props: Options): 
       upper: forcedVuY ?? datumValueRange[Axis2D.Y].upper,
     },
   }
-  // Calculate the tentative screen bounds of axes, not taking into account the effect of axis marker labels
-  const tentativeAxesScreenBound: AxesBound = createAxesScreenBound(ctx, props)
-  // Calculate the tentative geometry of the axes, not taking into account the effect of axis marker labels
-  const tentativeAxesGeometry = calculateAxesGeometry(
-    props.axesOptions?.[Axis2D.X]?.orientation as XAxisOrientation,
-    props.axesOptions?.[Axis2D.Y]?.orientation as YAxisOrientation,
-    axesValueBound,
-    tentativeAxesScreenBound,
-    DEFAULT_DP_GRID_MIN,
-    DEFAULT_DP_GRID_MIN,
-    props.axesOptions?.[Axis2D.X]?.dvGrid,
-    props.axesOptions?.[Axis2D.Y]?.dvGrid,
-    forcedVlX != null,
-    forcedVuX != null,
-    forcedVlY != null,
-    forcedVuY != null,
-  )
-  // Create axis marker labels to determine how much, if at all, they overrun the pixel screen bounds
-  const xAxisMarkerLabels = createXAxisMarkerLabels(ctx, tentativeAxesGeometry, props)
-  const yAxisMarkerLabels = createYAxisMarkerLabels(ctx, tentativeAxesGeometry, props)
-  // Get the bounding rect of each axis' marker labels
-  const xAxisMarkerLabelsBoundingRect = getBoundingScreenRectOfAxisMarkerLabels(xAxisMarkerLabels)
-  const yAxisMarkerLabelsBoundingRect = getBoundingScreenRectOfAxisMarkerLabels(yAxisMarkerLabels)
-  // Calculate the overrun for each direction
-  const leftMarkerLabelOverrun = Math.max(0, tentativeAxesScreenBound[Axis2D.X].lower - Math.min(xAxisMarkerLabelsBoundingRect.left, yAxisMarkerLabelsBoundingRect.left))
-  const rightMarkerLabelOverrun = Math.max(0, Math.max(xAxisMarkerLabelsBoundingRect.right, yAxisMarkerLabelsBoundingRect.right) - tentativeAxesScreenBound[Axis2D.X].upper)
-  const topMarkerLabelOverrun = Math.max(0, tentativeAxesScreenBound[Axis2D.Y].upper - Math.min(xAxisMarkerLabelsBoundingRect.top, yAxisMarkerLabelsBoundingRect.top))
-  const bottomMarkerLabelOverrun = Math.max(0, Math.max(xAxisMarkerLabelsBoundingRect.bottom, yAxisMarkerLabelsBoundingRect.bottom) - tentativeAxesScreenBound[Axis2D.Y].lower)
-  // Adjust screen bounds to account for any overruns
-  const adjustedAxesScreenBound: AxesBound = {
-    [Axis2D.X]: {
-      lower: tentativeAxesScreenBound[Axis2D.X].lower + leftMarkerLabelOverrun,
-      upper: tentativeAxesScreenBound[Axis2D.X].upper - rightMarkerLabelOverrun,
-    },
-    [Axis2D.Y]: {
-      lower: tentativeAxesScreenBound[Axis2D.Y].lower - bottomMarkerLabelOverrun,
-      upper: tentativeAxesScreenBound[Axis2D.Y].upper + topMarkerLabelOverrun,
-    },
-  }
-  // Calculate new axes geometry, accounting for any overruns
-  const adjustedAxesGeometry = calculateAxesGeometry(
-    props.axesOptions?.[Axis2D.X]?.orientation as XAxisOrientation,
-    props.axesOptions?.[Axis2D.Y]?.orientation as YAxisOrientation,
-    axesValueBound,
-    adjustedAxesScreenBound,
-    DEFAULT_DP_GRID_MIN,
-    DEFAULT_DP_GRID_MIN,
-    props.axesOptions?.[Axis2D.X]?.dvGrid,
-    props.axesOptions?.[Axis2D.Y]?.dvGrid,
-    forcedVlX != null,
-    forcedVuX != null,
-    forcedVlY != null,
-    forcedVuY != null,
-  )
+
+  const axesGeometry = createAxesGeometry(ctx, props, axesValueBound, axesValueRangeForceOptions)
 
   // Calculate positioned datums, adding screen position and a focus point to each datum.
   const positionedDatums = mapDict(normalizedSeries, (seriesKey, datums) => (
-    calculatePositionedDatums(datums, adjustedAxesGeometry[Axis2D.X].p, adjustedAxesGeometry[Axis2D.Y].p, axesValueBound, props.datumFocusPointDeterminationMode)
+    calculatePositionedDatums(datums, axesGeometry[Axis2D.X].p, axesGeometry[Axis2D.Y].p, axesValueBound, props.datumFocusPointDeterminationMode)
   ))
 
   // Calculate best fit straight line for each series
@@ -538,7 +270,7 @@ export const createGraphGeometry = (canvas: HTMLCanvasElement, props: Options): 
   ))
 
   return {
-    axesGeometry: adjustedAxesGeometry,
+    axesGeometry,
     bestFitStraightLineEquations,
     positionedDatums,
     datumKdTrees,
