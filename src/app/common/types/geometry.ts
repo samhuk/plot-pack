@@ -13,6 +13,13 @@ export type Rect = Point2D & {
   height: number,
 }
 
+export type BoundingRect = {
+  left: number
+  right: number
+  top: number
+  bottom: number
+}
+
 export type Line = [Point2D, Point2D]
 
 export type StraightLineParameters = {

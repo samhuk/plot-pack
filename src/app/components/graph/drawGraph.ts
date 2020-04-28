@@ -8,7 +8,7 @@ import { drawCustomMarker, drawStandardMarker } from './marker'
 import PositionedDatum from './types/PositionedDatum'
 import drawDatumsConnectingLine from './connectingLine'
 import { drawXAxisGridLines, drawYAxisGridLines } from './gridLines'
-import { drawXAxisAxisMarkerLabels, drawYAxisAxisMarkerLabels } from './axisMarkerLabels'
+import { drawAxisMarkerLabels } from './axisMarkerLabels'
 import { drawXAxisAxisMarkerLines, drawYAxisAxisMarkerLines } from './axisMarkerLines'
 import { drawXAxisLine, drawYAxisLine } from './axisLines'
 import { drawStraightLineOfBestFit } from './straightLineOfBestFit'
@@ -183,9 +183,9 @@ const drawGraph = (
 
   // Show axis marker labels by default
   if (getShouldShowAxisMarkerLabels(props, Axis2D.X))
-    drawXAxisAxisMarkerLabels(ctx, axesGeometry, props)
+    drawAxisMarkerLabels(ctx, axesGeometry, Axis2D.X, props)
   if (getShouldShowAxisMarkerLabels(props, Axis2D.Y))
-    drawYAxisAxisMarkerLabels(ctx, axesGeometry, props)
+    drawAxisMarkerLabels(ctx, axesGeometry, Axis2D.Y, props)
 
   drawAxesLabels(ctx, axesGeometry, props)
 

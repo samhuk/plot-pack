@@ -84,74 +84,68 @@ const calculateYAxisMarkerLabelOffsetVector = (
   }
 }
 
-export const createXAxisMarkerLabels = (
+const calculateMarkerLabelOffsetVector = (
+  axesGeometry: AxesGeometry,
+  markerPosition: XAxisMarkerOrientation | YAxisMarkerOrientation,
+  markerLineLength: number,
+  lineHeight: number,
+  textWidth: number,
+  axis: Axis2D,
+) => {
+  switch (axis) {
+    case Axis2D.X:
+      return calculateXAxisMarkerLabelOffsetVector(axesGeometry, markerPosition as XAxisMarkerOrientation, markerLineLength, lineHeight, textWidth)
+    case Axis2D.Y:
+      return calculateYAxisMarkerLabelOffsetVector(axesGeometry, markerPosition as YAxisMarkerOrientation, markerLineLength, lineHeight, textWidth)
+    default:
+      return null
+  }
+}
+
+const createAxisMarkerLabels = (
   ctx: CanvasRenderingContext2D,
   axesGeometry: AxesGeometry,
+  axis: Axis2D,
   props: Options,
-): AxisMarkerLabel[] => {
+) => {
   ctx.lineWidth = 0.7
-  ctx.font = getFont(props, Axis2D.X)
-  ctx.fillStyle = getLabelColor(props, Axis2D.X)
+  ctx.font = getFont(props, axis)
+  ctx.fillStyle = getLabelColor(props, axis)
 
-  const axisY = axesGeometry[Axis2D.X].orthogonalScreenPosition
+  const { orthogonalScreenPosition } = axesGeometry[axis]
   const lineHeight = measureTextLineHeight(ctx)
-  const markerLineLength = getMarkerLineLength(props, Axis2D.Y)
-  const markerPosition = getXAxisMarkerOrientation(props)
+  const markerLineLength = getMarkerLineLength(props, axis)
+  const markerPosition = axis === Axis2D.X ? getXAxisMarkerOrientation(props) : getYAxisMarkerOrientation(props)
 
   const axisMarkerLabels: AxisMarkerLabel[] = []
-  for (let i = 0; i < axesGeometry[Axis2D.X].numGridLines; i += 1) {
-    const value = axesGeometry[Axis2D.X].vl + axesGeometry[Axis2D.X].dvGrid * i
-    const text = createAxisMarkerLabelText(value, props.axesOptions?.[Axis2D.X])
+  for (let i = 0; i < axesGeometry[axis].numGridLines; i += 1) {
+    const value = axesGeometry[axis].vl + axesGeometry[axis].dvGrid * i
+    const text = createAxisMarkerLabelText(value, props.axesOptions?.[axis])
     const textWidth = measureTextWidth(ctx, text)
-    const offsetVector = calculateXAxisMarkerLabelOffsetVector(axesGeometry, markerPosition, markerLineLength, lineHeight, textWidth)
-    const pX = axesGeometry[Axis2D.X].p(value) + offsetVector.x
-    const pY = axisY + offsetVector.y
-    axisMarkerLabels.push({ pX, pY, textHeight: lineHeight, textWidth, text, value })
+    const offsetVector = calculateMarkerLabelOffsetVector(axesGeometry, markerPosition, markerLineLength, lineHeight, textWidth, axis)
+    const parallelScreenPosition = axesGeometry[axis].p(value)
+    const pX = axis === Axis2D.X ? parallelScreenPosition + offsetVector.x : orthogonalScreenPosition + offsetVector.x
+    const pY = axis === Axis2D.X ? orthogonalScreenPosition + offsetVector.y : parallelScreenPosition + offsetVector.y
+    axisMarkerLabels.push({ textRect: { x: pX, y: pY, height: lineHeight, width: textWidth }, text, value })
   }
   return axisMarkerLabels
 }
 
-export const createYAxisMarkerLabels = (
+export const createAxesMarkerLabels = (
   ctx: CanvasRenderingContext2D,
   axesGeometry: AxesGeometry,
   props: Options,
-): AxisMarkerLabel[] => {
-  ctx.lineWidth = 0.7
-  ctx.font = getFont(props, Axis2D.Y)
-  ctx.fillStyle = getLabelColor(props, Axis2D.Y)
+): { [axis in Axis2D]: AxisMarkerLabel[] } => ({
+  [Axis2D.X]: createAxisMarkerLabels(ctx, axesGeometry, Axis2D.X, props),
+  [Axis2D.Y]: createAxisMarkerLabels(ctx, axesGeometry, Axis2D.Y, props),
+})
 
-  const axisX = axesGeometry[Axis2D.Y].orthogonalScreenPosition
-  const lineHeight = measureTextLineHeight(ctx)
-  const markerLineLength = getMarkerLineLength(props, Axis2D.Y)
-  const markerPosition = getYAxisMarkerOrientation(props)
-
-  const axisMarkerLabels: AxisMarkerLabel[] = []
-  for (let i = 0; i < axesGeometry[Axis2D.Y].numGridLines; i += 1) {
-    const value = axesGeometry[Axis2D.Y].vl + axesGeometry[Axis2D.Y].dvGrid * i
-    const text = createAxisMarkerLabelText(value, props.axesOptions?.[Axis2D.Y])
-    const textWidth = measureTextWidth(ctx, text)
-    const offsetVector = calculateYAxisMarkerLabelOffsetVector(axesGeometry, markerPosition, markerLineLength, lineHeight, textWidth)
-    const pX = axisX + offsetVector.x
-    const pY = axesGeometry[Axis2D.Y].p(value) + offsetVector.y
-    axisMarkerLabels.push({ pX, pY, textHeight: lineHeight, textWidth, text, value })
-  }
-  return axisMarkerLabels
-}
-
-export const drawXAxisAxisMarkerLabels = (
+export const drawAxisMarkerLabels = (
   ctx: CanvasRenderingContext2D,
   axesGeometry: AxesGeometry,
+  axis: Axis2D,
   props: Options,
 ) => {
-  const axisMarkerLabels = createXAxisMarkerLabels(ctx, axesGeometry, props)
-  axisMarkerLabels.forEach(l => ctx.fillText(l.text, l.pX, l.pY))
-}
-
-export const drawYAxisAxisMarkerLabels = (
-  ctx: CanvasRenderingContext2D,
-  axesGeometry: AxesGeometry,
-  props: Options,
-) => {
-  const axisMarkerLabels = createYAxisMarkerLabels(ctx, axesGeometry, props)
-  axisMarkerLabels.forEach(l => ctx.fillText(l.text, l.pX, l.pY))
+  const axisMarkerLabels = createAxisMarkerLabels(ctx, axesGeometry, axis, props)
+  axisMarkerLabels.forEach(l => ctx.fillText(l.text, l.textRect.x, l.textRect.y))
 }

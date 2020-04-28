@@ -1,5 +1,5 @@
 import { Options } from './types/Options'
-import { Axis2D } from '../../common/types/geometry'
+import { Axis2D, BoundingRect } from '../../common/types/geometry'
 import { getAxisLabelText, getExteriorMargin as getAxisLabelExteriorMargin } from './axisLabels'
 import { applyTextOptionsToContext } from './drawGraph'
 import { measureTextLineHeight } from '../../common/helpers/canvas'
@@ -7,13 +7,14 @@ import { getTitle, getTitleOptions, getExteriorMargin as getTitleExteriorMargin 
 import AxesBound from './types/AxesBound'
 import AxisMarkerLabel from './types/AxisMarkerLabel'
 import AxesGeometry from './types/AxesGeometry'
-import { createXAxisMarkerLabels, createYAxisMarkerLabels } from './axisMarkerLabels'
+import { createAxesMarkerLabels } from './axisMarkerLabels'
 import XAxisOrientation from './types/xAxisOrientation'
 import YAxisOrientation from './types/yAxisOrientation'
 import { mod, boundToRange } from '../../common/helpers/math'
 import Bound from './types/Bound'
 import UnpositionedAxisGeometry from './types/UnpositionedAxisGeometry'
 import { AxesValueRangeForceOptions, AxisValueRangeForceOptions } from './geometry'
+import { getBoundingRectOfRects } from '../../common/helpers/geometry'
 
 const DEFAULT_AXIS_MARGIN = 15
 const DEFAULT_DP_GRID_MIN = 30
@@ -221,31 +222,12 @@ const createAxesScreenBound = (ctx: CanvasRenderingContext2D, props: Options): A
   return axesScreenBound
 }
 
-const getBoundingScreenRectOfAxisMarkerLabels = (labels: AxisMarkerLabel[]): { left: number, right: number, top: number, bottom: number } => {
-  if (labels.length === 0)
-    return { left: 0, right: 0, top: 0, bottom: 0 }
-
-  const firstLabel = labels[0]
-  const lastLabel = labels[labels.length - 1]
-
-  let left = firstLabel.pX
-  let right = lastLabel.pX + lastLabel.textWidth
-  let top = firstLabel.pY - firstLabel.textHeight
-  let bottom = lastLabel.pY
-
-  labels.forEach(label => {
-    if (label.pX < left)
-      left = label.pX
-    if (label.pX + label.textWidth > right)
-      right = label.pX + label.textWidth
-    if (label.pY - label.textHeight < top)
-      top = label.pY - label.textHeight
-    if (label.pY > bottom)
-      bottom = label.pY
-  })
-
-  return { left, right, top, bottom }
-}
+const getBoundingScreenRectsOfAxesMarkerLabels = (
+  axesMarkerLabels: { [axis in Axis2D]: AxisMarkerLabel[] },
+): { [axis in Axis2D]: BoundingRect } => ({
+  [Axis2D.X]: getBoundingRectOfRects(axesMarkerLabels[Axis2D.X].map(l => l.textRect)),
+  [Axis2D.Y]: getBoundingRectOfRects(axesMarkerLabels[Axis2D.Y].map(l => l.textRect)),
+})
 
 /**
  * Calculates the overrun in px in each direction of marker labels of the given
@@ -258,17 +240,17 @@ const calculateAxisMarkerLabelOverrun = (
   props: Options,
 ): { left: number, right: number, top: number, bottom: number } => {
   // Create throwaway axis marker labels to determine how much, if at all, they overrun the tentative axes
-  const xAxisMarkerLabels = createXAxisMarkerLabels(ctx, tentativeAxesGeometry, props)
-  const yAxisMarkerLabels = createYAxisMarkerLabels(ctx, tentativeAxesGeometry, props)
+  const axesMarkerLabels = createAxesMarkerLabels(ctx, tentativeAxesGeometry, props)
   // Get the bounding rect of each axis' marker labels
-  const xAxisMarkerLabelsBoundingRect = getBoundingScreenRectOfAxisMarkerLabels(xAxisMarkerLabels)
-  const yAxisMarkerLabelsBoundingRect = getBoundingScreenRectOfAxisMarkerLabels(yAxisMarkerLabels)
+  const axesMarkerLabelsBoundingRects = getBoundingScreenRectsOfAxesMarkerLabels(axesMarkerLabels)
   // Calculate the overrun for each direction
+  const brX = axesMarkerLabelsBoundingRects[Axis2D.X]
+  const brY = axesMarkerLabelsBoundingRects[Axis2D.Y]
   return {
-    left: Math.max(0, tentativeAxesScreenBound[Axis2D.X].lower - Math.min(xAxisMarkerLabelsBoundingRect.left, yAxisMarkerLabelsBoundingRect.left)),
-    right: Math.max(0, Math.max(xAxisMarkerLabelsBoundingRect.right, yAxisMarkerLabelsBoundingRect.right) - tentativeAxesScreenBound[Axis2D.X].upper),
-    top: Math.max(0, tentativeAxesScreenBound[Axis2D.Y].upper - Math.min(xAxisMarkerLabelsBoundingRect.top, yAxisMarkerLabelsBoundingRect.top)),
-    bottom: Math.max(0, Math.max(xAxisMarkerLabelsBoundingRect.bottom, yAxisMarkerLabelsBoundingRect.bottom) - tentativeAxesScreenBound[Axis2D.Y].lower),
+    left: Math.max(0, tentativeAxesScreenBound[Axis2D.X].lower - Math.min(brX.left, brY.left)),
+    right: Math.max(0, Math.max(brX.right, brY.right) - tentativeAxesScreenBound[Axis2D.X].upper),
+    top: Math.max(0, tentativeAxesScreenBound[Axis2D.Y].upper - Math.min(brX.top, brY.top)),
+    bottom: Math.max(0, Math.max(brX.bottom, brY.bottom) - tentativeAxesScreenBound[Axis2D.Y].lower),
   }
 }
 

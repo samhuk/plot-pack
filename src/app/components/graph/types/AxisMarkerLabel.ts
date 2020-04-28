@@ -1,8 +1,7 @@
+import { Rect } from '../../../common/types/geometry'
+
 export type AxisMarkerLabel = {
-  pX: number
-  pY: number
-  textWidth: number
-  textHeight: number
+  textRect: Rect
   value: number
   text: string
 }
