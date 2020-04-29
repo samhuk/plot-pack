@@ -117,6 +117,7 @@ export const drawStandardMarker = (
   const markerColor = getMarkerColor(props, seriesKey)
   ctx.fillStyle = markerColor
   ctx.strokeStyle = markerColor
+  ctx.setLineDash([])
 
   const shouldFill = markerType !== MarkerType.CROSS && markerType !== MarkerType.PLUS
   if (shouldFill) {

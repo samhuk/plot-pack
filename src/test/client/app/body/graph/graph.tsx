@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 
 import Graph from '../../../../../app/components/graph'
 import { Axis2D, Point2D } from '../../../../../app/common/types/geometry'
-import Notation from '../../../../../app/components/graph/types/Notation'
+import { NumberFormatNotation } from '../../../../../app/common/types/math'
 import BestFitLine from '../../../../../app/components/graph/types/BestFitLineType'
 import MarkerType from '../../../../../app/components/graph/types/MarkerType'
 import XAxisOrientation from '../../../../../app/components/graph/types/xAxisOrientation'
@@ -96,7 +96,7 @@ export const render = () => {
           axesOptions={{
             [Axis2D.Y]: {
               labelText: 'This is the Y Axis',
-              notation: Notation.DECIMAL,
+              notation: NumberFormatNotation.DECIMAL,
               numFigures: 2,
               lineOptions: {
                 color: '#333',
@@ -118,7 +118,7 @@ export const render = () => {
               labelText: 'This is the X Axis',
               // dvGrid: 0.5,
               // valueBound: { lower: -1.25, upper: 5 },
-              notation: Notation.DECIMAL,
+              notation: NumberFormatNotation.DECIMAL,
               numFigures: 2,
               lineOptions: {
                 color: '#333',
@@ -159,14 +159,23 @@ export const render = () => {
             showStraightLineOfBestFit: true,
           }}
           tooltipOptions={{
-            showSeriesStylePreview: true,
-            boxPaddingX: 15,
-            boxPaddingY: 15,
+            visibilityOptions: {
+              showXValueTitle: true,
+            },
+            boxPaddingX: null,
+            boxPaddingY: null,
             fontSize: 14,
             borderRadius: 10,
             backgroundColor: '#333',
             textColor: 'white',
             borderLineColor: '#999',
+            xValueLabelTextOptions: {
+              color: 'white',
+            },
+            xValueLabelDividerOptions: {
+              color: 'white',
+              dashPattern: [],
+            }
           }}
           markerOptions={{
             lineWidth: 1,

@@ -1,5 +1,6 @@
 import Bound from '../../components/graph/types/Bound'
 import { Point2D } from '../types/geometry'
+import { NumberFormatNotation } from '../types/math'
 
 export const boundToRange = (x: number, bound1: number, bound2: number) => {
   const lowerBound = Math.min(bound1, bound2)
@@ -71,4 +72,24 @@ export const getBoundsOfValues2D = (array: Point2D[]): { x: Bound, y: Bound } =>
   }
 
   return { x: { lower: lowerX, upper: upperX }, y: { lower: lowerY, upper: upperY } }
+}
+
+export const formatNumber = (value: number, notation?: NumberFormatNotation, numFigures?: number) => {
+  const defaultValue = value.toString()
+
+  if (notation == null || notation === NumberFormatNotation.DECIMAL) {
+    if (numFigures != null)
+      return roundDecimalPlaces(value, numFigures).toFixed(numFigures)
+    return defaultValue
+  }
+  if (notation === NumberFormatNotation.SCIENTIFIC) {
+    const orderOfMagnitude = Math.floor(Math.log10(Math.abs(value)))
+    const normalizedValue = value / (10 ** orderOfMagnitude)
+    const roundedValue = numFigures != null
+      ? roundDecimalPlaces(normalizedValue, numFigures + 1).toFixed(numFigures)
+      : normalizedValue
+    return `${roundedValue} x10^${orderOfMagnitude}`
+  }
+
+  return defaultValue
 }

@@ -1,9 +1,7 @@
 import Options from './types/Options'
 import { Axis2D, Point2D } from '../../common/types/geometry'
 import { measureTextWidth, measureTextLineHeight, applyTextOptionsToContext } from '../../common/helpers/canvas'
-import AxisOptions from './types/AxisOptions'
-import Notation from './types/Notation'
-import { roundDecimalPlaces } from '../../common/helpers/math'
+import { formatNumber as formatNumberMath } from '../../common/helpers/math'
 import AxesGeometry from './types/AxesGeometry'
 import { getMarkerLineLength } from './axisMarkerLines'
 import XAxisMarkerOrientation from './types/XAxixMarkerOrientation'
@@ -15,32 +13,13 @@ const DEFAULT_FONT_FAMILY = 'Helvetica'
 const DEFAULT_FONT_SIZE = 9
 const DEFAULT_COLOR = 'black'
 
-const createAxisMarkerLabelText = (value: number, axisOptions: AxisOptions) => {
-  const defaultValue = value.toString()
-
-  if (axisOptions == null)
-    return defaultValue
-
-  if (axisOptions.notation == null || axisOptions.notation === Notation.DECIMAL) {
-    if (axisOptions.numFigures != null)
-      return roundDecimalPlaces(value, axisOptions.numFigures).toFixed(axisOptions.numFigures)
-    return defaultValue
-  }
-  if (axisOptions.notation === Notation.SCIENTIFIC) {
-    const orderOfMagnitude = Math.floor(Math.log10(Math.abs(value)))
-    const normalizedValue = value / (10 ** orderOfMagnitude)
-    const roundedValue = axisOptions.numFigures != null
-      ? roundDecimalPlaces(normalizedValue, axisOptions.numFigures + 1).toFixed(axisOptions.numFigures)
-      : normalizedValue
-    return `${roundedValue} x10^${orderOfMagnitude}`
-  }
-
-  return defaultValue
-}
-
 const getXAxisMarkerOrientation = (props: Options) => (props.axesOptions?.[Axis2D.X]?.markerOrientation as XAxisMarkerOrientation)
 
 const getYAxisMarkerOrientation = (props: Options) => (props.axesOptions?.[Axis2D.Y]?.markerOrientation as YAxisMarkerOrientation)
+
+export const formatNumber = (value: number, props: Options, axis: Axis2D) => (
+  formatNumberMath(value, props.axesOptions?.[axis]?.notation, props.axesOptions?.[axis]?.numFigures)
+)
 
 const calculateXAxisMarkerLabelOffsetVector = (
   axesGeometry: AxesGeometry,
@@ -104,7 +83,7 @@ const createAxisMarkerLabels = (
   const axisMarkerLabels: AxisMarkerLabel[] = []
   for (let i = 0; i < axesGeometry[axis].numGridLines; i += 1) {
     const value = axesGeometry[axis].vl + axesGeometry[axis].dvGrid * i
-    const text = createAxisMarkerLabelText(value, props.axesOptions?.[axis])
+    const text = formatNumber(value, props, axis)
     const textWidth = measureTextWidth(ctx, text)
     const offsetVector = calculateMarkerLabelOffsetVector(axesGeometry, markerPosition, markerLineLength, lineHeight, textWidth, axis)
     const parallelScreenPosition = axesGeometry[axis].p(value)

@@ -1,15 +1,22 @@
-import { Point2D, Rect } from '../../common/types/geometry'
+import { Point2D, Rect, Axis2D } from '../../common/types/geometry'
 import Options from './types/Options'
 import { mapDict, findEntryOfMaxValue, combineDicts, anyDict } from '../../common/helpers/dict'
-import { measureTextWidth, measureTextLineHeight, createTextStyle, createRoundedRect } from '../../common/helpers/canvas'
+import { measureTextWidth,
+  measureTextLineHeight,
+  createTextStyle,
+  createRoundedRect,
+  applyTextOptionsToContext,
+  applyLineOptionsToContext } from '../../common/helpers/canvas'
 import PositionedDatum from './types/PositionedDatum'
 import { getShouldShowMarkers, getShouldShowConnectingLine } from './drawGraph'
 import { getMarkerSize, drawStandardMarker } from './marker'
 import { drawConnectingLine } from './connectingLine'
+import { formatNumber } from './axisMarkerLabels'
+import { TextOptions, LineOptions } from '../../common/types/canvas'
 
 const PREVIEW_RIGHT_MARGIN = 10
-const DEFAULT_BOX_PADDING_X = 10
-const DEFAULT_BOX_PADDING_Y = 10
+const DEFAULT_BOX_PADDING_X = 6
+const DEFAULT_BOX_PADDING_Y = 6
 const DEFAULT_FONT_FAMILY = 'Helvetica'
 const DEFAULT_FONT_SIZE = 12
 const DEFAULT_TEXT_COLOR = 'black'
@@ -19,14 +26,18 @@ const DEFAULT_BORDER_RADIUS = 3
 const DEFAULT_BACKGROUND_COLOR = '#f0f0f0'
 const DEFAULT_TOOLTIP_MARGIN_FROM_MARKER = 10
 
-const getPreviewWidth = (lineHeight: number) => Math.max(10, 1.5 * lineHeight)
+const getSeriesPreviewWidth = (lineHeight: number) => Math.max(10, 1.5 * lineHeight)
 
 const getShouldShowMarkerPreview = (props: Options, seriesKey: string) => (
-  getShouldShowMarkers(props, seriesKey) && (props?.tooltipOptions?.showSeriesStylePreview ?? true)
+  getShouldShowMarkers(props, seriesKey) && (props?.tooltipOptions?.visibilityOptions?.showSeriesStylePreview ?? true)
 )
 
 const getShouldShowConnectingLinePreview = (props: Options, seriesKey: string) => (
-  getShouldShowConnectingLine(props, seriesKey) && (props?.tooltipOptions?.showSeriesStylePreview ?? true)
+  getShouldShowConnectingLine(props, seriesKey) && (props?.tooltipOptions?.visibilityOptions?.showSeriesStylePreview ?? true)
+)
+
+const getShouldShowXValueTitle = (props: Options) => (
+  props?.tooltipOptions?.visibilityOptions?.showXValueTitle ?? false
 )
 
 const createTextStyleInternal = (props: Options, bold: boolean) => createTextStyle(
@@ -35,7 +46,7 @@ const createTextStyleInternal = (props: Options, bold: boolean) => createTextSty
   bold,
 )
 
-const determineBoxX = (canvasWidth: number, boxWidth: number, x: number) => {
+const determineTooltipBoxXCoord = (canvasWidth: number, boxWidth: number, x: number) => {
   // Try placing on RHS
   let prospectiveBoxX = x + DEFAULT_TOOLTIP_MARGIN_FROM_MARKER
   // Determine if the box is overflowing on the RHS
@@ -56,21 +67,18 @@ const drawBox = (ctx: CanvasRenderingContext2D, boxRect: Rect, props: Options) =
   ctx.fill(boxPath)
 }
 
-const drawSeriesLines = (
+const drawSeriesTextLines = (
   ctx: CanvasRenderingContext2D,
-  boxRect: Rect,
-  boxPaddingX: number,
-  boxPaddingY: number,
+  seriesLinesContentRect: Rect,
   lineHeight: number,
   lineVerticalPadding: number,
   labelTexts: { [seriesKey: string]: string },
   valueTexts: { [seriesKey: string]: string },
   labelWidths: { [seriesKey: string]: number },
-  leftMargin: number,
   props: Options,
 ) => {
-  const textStartX = boxRect.x + boxPaddingX + leftMargin
-  const startY = boxRect.y + boxPaddingY + lineHeight - lineVerticalPadding
+  const textStartX = seriesLinesContentRect.x
+  const startY = seriesLinesContentRect.y + lineHeight - lineVerticalPadding
   Object.entries(labelTexts).forEach(([seriesKey, labelText], i) => {
     const lineY = startY + (i * lineHeight)
     ctx.fillStyle = props?.tooltipOptions?.textColor ?? DEFAULT_TEXT_COLOR
@@ -102,31 +110,71 @@ const drawSeriesPreview = (
 
 const drawSeriesPreviews = (
   ctx: CanvasRenderingContext2D,
-  boxRect: Rect,
-  boxPaddingX: number,
-  boxPaddingY: number,
+  seriesLinesContentRect: Rect,
   lineHeight: number,
   shouldDrawMarkerPreviews: { [seriesKey: string]: boolean },
   shouldDrawConnectingLinePreviews: { [seriesKey: string]: boolean },
-  previewWidth: number,
   props: Options,
 ) => {
-  const startX = boxRect.x + boxPaddingX
-  const startY = boxRect.y + boxPaddingY
-
   Object.entries(shouldDrawMarkerPreviews).forEach(([seriesKey], i) => {
     drawSeriesPreview(
       ctx,
       shouldDrawMarkerPreviews[seriesKey],
       shouldDrawConnectingLinePreviews[seriesKey],
-      startX,
-      startY + (i * lineHeight) + lineHeight / 2,
-      previewWidth,
+      seriesLinesContentRect.x,
+      seriesLinesContentRect.y + (i * lineHeight) + lineHeight / 2,
+      seriesLinesContentRect.width,
       lineHeight,
       props,
       seriesKey,
     )
   })
+}
+
+const calculateTooltipBoxContentMetrics = (
+  ctx: CanvasRenderingContext2D,
+  labelTexts: { [seriesKey: string]: string },
+  valueTexts: { [seriesKey: string]: string },
+  xValueHeaderText: string,
+  seriesTextLineLeftMargin: number,
+) => {
+  // Calculate width of each series line component
+  const labelTextWidths = mapDict(labelTexts, (_, text) => measureTextWidth(ctx, text))
+  const valueTextWidths = mapDict(valueTexts, (_, value) => measureTextWidth(ctx, value))
+  // Calculate width of each series line
+  const seriesLineWidths = combineDicts(labelTextWidths, valueTextWidths, (_, w1, w2) => w1 + w2)
+  // Calculate width of x value label text
+  const xValueHeaderTextWidth = measureTextWidth(ctx, xValueHeaderText)
+  // Return the maximum of all these
+  return {
+    labelTextWidths,
+    contentWidth: Math.max(xValueHeaderTextWidth, findEntryOfMaxValue(seriesLineWidths).value + seriesTextLineLeftMargin),
+    xValueHeaderTextWidth,
+  }
+}
+
+const drawXValueHeaderText = (
+  ctx: CanvasRenderingContext2D,
+  xValueHeaderRect: Rect,
+  valueText: string,
+  valueTextWidth: number,
+  textOptions: TextOptions,
+) => {
+  applyTextOptionsToContext(ctx, textOptions)
+  const lineHeight = measureTextLineHeight(ctx)
+
+  const x = xValueHeaderRect.x + (xValueHeaderRect.width / 2) - (valueTextWidth / 2)
+  ctx.fillText(valueText, x, xValueHeaderRect.y + lineHeight)
+}
+
+const drawXValueHeaderDividerLine = (ctx: CanvasRenderingContext2D, xValueHeaderDividerBoundingRect: Rect, lineOptions: LineOptions) => {
+  const dividerPath = new Path2D()
+  const y = xValueHeaderDividerBoundingRect.y + xValueHeaderDividerBoundingRect.height / 2
+  dividerPath.moveTo(xValueHeaderDividerBoundingRect.x, y)
+  dividerPath.lineTo(xValueHeaderDividerBoundingRect.x + xValueHeaderDividerBoundingRect.width, y)
+
+  applyLineOptionsToContext(ctx, lineOptions)
+  ctx.stroke(dividerPath)
 }
 
 export const draw = (
@@ -148,71 +196,113 @@ export const draw = (
 
   // Create series key label texts and widths
   const labelTexts = mapDict(highlightedDatums, seriesKey => `${seriesKey}:  `)
-  const labelWidths = mapDict(labelTexts, (_, text) => measureTextWidth(ctx, text))
   // Create value texts and widths
-  const valueTexts = mapDict(highlightedDatums, (_, { vY }) => (typeof vY === 'number' ? vY : vY[0]).toString())
-  const valueTextWidths = mapDict(valueTexts, (_, value) => measureTextWidth(ctx, value))
+  const valueTexts = mapDict(highlightedDatums, (_, { fvY }) => formatNumber(fvY, props, Axis2D.Y))
   // Create x value text and width
-  const xValueLabelText = nearestDatumOfAllSeries.vX.toString()
-  const xValueLabelTextWidth = measureTextWidth(ctx, xValueLabelText)
+  const xValueHeaderText = formatNumber(nearestDatumOfAllSeries.fvX, props, Axis2D.X)
   // Get "should draw preview marker" value ahead of time to not have to recalculate them all
   const shouldDrawMarkerPreviews = mapDict(highlightedDatums, seriesKey => getShouldShowMarkerPreview(props, seriesKey))
   const shouldDrawConnectingLinePreviews = mapDict(highlightedDatums, seriesKey => getShouldShowConnectingLinePreview(props, seriesKey))
-  // Create line texts and widths
-  const lineWidths = combineDicts(labelWidths, valueTextWidths, (_, w1, w2) => w1 + w2)
-  const largestLineWidth = Math.max(xValueLabelTextWidth, findEntryOfMaxValue(lineWidths).value)
-
-  const boxPaddingX = props?.tooltipOptions?.boxPaddingX ?? DEFAULT_BOX_PADDING_X
-  const boxPaddingY = props?.tooltipOptions?.boxPaddingY ?? DEFAULT_BOX_PADDING_Y
-
-  const previewWidth = getPreviewWidth(lineHeight)
 
   /* Determine if we have to draw at least one preview.
-   * (If so, then we must ensure that the series text is padded sufficiently)
+   * (If so, then we must ensure that the series text is padded sufficiently from the left)
    */
   const shouldDrawAtleastOnePreview = anyDict(
     combineDicts(shouldDrawMarkerPreviews, shouldDrawConnectingLinePreviews, (_, should1, should2) => should1 || should2),
     (_, shouldDrawSomeKindOfPreview) => shouldDrawSomeKindOfPreview,
   )
 
-  // Create box rect (position and dimensions of the box)
-  const boxHeight = (numSeries * lineHeight) + (2 * boxPaddingY)
-  const boxWidth = largestLineWidth + (2 * boxPaddingX) + (shouldDrawAtleastOnePreview ? previewWidth + PREVIEW_RIGHT_MARGIN : 0)
-  const boxRect: Rect = {
-    x: determineBoxX(props.widthPx, boxWidth, nearestDatumOfAllSeries.fpX),
-    // Place vertically centered, ensuring that it doesn't overflow at the top (negative y position)
+  const seriesPreviewWidth = getSeriesPreviewWidth(lineHeight)
+  const seriesLineTextLeftMargin = shouldDrawAtleastOnePreview ? seriesPreviewWidth + PREVIEW_RIGHT_MARGIN : 0
+
+  const tooltipBoxContentMetrics = calculateTooltipBoxContentMetrics(ctx, labelTexts, valueTexts, xValueHeaderText, seriesLineTextLeftMargin)
+
+  const boxPaddingX = props?.tooltipOptions?.boxPaddingX ?? DEFAULT_BOX_PADDING_X
+  const boxPaddingY = props?.tooltipOptions?.boxPaddingY ?? DEFAULT_BOX_PADDING_Y
+
+  const shouldShowXValueTitle = getShouldShowXValueTitle(props)
+  const xValueHeaderTextHeight = shouldShowXValueTitle ? lineHeight : 0
+
+  const xValueHeaderDividerHeight = shouldShowXValueTitle ? (2 * boxPaddingY) + (props.tooltipOptions?.xValueLabelDividerOptions?.lineWidth ?? 1) : 0
+
+  // Create tooltip box rect (position and dimensions of the box)
+  const boxHeight = (numSeries * lineHeight) + (2 * boxPaddingY) + xValueHeaderTextHeight + xValueHeaderDividerHeight
+  const boxWidth = tooltipBoxContentMetrics.contentWidth + (2 * boxPaddingX)
+  const tooltipBoxPosition: Point2D = {
+    x: determineTooltipBoxXCoord(props.widthPx, boxWidth, nearestDatumOfAllSeries.fpX),
+    /* Position vertically centered relative to cursor position,
+     * ensuring that it doesn't overflow at the top (negative y position)
+     */
     y: Math.max(0, cursorPoint.y - (boxHeight / 2)),
+  }
+
+  const xValueHeaderTextBoundingRect: Rect = {
+    x: tooltipBoxPosition.x + boxPaddingX,
+    y: tooltipBoxPosition.y + boxPaddingY,
+    width: tooltipBoxContentMetrics.contentWidth,
+    height: xValueHeaderTextHeight,
+  }
+  const xValueHeaderDividerBoundingRect: Rect = {
+    x: tooltipBoxPosition.x,
+    y: xValueHeaderTextBoundingRect.y + xValueHeaderTextBoundingRect.height,
+    width: boxWidth,
+    height: xValueHeaderDividerHeight,
+  }
+  const seriesPreviewsBoundingRect: Rect = {
+    x: tooltipBoxPosition.x + boxPaddingX,
+    y: xValueHeaderDividerBoundingRect.y + xValueHeaderDividerBoundingRect.height,
+    width: seriesPreviewWidth,
+    height: numSeries * lineHeight,
+  }
+  const seriesTextLinesBoundingRect: Rect = {
+    x: tooltipBoxPosition.x + boxPaddingX + seriesLineTextLeftMargin,
+    y: xValueHeaderDividerBoundingRect.y + xValueHeaderDividerBoundingRect.height,
+    width: tooltipBoxContentMetrics.contentWidth,
+    height: numSeries * lineHeight,
+  }
+
+  const tooltipBoxRect: Rect = {
+    x: tooltipBoxPosition.x,
+    y: tooltipBoxPosition.y,
     width: boxWidth,
     height: boxHeight,
   }
 
   // Draw box
-  drawBox(ctx, boxRect, props)
+  drawBox(ctx, tooltipBoxRect, props)
+  // Draw x value header
+  if (shouldShowXValueTitle) {
+    drawXValueHeaderText(
+      ctx,
+      xValueHeaderTextBoundingRect,
+      xValueHeaderText,
+      tooltipBoxContentMetrics.xValueHeaderTextWidth,
+      props.tooltipOptions?.xValueLabelTextOptions,
+    )
+    drawXValueHeaderDividerLine(
+      ctx,
+      xValueHeaderDividerBoundingRect,
+      props.tooltipOptions?.xValueLabelDividerOptions,
+    )
+  }
   // Draw series previews (i.e. marker and/or connecting line)
   drawSeriesPreviews(
     ctx,
-    boxRect,
-    boxPaddingX,
-    boxPaddingY,
+    seriesPreviewsBoundingRect,
     lineHeight,
     shouldDrawMarkerPreviews,
     shouldDrawConnectingLinePreviews,
-    previewWidth,
     props,
   )
   // Draw series label and value text lines
-  drawSeriesLines(
+  drawSeriesTextLines(
     ctx,
-    boxRect,
-    boxPaddingX,
-    boxPaddingY,
+    seriesTextLinesBoundingRect,
     lineHeight,
     lineVerticalPadding,
     labelTexts,
     valueTexts,
-    labelWidths,
-    // If there is at least one preview to show, the add left margin
-    shouldDrawAtleastOnePreview ? previewWidth + PREVIEW_RIGHT_MARGIN : 0,
+    tooltipBoxContentMetrics.labelTextWidths,
     props,
   )
 }

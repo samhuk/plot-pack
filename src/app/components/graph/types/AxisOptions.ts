@@ -1,4 +1,4 @@
-import Notation from './Notation'
+import { NumberFormatNotation } from '../../../common/types/math'
 import XAxisOrientation from './xAxisOrientation'
 import YAxisOrientation from './yAxisOrientation'
 import AxisVisibilityOptions from './AxisVisibilityOptions'
@@ -19,7 +19,7 @@ export type AxisOptions = {
   }
   dvGrid?: number
   valueBound?: Bound
-  notation?: Notation
+  notation?: NumberFormatNotation
   numFigures?: number
   lineOptions?: LineOptions
   gridLineOptions?: LineOptions

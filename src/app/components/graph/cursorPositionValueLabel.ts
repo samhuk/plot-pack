@@ -3,6 +3,7 @@ import { Axis2D, Point2D } from '../../common/types/geometry'
 import { createTextStyle, measureTextLineHeight, createRoundedRect } from '../../common/helpers/canvas'
 import PositionedDatum from './types/PositionedDatum'
 import AxesGeometry from './types/AxesGeometry'
+import { formatNumber } from './axisMarkerLabels'
 
 const DEFAULT_FONT_FAMILY = 'Helvetica'
 const DEFAULT_FONT_SIZE = 12
@@ -69,7 +70,7 @@ export const drawCursorPositionValueLabels = (
 ) => {
   if (props.axesOptions?.[Axis2D.X]?.visibilityOptions?.showCursorPositionValueLabel ?? true) {
     const pX = nearestDatum != null && getCursorPositionValueLabelSnapTo(props, Axis2D.X) ? nearestDatum.fpX : cursorPoint.x
-    const xAxisText = axesGeometry[Axis2D.X].v(pX).toFixed(2)
+    const xAxisText = formatNumber(axesGeometry[Axis2D.X].v(pX), props, Axis2D.X)
 
     const bgRectPaddingPx = getCursorPositionValueLabelPadding(props, Axis2D.X)
     ctx.font = getCursorPositionValueLabelFont(props, Axis2D.X)

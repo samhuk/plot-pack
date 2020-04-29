@@ -1,3 +1,5 @@
+import { TextOptions, LineOptions } from '../../../common/types/canvas'
+
 export type TooltipOptions = {
   backgroundColor?: string
   textColor?: string
@@ -8,7 +10,12 @@ export type TooltipOptions = {
   boxPaddingY?: number
   fontFamily?: string
   fontSize?: number
-  showSeriesStylePreview?: boolean
+  visibilityOptions?: {
+    showSeriesStylePreview?: boolean
+    showXValueTitle?: boolean
+  }
+  xValueLabelTextOptions?: TextOptions
+  xValueLabelDividerOptions?: LineOptions
 }
 
 export default TooltipOptions

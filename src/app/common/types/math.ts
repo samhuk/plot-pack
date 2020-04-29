@@ -3,4 +3,7 @@ export type Range2D = {
   end: number;
 }
 
-export default Range2D
+export enum NumberFormatNotation {
+  DECIMAL,
+  SCIENTIFIC,
+}
