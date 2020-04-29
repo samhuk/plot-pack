@@ -11,7 +11,7 @@ export const drawXAxisGridLines = (
   axesGeometry: AxesGeometry,
   props: Options,
 ) => {
-  const shouldDraw = applyLineOptionsToContext(ctx, props.axesOptions?.[Axis2D.X]?.axisGridLineOptions, DEFAULT_GRID_LINE_WIDTH, DEFAULT_GRID_LINE_COLOR)
+  const shouldDraw = applyLineOptionsToContext(ctx, props.axesOptions?.[Axis2D.X]?.gridLineOptions, DEFAULT_GRID_LINE_WIDTH, DEFAULT_GRID_LINE_COLOR)
   if (!shouldDraw)
     return
 
@@ -29,7 +29,7 @@ export const drawYAxisGridLines = (
   axesGeometry: AxesGeometry,
   props: Options,
 ) => {
-  const shouldDraw = applyLineOptionsToContext(ctx, props.axesOptions?.[Axis2D.Y]?.axisGridLineOptions, DEFAULT_GRID_LINE_WIDTH, DEFAULT_GRID_LINE_COLOR)
+  const shouldDraw = applyLineOptionsToContext(ctx, props.axesOptions?.[Axis2D.Y]?.gridLineOptions, DEFAULT_GRID_LINE_WIDTH, DEFAULT_GRID_LINE_COLOR)
   if (!shouldDraw)
     return
 

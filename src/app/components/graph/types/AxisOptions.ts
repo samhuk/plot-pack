@@ -21,11 +21,11 @@ export type AxisOptions = {
   valueBound?: Bound
   notation?: Notation
   numFigures?: number
-  axisLineOptions?: LineOptions
-  axisGridLineOptions?: LineOptions
-  axisMarkerLabelOptions?: TextOptions
-  axisMarkerLineOptions?: AxisMarkerLineOptions
-  axisMarkerOrientation?: XAxisMarkerOrientation | YAxisMarkerOrientation
+  lineOptions?: LineOptions
+  gridLineOptions?: LineOptions
+  markerLabelOptions?: TextOptions
+  markerLineOptions?: AxisMarkerLineOptions
+  markerOrientation?: XAxisMarkerOrientation | YAxisMarkerOrientation
   visibilityOptions?: AxisVisibilityOptions
   padding?: number
   orientation?: XAxisOrientation | YAxisOrientation

@@ -38,9 +38,9 @@ const createAxisMarkerLabelText = (value: number, axisOptions: AxisOptions) => {
   return defaultValue
 }
 
-const getXAxisMarkerOrientation = (props: Options) => (props.axesOptions?.[Axis2D.X]?.axisMarkerOrientation as XAxisMarkerOrientation)
+const getXAxisMarkerOrientation = (props: Options) => (props.axesOptions?.[Axis2D.X]?.markerOrientation as XAxisMarkerOrientation)
 
-const getYAxisMarkerOrientation = (props: Options) => (props.axesOptions?.[Axis2D.Y]?.axisMarkerOrientation as YAxisMarkerOrientation)
+const getYAxisMarkerOrientation = (props: Options) => (props.axesOptions?.[Axis2D.Y]?.markerOrientation as YAxisMarkerOrientation)
 
 const calculateXAxisMarkerLabelOffsetVector = (
   axesGeometry: AxesGeometry,
@@ -94,7 +94,7 @@ const createAxisMarkerLabels = (
   axis: Axis2D,
   props: Options,
 ) => {
-  applyTextOptionsToContext(ctx, props.axesOptions?.[axis]?.axisMarkerLabelOptions, DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE, DEFAULT_COLOR)
+  applyTextOptionsToContext(ctx, props.axesOptions?.[axis]?.markerLabelOptions, DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE, DEFAULT_COLOR)
 
   const { orthogonalScreenPosition } = axesGeometry[axis]
   const lineHeight = measureTextLineHeight(ctx)

@@ -98,17 +98,17 @@ export const render = () => {
               labelText: 'This is the Y Axis',
               notation: Notation.DECIMAL,
               numFigures: 2,
-              axisLineOptions: {
+              lineOptions: {
                 color: '#333',
               },
-              axisMarkerLineOptions: {
+              markerLineOptions: {
                 color: '#333',
               },
-              axisMarkerLabelOptions: {
+              markerLabelOptions: {
                 color: '#333',
               },
               orientation: YAxisOrientation.ORIGIN,
-              axisMarkerOrientation: null,
+              markerOrientation: null,
               visibilityOptions: {
                 showCursorPositionLine: true,
                 showCursorPositionValueLabel: true,
@@ -120,14 +120,14 @@ export const render = () => {
               // valueBound: { lower: -1.25, upper: 5 },
               notation: Notation.DECIMAL,
               numFigures: 2,
-              axisLineOptions: {
+              lineOptions: {
                 color: '#333',
               },
-              axisMarkerLineOptions: {
+              markerLineOptions: {
                 color: '#333',
               },
               orientation: XAxisOrientation.ORIGIN,
-              axisMarkerOrientation: null,
+              markerOrientation: null,
               visibilityOptions: {
                 showCursorPositionLine: true,
                 showCursorPositionValueLabel: true,
@@ -292,16 +292,16 @@ export const render = () => {
               labelOptions: {
                 color: 'white',
               },
-              axisMarkerLabelOptions: {
+              markerLabelOptions: {
                 color: 'white',
               },
-              axisMarkerLineOptions: {
+              markerLineOptions: {
                 color: 'white',
               },
-              axisLineOptions: {
+              lineOptions: {
                 color: 'white',
               },
-              axisGridLineOptions: {
+              gridLineOptions: {
                 color: 'white',
               },
               cursorPositionLineOptions: {
@@ -315,16 +315,16 @@ export const render = () => {
               labelOptions: {
                 color: 'white',
               },
-              axisMarkerLabelOptions: {
+              markerLabelOptions: {
                 color: 'white',
               },
-              axisMarkerLineOptions: {
+              markerLineOptions: {
                 color: 'white',
               },
-              axisLineOptions: {
+              lineOptions: {
                 color: 'white',
               },
-              axisGridLineOptions: {
+              gridLineOptions: {
                 color: 'white',
               },
               cursorPositionLineOptions: {

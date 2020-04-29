@@ -7,7 +7,7 @@ const DEFAULT_LINE_WIDTH = 2
 const DEFAULT_COLOR = 'black'
 
 export const drawXAxisLine = (ctx: CanvasRenderingContext2D, axesGeometry: AxesGeometry, props: Options) => {
-  applyLineOptionsToContext(ctx, props.axesOptions?.[Axis2D.X]?.axisLineOptions, DEFAULT_LINE_WIDTH, DEFAULT_COLOR)
+  applyLineOptionsToContext(ctx, props.axesOptions?.[Axis2D.X]?.lineOptions, DEFAULT_LINE_WIDTH, DEFAULT_COLOR)
 
   const y = axesGeometry[Axis2D.X].orthogonalScreenPosition
 
@@ -18,7 +18,7 @@ export const drawXAxisLine = (ctx: CanvasRenderingContext2D, axesGeometry: AxesG
 }
 
 export const drawYAxisLine = (ctx: CanvasRenderingContext2D, axesGeometry: AxesGeometry, props: Options) => {
-  applyLineOptionsToContext(ctx, props.axesOptions?.[Axis2D.Y]?.axisLineOptions, DEFAULT_LINE_WIDTH, DEFAULT_COLOR)
+  applyLineOptionsToContext(ctx, props.axesOptions?.[Axis2D.Y]?.lineOptions, DEFAULT_LINE_WIDTH, DEFAULT_COLOR)
 
   const x = axesGeometry[Axis2D.Y].orthogonalScreenPosition
 
