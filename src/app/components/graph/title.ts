@@ -1,6 +1,5 @@
 import Options from './types/Options'
-import { applyTextOptionsToContext } from './drawGraph'
-import { measureTextWidth, measureTextLineHeight } from '../../common/helpers/canvas'
+import { measureTextWidth, measureTextLineHeight, applyTextOptionsToContext } from '../../common/helpers/canvas'
 
 const DEFAULT_FONT_SIZE = 22
 const DEFAULT_COLOR = 'black'

@@ -2,10 +2,11 @@ import Notation from './Notation'
 import XAxisOrientation from './xAxisOrientation'
 import YAxisOrientation from './yAxisOrientation'
 import AxisVisibilityOptions from './AxisVisibilityOptions'
-import TextOptions from './TextOptions'
+import { TextOptions, LineOptions } from '../../../common/types/canvas'
 import Bound from './Bound'
 import XAxisMarkerOrientation from './XAxixMarkerOrientation'
 import YAxisMarkerOrientation from './YAxisMarkerOrientation'
+import AxisMarkerLineOptions from './AxisMarkerLineOptions'
 
 /**
  * Options to customize the rendering and behavior of an axis.
@@ -20,16 +21,10 @@ export type AxisOptions = {
   valueBound?: Bound
   notation?: Notation
   numFigures?: number
-  axisLineWidth?: number
-  axisLineColor?: string
-  gridLineWidth?: number
-  gridLineColor?: string
-  axisMarkerLabelFontFamily?: string
-  axisMarkerLabelFontSize?: number
-  axisMarkerLabelColor?: string
-  axisMarkerLineWidth?: number
-  axisMarkerLineColor?: string
-  axisMarkerLineLength?: number
+  axisLineOptions?: LineOptions
+  axisGridLineOptions?: LineOptions
+  axisMarkerLabelOptions?: TextOptions
+  axisMarkerLineOptions?: AxisMarkerLineOptions
   axisMarkerOrientation?: XAxisMarkerOrientation | YAxisMarkerOrientation
   visibilityOptions?: AxisVisibilityOptions
   padding?: number

@@ -1,24 +1,13 @@
 import Options from './types/Options'
 import { Axis2D } from '../../common/types/geometry'
 import AxesGeometry from './types/AxesGeometry'
+import { applyLineOptionsToContext } from '../../common/helpers/canvas'
 
-const DEFAULT_AXIS_LINE_WIDTH = 2
-
-const getAxisLineWidth = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.axisLineWidth
-  ?? props.axesLineOptions?.lineWidth
-  ?? DEFAULT_AXIS_LINE_WIDTH
-
-const getAxisLineColor = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.axisLineColor
-  ?? props.axesLineOptions?.color
-  ?? 'black'
+const DEFAULT_LINE_WIDTH = 2
+const DEFAULT_COLOR = 'black'
 
 export const drawXAxisLine = (ctx: CanvasRenderingContext2D, axesGeometry: AxesGeometry, props: Options) => {
-  const lineWidth = getAxisLineWidth(props, Axis2D.X)
-  if (lineWidth < 0)
-    return
-
-  ctx.strokeStyle = getAxisLineColor(props, Axis2D.X)
-  ctx.lineWidth = lineWidth
+  applyLineOptionsToContext(ctx, props.axesOptions?.[Axis2D.X]?.axisLineOptions, DEFAULT_LINE_WIDTH, DEFAULT_COLOR)
 
   const y = axesGeometry[Axis2D.X].orthogonalScreenPosition
 
@@ -29,12 +18,7 @@ export const drawXAxisLine = (ctx: CanvasRenderingContext2D, axesGeometry: AxesG
 }
 
 export const drawYAxisLine = (ctx: CanvasRenderingContext2D, axesGeometry: AxesGeometry, props: Options) => {
-  const lineWidth = getAxisLineWidth(props, Axis2D.Y)
-  if (lineWidth < 0)
-    return
-
-  ctx.strokeStyle = getAxisLineColor(props, Axis2D.Y)
-  ctx.lineWidth = lineWidth
+  applyLineOptionsToContext(ctx, props.axesOptions?.[Axis2D.Y]?.axisLineOptions, DEFAULT_LINE_WIDTH, DEFAULT_COLOR)
 
   const x = axesGeometry[Axis2D.Y].orthogonalScreenPosition
 

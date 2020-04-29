@@ -7,7 +7,7 @@ export const render = (canvas: HTMLCanvasElement, props: Options, graphGeometry:
   if (props.series == null || Object.keys(props.series).length === 0)
     return
 
-  const ctx = get2DContext(canvas, props.widthPx, props.heightPx, props.axesMarkerLabelOptions?.fontFamily, props.axesMarkerLabelOptions?.fontSize)
+  const ctx = get2DContext(canvas, props.widthPx, props.heightPx)
   draw(ctx, graphGeometry, props)
 }
 

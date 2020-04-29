@@ -4,8 +4,7 @@ import { Axis2D } from '../../../common/types/geometry'
 import MarkerOptions from './MarkerOptions'
 import BestFitLineOptions from './BestFitLineOptions'
 import SeriesOptions from './SeriesOptions'
-import LineOptions from './lineOptions'
-import TextOptions from './TextOptions'
+import { TextOptions, LineOptions } from '../../../common/types/canvas'
 import VisibilityOptions from './VisibilityOptions'
 import TooltipOptions from './TooltipOptions'
 import DatumHighlightOptions from './DatumHighlightOptions'
@@ -14,7 +13,6 @@ import DatumFocusPointDeterminationMode from './DatumFocusPointDeterminationMode
 import UnfocusedPositionedDatum from './UnfocusedPositionedDatum'
 import DatumFocusPoint from './DatumFocusPoint'
 import ErrorBarsOptions from './ErrorBarsOptions'
-import AxisMarkerLineOptions from './AxisMarkerLineOptions'
 
 /**
  * Options for the Graph
@@ -33,10 +31,6 @@ export type Options = {
   axesOptions?: { [axis in Axis2D]?: AxisOptions }
   axesLabelOptions?: TextOptions
   tooltipOptions?: TooltipOptions
-  axesMarkerLabelOptions?: TextOptions
-  axesMarkerLineOptions?: AxisMarkerLineOptions
-  axesLineOptions?: LineOptions
-  gridLineOptions?: LineOptions
   connectingLineOptions?: LineOptions
   markerOptions?: MarkerOptions
   errorBarsOptions?: { [axis in Axis2D]?: ErrorBarsOptions }

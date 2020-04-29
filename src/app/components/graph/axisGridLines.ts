@@ -1,28 +1,19 @@
 import Options from './types/Options'
 import { Axis2D } from '../../common/types/geometry'
 import AxesGeometry from './types/AxesGeometry'
+import { applyLineOptionsToContext } from '../../common/helpers/canvas'
 
 const DEFAULT_GRID_LINE_WIDTH = 0.5
 const DEFAULT_GRID_LINE_COLOR = 'black'
-
-const getGridLineWidth = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.gridLineWidth
-  ?? props.gridLineOptions?.lineWidth
-  ?? DEFAULT_GRID_LINE_WIDTH
-
-const getGridLineColor = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.gridLineColor
-  ?? props.gridLineOptions?.color
-  ?? DEFAULT_GRID_LINE_COLOR
 
 export const drawXAxisGridLines = (
   ctx: CanvasRenderingContext2D,
   axesGeometry: AxesGeometry,
   props: Options,
 ) => {
-  const lineWidth = getGridLineWidth(props, Axis2D.X)
-  if (lineWidth <= 0)
+  const shouldDraw = applyLineOptionsToContext(ctx, props.axesOptions?.[Axis2D.X]?.axisGridLineOptions, DEFAULT_GRID_LINE_WIDTH, DEFAULT_GRID_LINE_COLOR)
+  if (!shouldDraw)
     return
-  ctx.strokeStyle = getGridLineColor(props, Axis2D.X)
-  ctx.lineWidth = lineWidth
 
   const path = new Path2D()
   for (let i = 0; i < axesGeometry[Axis2D.X].numGridLines; i += 1) {
@@ -38,11 +29,9 @@ export const drawYAxisGridLines = (
   axesGeometry: AxesGeometry,
   props: Options,
 ) => {
-  const lineWidth = getGridLineWidth(props, Axis2D.Y)
-  if (lineWidth <= 0)
+  const shouldDraw = applyLineOptionsToContext(ctx, props.axesOptions?.[Axis2D.Y]?.axisGridLineOptions, DEFAULT_GRID_LINE_WIDTH, DEFAULT_GRID_LINE_COLOR)
+  if (!shouldDraw)
     return
-  ctx.strokeStyle = getGridLineColor(props, Axis2D.Y)
-  ctx.lineWidth = lineWidth
 
   const path = new Path2D()
   for (let i = 0; i < axesGeometry[Axis2D.Y].numGridLines; i += 1) {

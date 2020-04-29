@@ -1,6 +1,6 @@
 import Options from './types/Options'
 import { Axis2D, Point2D } from '../../common/types/geometry'
-import { createTextStyle, measureTextWidth, measureTextLineHeight } from '../../common/helpers/canvas'
+import { measureTextWidth, measureTextLineHeight, applyTextOptionsToContext } from '../../common/helpers/canvas'
 import AxisOptions from './types/AxisOptions'
 import Notation from './types/Notation'
 import { roundDecimalPlaces } from '../../common/helpers/math'
@@ -11,9 +11,9 @@ import YAxisMarkerOrientation from './types/YAxisMarkerOrientation'
 import { determineXAxisMarkerPositioning, determineYAxisMarkerPositioning } from './axisMarkerPositioning'
 import AxisMarkerLabel from './types/AxisMarkerLabel'
 
-const DEFAULT_AXIS_MARKER_LABEL_FONT_FAMILY = 'Helvetica'
-const DEFAULT_AXIS_MARKER_LABEL_FONT_SIZE = 9
-const DEFAULT_AXIS_MARKER_LABEL_COLOR = 'black'
+const DEFAULT_FONT_FAMILY = 'Helvetica'
+const DEFAULT_FONT_SIZE = 9
+const DEFAULT_COLOR = 'black'
 
 const createAxisMarkerLabelText = (value: number, axisOptions: AxisOptions) => {
   const defaultValue = value.toString()
@@ -37,20 +37,6 @@ const createAxisMarkerLabelText = (value: number, axisOptions: AxisOptions) => {
 
   return defaultValue
 }
-
-const getFontSize = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.axisMarkerLabelFontSize
-  ?? props.axesMarkerLabelOptions?.fontSize
-  ?? DEFAULT_AXIS_MARKER_LABEL_FONT_SIZE
-
-const getFontFamily = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.axisMarkerLabelFontFamily
-  ?? props.axesMarkerLabelOptions?.fontFamily
-  ?? DEFAULT_AXIS_MARKER_LABEL_FONT_FAMILY
-
-const getLabelColor = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.axisMarkerLabelColor
-  ?? props.axesMarkerLabelOptions?.color
-  ?? DEFAULT_AXIS_MARKER_LABEL_COLOR
-
-const getFont = (props: Options, axis: Axis2D) => createTextStyle(getFontFamily(props, axis), getFontSize(props, axis))
 
 const getXAxisMarkerOrientation = (props: Options) => (props.axesOptions?.[Axis2D.X]?.axisMarkerOrientation as XAxisMarkerOrientation)
 
@@ -108,9 +94,7 @@ const createAxisMarkerLabels = (
   axis: Axis2D,
   props: Options,
 ) => {
-  ctx.lineWidth = 0.7
-  ctx.font = getFont(props, axis)
-  ctx.fillStyle = getLabelColor(props, axis)
+  applyTextOptionsToContext(ctx, props.axesOptions?.[axis]?.axisMarkerLabelOptions, DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE, DEFAULT_COLOR)
 
   const { orthogonalScreenPosition } = axesGeometry[axis]
   const lineHeight = measureTextLineHeight(ctx)

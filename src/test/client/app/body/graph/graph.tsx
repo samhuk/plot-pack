@@ -98,9 +98,15 @@ export const render = () => {
               labelText: 'This is the Y Axis',
               notation: Notation.DECIMAL,
               numFigures: 2,
-              axisLineColor: '#333',
-              axisMarkerLineColor: '#333',
-              axisMarkerLabelColor: '#333',
+              axisLineOptions: {
+                color: '#333',
+              },
+              axisMarkerLineOptions: {
+                color: '#333',
+              },
+              axisMarkerLabelOptions: {
+                color: '#333',
+              },
               orientation: YAxisOrientation.ORIGIN,
               axisMarkerOrientation: null,
               visibilityOptions: {
@@ -114,8 +120,12 @@ export const render = () => {
               // valueBound: { lower: -1.25, upper: 5 },
               notation: Notation.DECIMAL,
               numFigures: 2,
-              axisLineColor: '#333',
-              axisMarkerLineColor: '#333',
+              axisLineOptions: {
+                color: '#333',
+              },
+              axisMarkerLineOptions: {
+                color: '#333',
+              },
               orientation: XAxisOrientation.ORIGIN,
               axisMarkerOrientation: null,
               visibilityOptions: {
@@ -279,6 +289,21 @@ export const render = () => {
           axesOptions={{
             [Axis2D.X]: {
               labelText: 'value of x',
+              labelOptions: {
+                color: 'white',
+              },
+              axisMarkerLabelOptions: {
+                color: 'white',
+              },
+              axisMarkerLineOptions: {
+                color: 'white',
+              },
+              axisLineOptions: {
+                color: 'white',
+              },
+              axisGridLineOptions: {
+                color: 'white',
+              },
               cursorPositionLineOptions: {
                 dashPattern: [],
                 color: 'white',
@@ -287,6 +312,21 @@ export const render = () => {
             },
             [Axis2D.Y]: {
               labelText: 'f(x)',
+              labelOptions: {
+                color: 'white',
+              },
+              axisMarkerLabelOptions: {
+                color: 'white',
+              },
+              axisMarkerLineOptions: {
+                color: 'white',
+              },
+              axisLineOptions: {
+                color: 'white',
+              },
+              axisGridLineOptions: {
+                color: 'white',
+              },
               cursorPositionLineOptions: {
                 snapToNearestDatum: true,
                 color: 'white',
@@ -298,18 +338,6 @@ export const render = () => {
           }}
           backgroundColor="#222"
           axesLabelOptions={{
-            color: 'white',
-          }}
-          axesMarkerLabelOptions={{
-            color: 'white',
-          }}
-          axesMarkerLineOptions={{
-            color: 'white',
-          }}
-          axesLineOptions={{
-            color: 'white',
-          }}
-          gridLineOptions={{
             color: 'white',
           }}
           markerOptions={{

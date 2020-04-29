@@ -4,21 +4,13 @@ import AxesGeometry from './types/AxesGeometry'
 import { determineXAxisMarkerPositioning, determineYAxisMarkerPositioning } from './axisMarkerPositioning'
 import XAxisMarkerOrientation from './types/XAxixMarkerOrientation'
 import YAxisMarkerOrientation from './types/YAxisMarkerOrientation'
+import { applyLineOptionsToContext } from '../../common/helpers/canvas'
 
 const DEFAULT_MARKER_LINE_WIDTH = 3
 const DEFAULT_MARKER_LINE_LENGTH = 5
 const DEFAULT_MARKER_LINE_COLOR = 'black'
 
-const getMarkerLineWidth = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.axisMarkerLineWidth
-  ?? props.axesMarkerLineOptions?.lineWidth
-  ?? DEFAULT_MARKER_LINE_WIDTH
-
-const getMarkerLineColor = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.axisMarkerLineColor
-  ?? props.axesMarkerLineOptions?.color
-  ?? DEFAULT_MARKER_LINE_COLOR
-
-export const getMarkerLineLength = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.axisMarkerLineLength
-  ?? props.axesMarkerLineOptions?.length
+export const getMarkerLineLength = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.axisMarkerLineOptions?.length
   ?? DEFAULT_MARKER_LINE_LENGTH
 
 export const drawXAxisAxisMarkerLines = (
@@ -26,8 +18,9 @@ export const drawXAxisAxisMarkerLines = (
   axesGeometry: AxesGeometry,
   props: Options,
 ) => {
-  ctx.strokeStyle = getMarkerLineColor(props, Axis2D.X)
-  ctx.lineWidth = getMarkerLineWidth(props, Axis2D.X)
+  const shouldDraw = applyLineOptionsToContext(ctx, props?.axesOptions?.[Axis2D.X]?.axisMarkerLineOptions, DEFAULT_MARKER_LINE_WIDTH, DEFAULT_MARKER_LINE_COLOR)
+  if (!shouldDraw)
+    return
 
   const y = axesGeometry[Axis2D.X].orthogonalScreenPosition
   const markerLength = getMarkerLineLength(props, Axis2D.X)
@@ -50,8 +43,9 @@ export const drawYAxisAxisMarkerLines = (
   axesGeometry: AxesGeometry,
   props: Options,
 ) => {
-  ctx.strokeStyle = getMarkerLineColor(props, Axis2D.Y)
-  ctx.lineWidth = getMarkerLineWidth(props, Axis2D.Y)
+  const shouldDraw = applyLineOptionsToContext(ctx, props?.axesOptions?.[Axis2D.Y]?.axisMarkerLineOptions, DEFAULT_MARKER_LINE_WIDTH, DEFAULT_MARKER_LINE_COLOR)
+  if (!shouldDraw)
+    return
 
   const x = axesGeometry[Axis2D.Y].orthogonalScreenPosition
   const markerLength = getMarkerLineLength(props, Axis2D.Y)

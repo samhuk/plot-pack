@@ -3,7 +3,7 @@ import BestFitLineOptions from './BestFitLineOptions'
 import SeriesVisibilityOptions from './SeriesVisibilityOptions'
 import ErrorBarsOptions from './ErrorBarsOptions'
 import { Axis2D } from '../../../common/types/geometry'
-import LineOptions from './lineOptions'
+import { LineOptions } from '../../../common/types/canvas'
 
 export type SeriesOptions = {
   connectingLineOptions?: LineOptions

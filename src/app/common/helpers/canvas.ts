@@ -1,6 +1,7 @@
 /* eslint-disable no-param-reassign */
 
 import { Point2D } from '../types/geometry'
+import { TextOptions, LineOptions } from '../types/canvas'
 
 /**
  * Readjusts the dimensions of `canvas` and `ctx` depnding on the current
@@ -107,4 +108,36 @@ export const createRoundedRect = (
   path.quadraticCurveTo(x, y, x + _cornerRadii.upperLeft, y)
 
   return path
+}
+
+export const applyTextOptionsToContext = (
+  ctx: CanvasRenderingContext2D,
+  options: TextOptions,
+  defaultFontFamily?: string,
+  defaultFontSize?: number,
+  defaultColor?: string,
+) => {
+  ctx.lineWidth = 0.7
+  ctx.font = createTextStyle(
+    options?.fontFamily ?? defaultFontFamily ?? 'Helvetica',
+    options?.fontSize ?? defaultFontSize ?? 14,
+  )
+  ctx.fillStyle = options?.color ?? defaultColor ?? 'black'
+}
+
+export const applyLineOptionsToContext = (
+  ctx: CanvasRenderingContext2D,
+  options: LineOptions,
+  defaultLineWidth?: number,
+  defaultColor?: string,
+  defaultDashPattern?: number[],
+): boolean => {
+  const lineWidth = options?.lineWidth ?? defaultLineWidth ?? 1
+  if (lineWidth <= 0)
+    return false
+
+  ctx.lineWidth = lineWidth
+  ctx.strokeStyle = options?.color ?? defaultColor ?? 'black'
+  ctx.setLineDash(options?.dashPattern ?? defaultDashPattern ?? [])
+  return true
 }
