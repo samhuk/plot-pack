@@ -13,6 +13,7 @@ export type TooltipOptions = {
   visibilityOptions?: {
     showSeriesStylePreview?: boolean
     showXValueTitle?: boolean
+    showXValueTitleDivider?: boolean
   }
   xValueLabelTextOptions?: TextOptions
   xValueLabelDividerOptions?: LineOptions

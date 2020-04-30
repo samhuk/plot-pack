@@ -21,6 +21,7 @@ const DEFAULT_FONT_FAMILY = 'Helvetica'
 const DEFAULT_FONT_SIZE = 12
 const DEFAULT_TEXT_COLOR = 'black'
 const DEFAULT_BORDER_LINE_WIDTH = 1
+const DEFAULT_X_VALUE_HEADER_DIVIDER_LINE_WIDTH = 1
 const DEFAULT_BORDER_LINE_COLOR = ''
 const DEFAULT_BORDER_RADIUS = 3
 const DEFAULT_BACKGROUND_COLOR = '#f0f0f0'
@@ -38,6 +39,14 @@ const getShouldShowConnectingLinePreview = (props: Options, seriesKey: string) =
 
 const getShouldShowXValueTitle = (props: Options) => (
   props?.tooltipOptions?.visibilityOptions?.showXValueTitle ?? false
+)
+
+const getShouldShowXValueHeaderDivider = (props: Options) => (
+  props?.tooltipOptions?.visibilityOptions?.showXValueTitleDivider ?? false
+)
+
+const getShouldShowXValueHeaderDividerLineWidth = (props: Options) => (
+  props.tooltipOptions?.xValueLabelDividerOptions?.lineWidth ?? DEFAULT_X_VALUE_HEADER_DIVIDER_LINE_WIDTH
 )
 
 const createTextStyleInternal = (props: Options, bold: boolean) => createTextStyle(
@@ -222,8 +231,8 @@ export const draw = (
 
   const shouldShowXValueTitle = getShouldShowXValueTitle(props)
   const xValueHeaderTextHeight = shouldShowXValueTitle ? lineHeight : 0
-
-  const xValueHeaderDividerHeight = shouldShowXValueTitle ? (2 * boxPaddingY) + (props.tooltipOptions?.xValueLabelDividerOptions?.lineWidth ?? 1) : 0
+  const shouldShowXValueTitleDivider = getShouldShowXValueHeaderDivider(props)
+  const xValueHeaderDividerHeight = shouldShowXValueTitleDivider ? (2 * boxPaddingY) + getShouldShowXValueHeaderDividerLineWidth(props) : 0
 
   // Create tooltip box rect (position and dimensions of the box)
   const boxHeight = (numSeries * lineHeight) + (2 * boxPaddingY) + xValueHeaderTextHeight + xValueHeaderDividerHeight
@@ -279,6 +288,8 @@ export const draw = (
       tooltipBoxContentMetrics.xValueHeaderTextWidth,
       props.tooltipOptions?.xValueLabelTextOptions,
     )
+  }
+  if (shouldShowXValueTitleDivider) {
     drawXValueHeaderDividerLine(
       ctx,
       xValueHeaderDividerBoundingRect,

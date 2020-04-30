@@ -161,6 +161,7 @@ export const render = () => {
           tooltipOptions={{
             visibilityOptions: {
               showXValueTitle: true,
+              showXValueTitleDivider: true,
             },
             boxPaddingX: null,
             boxPaddingY: null,
@@ -175,7 +176,7 @@ export const render = () => {
             xValueLabelDividerOptions: {
               color: 'white',
               dashPattern: [],
-            }
+            },
           }}
           markerOptions={{
             lineWidth: 1,
