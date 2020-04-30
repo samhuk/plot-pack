@@ -27,6 +27,10 @@ const DEFAULT_BORDER_RADIUS = 3
 const DEFAULT_BACKGROUND_COLOR = '#f0f0f0'
 const DEFAULT_TOOLTIP_MARGIN_FROM_MARKER = 10
 
+export const getShouldDrawTooltip = (props: Options) => (
+  props.visibilityOptions?.showTooltip ?? true
+)
+
 const getSeriesPreviewWidth = (lineHeight: number) => Math.max(10, 1.5 * lineHeight)
 
 const getShouldShowMarkerPreview = (props: Options, seriesKey: string) => (

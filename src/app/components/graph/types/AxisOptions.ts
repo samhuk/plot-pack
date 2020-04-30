@@ -29,11 +29,8 @@ export type AxisOptions = {
   visibilityOptions?: AxisVisibilityOptions
   padding?: number
   orientation?: XAxisOrientation | YAxisOrientation
-  cursorPositionLineOptions?: {
+  cursorPositionLineOptions?: LineOptions & {
     snapToNearestDatum?: boolean
-    lineWidth?: number
-    color?: string
-    dashPattern?: number[]
   }
   cursorPositionValueLabelOptions?: {
     snapToNearestDatum?: boolean

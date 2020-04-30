@@ -3,14 +3,14 @@ import { get2DContext } from '../../common/helpers/canvas'
 import { Options } from './types/Options'
 import { isInRange } from '../../common/helpers/math'
 import { Point2D, Axis2D } from '../../common/types/geometry'
-import { drawCursorPositionValueLabels } from './cursorPositionValueLabel'
-import { drawCursorPositionLines } from './cursorPositionLine'
+import { getShouldDrawCursorPositionValueLabel, drawCursorPositionValueLabel } from './cursorPositionValueLabel'
+import { getShouldDrawCursorPositionLine, drawCursorPositionLine } from './cursorPositionLine'
 import { drawDatumHighlight } from './datumHighlight'
 import PositionedDatum from './types/PositionedDatum'
 import KdTree from './types/KdTree'
 import { mapDict, filterDict } from '../../common/helpers/dict'
 import { createDatumDistanceFunction } from './geometry'
-import drawTooltip from './tooltip'
+import drawTooltip, { getShouldDrawTooltip } from './tooltip'
 import DatumSnapMode from './types/DatumSnapMode'
 
 type NearestDatum = PositionedDatum & {
@@ -116,31 +116,43 @@ const draw = (
   let nearestDatumOfAllSeries: NearestDatum = null
 
   if (props.datumSnapOptions?.mode !== DatumSnapMode.NONE) {
-    // Determine the nearest point to the cursor
+    // Determine the nearest datum to the cursor of each series
     const nearestDatums = determineNearestDatums(
       graphGeometry.datumKdTrees,
       cursorPoint,
       props.datumSnapOptions?.distanceThresholdPx,
       props.datumSnapOptions?.excludedSeriesKeys,
     )
-
+    // Determine the nearest datum to the cursor out of all the series
     nearestDatumOfAllSeries = determineNearestDatumOfAllSeries(nearestDatums)
-
+    // Exclude the nearest datums that are too far away from the nearest datum of them all
     const distanceFn = createDatumDistanceFunction(props?.datumSnapOptions?.mode)
     highlightedDatums = filterDict(nearestDatums, (_, nearestDatum) => (nearestDatum != null
       && distanceFn(nearestDatum, nearestDatumOfAllSeries) < (props.datumSnapOptions?.seriesGroupingDistanceThresholdPx ?? 5)))
   }
 
-  // Draw the vertical and horizontal lines, intersecting at where the cursor is
-  drawCursorPositionLines(ctx, cursorPoint, nearestDatumOfAllSeries, graphGeometry.axesGeometry, props)
-  // Draw the axis value labels at the cursor co-ordinates (next to the axes)
-  drawCursorPositionValueLabels(ctx, cursorPoint, nearestDatumOfAllSeries, graphGeometry.axesGeometry, props)
-
+  // Draw datam highlight(s)
   if (highlightedDatums != null) {
-    if (props.visibilityOptions?.showTooltip ?? true)
-      drawTooltip(ctx, cursorPoint, highlightedDatums, nearestDatumOfAllSeries, props)
     if (props.visibilityOptions?.showDatumHighlight ?? true)
       drawDatumHighlights(ctx, highlightedDatums, props)
+  }
+
+  // Draw the vertical and horizontal lines, intersecting at where the cursor is
+  if (getShouldDrawCursorPositionLine(props, Axis2D.X))
+    drawCursorPositionLine(ctx, cursorPoint, nearestDatumOfAllSeries, graphGeometry.axesGeometry, Axis2D.X, props)
+  if (getShouldDrawCursorPositionLine(props, Axis2D.Y))
+    drawCursorPositionLine(ctx, cursorPoint, nearestDatumOfAllSeries, graphGeometry.axesGeometry, Axis2D.Y, props)
+
+  // Draw the axis value labels at the cursor co-ordinates (next to the axes)
+  if (getShouldDrawCursorPositionValueLabel(props, Axis2D.X))
+    drawCursorPositionValueLabel(ctx, cursorPoint, nearestDatumOfAllSeries, graphGeometry.axesGeometry, Axis2D.X, props)
+  if (getShouldDrawCursorPositionValueLabel(props, Axis2D.Y))
+    drawCursorPositionValueLabel(ctx, cursorPoint, nearestDatumOfAllSeries, graphGeometry.axesGeometry, Axis2D.Y, props)
+
+  // Tooltip is drawn last, since that has to be on top over everything else
+  if (highlightedDatums != null) {
+    if (getShouldDrawTooltip(props))
+      drawTooltip(ctx, cursorPoint, highlightedDatums, nearestDatumOfAllSeries, props)
   }
 }
 
