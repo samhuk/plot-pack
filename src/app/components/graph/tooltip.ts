@@ -13,6 +13,9 @@ import { getMarkerSize, drawStandardMarker } from './marker'
 import { drawConnectingLine } from './connectingLine'
 import { formatNumber } from './axisMarkerLabels'
 import { TextOptions, LineOptions } from '../../common/types/canvas'
+import { getDimensionsOfColumn } from '../../common/canvasFlex/dimensions'
+import { renderColumn } from '../../common/canvasFlex/rendering'
+import { Column, ColumnJustification } from '../../common/canvasFlex/types'
 
 const PREVIEW_RIGHT_MARGIN = 10
 const DEFAULT_BOX_PADDING_X = 6
@@ -270,7 +273,7 @@ export const draw = (
   const seriesTextLinesBoundingRect: Rect = {
     x: tooltipBoxPosition.x + boxPaddingX + seriesLineTextLeftMargin,
     y: xValueHeaderDividerBoundingRect.y + xValueHeaderDividerBoundingRect.height,
-    width: tooltipBoxContentMetrics.contentWidth,
+    width: tooltipBoxContentMetrics.contentWidth - seriesLineTextLeftMargin,
     height: numSeries * lineHeight,
   }
 
@@ -280,6 +283,78 @@ export const draw = (
     width: boxWidth,
     height: boxHeight,
   }
+
+  // Calculate width of each series line component
+  const labelTextWidths = mapDict(labelTexts, (_, text) => measureTextWidth(ctx, text))
+  const valueTextWidths = mapDict(valueTexts, (_, value) => measureTextWidth(ctx, value))
+  // Calculate width of each series line
+  const seriesTextLineWidths = combineDicts(labelTextWidths, valueTextWidths, (_, w1, w2) => w1 + w2)
+  const maximumSeriesTextLineWidth = findEntryOfMaxValue(seriesTextLineWidths).value
+
+  const column: Column = {
+    rows: [
+      {
+        columnJustification: ColumnJustification.CENTER,
+        columns: [{
+          margin: 15,
+          height: xValueHeaderTextHeight,
+          width: measureTextWidth(ctx, xValueHeaderText),
+          render: rect => {
+            console.log('drawing title row: ', rect)
+            ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
+          },
+        }],
+      },
+      {
+        height: xValueHeaderTextHeight,
+        columns: [{
+          width: null, // Full width of the box
+          render: rect => {
+            console.log('drawing divider row: ', rect)
+            ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
+          },
+        }],
+      },
+      {
+        columns: [
+          {
+            width: seriesPreviewWidth,
+            rowTemplate: {
+              height: lineHeight,
+              render: (rect, i) => {
+                console.log('drawing series preview row: ', rect)
+                ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
+              },
+            },
+            numRows: numSeries,
+          },
+          {
+            width: maximumSeriesTextLineWidth,
+            rowTemplate: {
+              height: lineHeight,
+              render: (rect, i) => {
+                console.log('drawing label-value row: ', rect)
+                ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
+              },
+            },
+            numRows: numSeries,
+          },
+        ],
+      },
+    ],
+  }
+
+  ctx.strokeStyle = 'black'
+  ctx.lineWidth = 1
+
+  const dimensions = getDimensionsOfColumn(column)
+  console.log(dimensions)
+
+  ctx.strokeRect(tooltipBoxPosition.x, tooltipBoxPosition.y, dimensions.width + 2 * boxPaddingX, dimensions.height + 2 * boxPaddingY)
+
+  renderColumn({ ...tooltipBoxPosition, width: dimensions.width + 2 * boxPaddingX, height: dimensions.height + 2 * boxPaddingY }, column, 0)
+
+  return
 
   // Draw box
   drawBox(ctx, tooltipBoxRect, props)
