@@ -124,6 +124,26 @@ const drawXValueHeaderDividerLine = (ctx: CanvasRenderingContext2D, dividerRect:
   ctx.stroke(dividerPath)
 }
 
+const drawSeriesLabelValueText = (
+  ctx: CanvasRenderingContext2D,
+  rect: Rect,
+  labelText: string,
+  valueText: string,
+  labelTextWidth: number,
+  props: Options,
+) => {
+  // Calculate y coordinate, vertically centered in rect
+  const textHeight = measureTextLineHeight(ctx, labelText)
+  const differenceInHeight = Math.max(0, rect.height - textHeight)
+  const y = rect.y + rect.height - differenceInHeight / 2
+
+  ctx.fillStyle = props?.tooltipOptions?.textColor ?? DEFAULT_TEXT_COLOR
+  ctx.font = createTextStyleInternal(props, false) // Series key text is not bold
+  ctx.fillText(labelText, rect.x, y)
+  ctx.font = createTextStyleInternal(props, true) // value is bold
+  ctx.fillText(valueText, rect.x + labelTextWidth, y)
+}
+
 export const draw = (
   ctx: CanvasRenderingContext2D,
   cursorPoint: Point2D,
@@ -230,17 +250,7 @@ export const draw = (
       height: lineHeight,
       render: (rect, i) => {
         const seriesKey = seriesKeys[i]
-
-        // Calculate y coordinate, vertically centered in row
-        const textHeight = measureTextLineHeight(ctx, labelTexts[seriesKey])
-        const differenceInHeight = Math.max(0, rect.height - textHeight)
-        const y = rect.y + rect.height - differenceInHeight / 2
-
-        ctx.fillStyle = props?.tooltipOptions?.textColor ?? DEFAULT_TEXT_COLOR
-        ctx.font = createTextStyleInternal(props, false) // Series key text is not bold
-        ctx.fillText(labelTexts[seriesKey], rect.x, y)
-        ctx.font = createTextStyleInternal(props, true) // value is bold
-        ctx.fillText(valueTexts[seriesKey], rect.x + labelTextWidths[seriesKey], y)
+        drawSeriesLabelValueText(ctx, rect, labelTexts[seriesKey], valueTexts[seriesKey], labelTextWidths[seriesKey], props)
       },
     },
     numRows: numSeries,
