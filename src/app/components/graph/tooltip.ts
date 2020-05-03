@@ -83,28 +83,6 @@ const drawBox = (ctx: CanvasRenderingContext2D, boxRect: Rect, props: Options) =
   ctx.fill(boxPath)
 }
 
-const drawSeriesTextLines = (
-  ctx: CanvasRenderingContext2D,
-  seriesLinesContentRect: Rect,
-  lineHeight: number,
-  lineVerticalPadding: number,
-  labelTexts: { [seriesKey: string]: string },
-  valueTexts: { [seriesKey: string]: string },
-  labelWidths: { [seriesKey: string]: number },
-  props: Options,
-) => {
-  const textStartX = seriesLinesContentRect.x
-  const startY = seriesLinesContentRect.y + lineHeight - lineVerticalPadding
-  Object.entries(labelTexts).forEach(([seriesKey, labelText], i) => {
-    const lineY = startY + (i * lineHeight)
-    ctx.fillStyle = props?.tooltipOptions?.textColor ?? DEFAULT_TEXT_COLOR
-    ctx.font = createTextStyleInternal(props, false) // Series key text is not bold
-    ctx.fillText(labelText, textStartX, lineY)
-    ctx.font = createTextStyleInternal(props, true) // value is bold
-    ctx.fillText(valueTexts[seriesKey], textStartX + labelWidths[seriesKey], lineY)
-  })
-}
-
 const drawSeriesPreview = (
   ctx: CanvasRenderingContext2D,
   shouldDrawMarkerPreview: boolean,
@@ -124,70 +102,23 @@ const drawSeriesPreview = (
     drawConnectingLine(ctx, x, y, x + previewWidth, y, props, seriesKey)
 }
 
-const drawSeriesPreviews = (
-  ctx: CanvasRenderingContext2D,
-  seriesLinesContentRect: Rect,
-  lineHeight: number,
-  shouldDrawMarkerPreviews: { [seriesKey: string]: boolean },
-  shouldDrawConnectingLinePreviews: { [seriesKey: string]: boolean },
-  props: Options,
-) => {
-  Object.entries(shouldDrawMarkerPreviews).forEach(([seriesKey], i) => {
-    drawSeriesPreview(
-      ctx,
-      shouldDrawMarkerPreviews[seriesKey],
-      shouldDrawConnectingLinePreviews[seriesKey],
-      seriesLinesContentRect.x,
-      seriesLinesContentRect.y + (i * lineHeight) + lineHeight / 2,
-      seriesLinesContentRect.width,
-      lineHeight,
-      props,
-      seriesKey,
-    )
-  })
-}
-
-const calculateTooltipBoxContentMetrics = (
-  ctx: CanvasRenderingContext2D,
-  labelTexts: { [seriesKey: string]: string },
-  valueTexts: { [seriesKey: string]: string },
-  xValueHeaderText: string,
-  seriesTextLineLeftMargin: number,
-) => {
-  // Calculate width of each series line component
-  const labelTextWidths = mapDict(labelTexts, (_, text) => measureTextWidth(ctx, text))
-  const valueTextWidths = mapDict(valueTexts, (_, value) => measureTextWidth(ctx, value))
-  // Calculate width of each series line
-  const seriesLineWidths = combineDicts(labelTextWidths, valueTextWidths, (_, w1, w2) => w1 + w2)
-  // Calculate width of x value label text
-  const xValueHeaderTextWidth = measureTextWidth(ctx, xValueHeaderText)
-  // Return the maximum of all these
-  return {
-    labelTextWidths,
-    contentWidth: Math.max(xValueHeaderTextWidth, findEntryOfMaxValue(seriesLineWidths).value + seriesTextLineLeftMargin),
-    xValueHeaderTextWidth,
-  }
-}
-
 const drawXValueHeaderText = (
   ctx: CanvasRenderingContext2D,
-  xValueHeaderRect: Rect,
+  textRect: Rect,
   valueText: string,
-  valueTextWidth: number,
   textOptions: TextOptions,
 ) => {
   applyTextOptionsToContext(ctx, textOptions)
   const lineHeight = measureTextLineHeight(ctx)
 
-  const x = xValueHeaderRect.x + (xValueHeaderRect.width / 2) - (valueTextWidth / 2)
-  ctx.fillText(valueText, x, xValueHeaderRect.y + lineHeight)
+  ctx.fillText(valueText, textRect.x, textRect.y + lineHeight)
 }
 
-const drawXValueHeaderDividerLine = (ctx: CanvasRenderingContext2D, xValueHeaderDividerBoundingRect: Rect, lineOptions: LineOptions) => {
+const drawXValueHeaderDividerLine = (ctx: CanvasRenderingContext2D, dividerRect: Rect, lineOptions: LineOptions) => {
   const dividerPath = new Path2D()
-  const y = xValueHeaderDividerBoundingRect.y + xValueHeaderDividerBoundingRect.height / 2
-  dividerPath.moveTo(xValueHeaderDividerBoundingRect.x, y)
-  dividerPath.lineTo(xValueHeaderDividerBoundingRect.x + xValueHeaderDividerBoundingRect.width, y)
+  const y = dividerRect.y + dividerRect.height / 2
+  dividerPath.moveTo(dividerRect.x, y)
+  dividerPath.lineTo(dividerRect.x + dividerRect.width, y)
 
   applyLineOptionsToContext(ctx, lineOptions)
   ctx.stroke(dividerPath)
@@ -207,7 +138,7 @@ export const draw = (
   // Set font early such that we can measure text according to the preferences
   ctx.font = createTextStyleInternal(props, true)
   const lineVerticalPadding = 5
-  // Measure line height
+  // Measure maximum line height
   const lineHeight = measureTextLineHeight(ctx) + lineVerticalPadding
 
   // Create series key label texts and widths
@@ -229,60 +160,13 @@ export const draw = (
   )
 
   const seriesPreviewWidth = getSeriesPreviewWidth(lineHeight)
-  const seriesLineTextLeftMargin = shouldDrawAtleastOnePreview ? seriesPreviewWidth + PREVIEW_RIGHT_MARGIN : 0
-
-  const tooltipBoxContentMetrics = calculateTooltipBoxContentMetrics(ctx, labelTexts, valueTexts, xValueHeaderText, seriesLineTextLeftMargin)
 
   const boxPaddingX = props?.tooltipOptions?.boxPaddingX ?? DEFAULT_BOX_PADDING_X
   const boxPaddingY = props?.tooltipOptions?.boxPaddingY ?? DEFAULT_BOX_PADDING_Y
 
   const shouldShowXValueTitle = getShouldShowXValueTitle(props)
-  const xValueHeaderTextHeight = shouldShowXValueTitle ? lineHeight : 0
   const shouldShowXValueTitleDivider = getShouldShowXValueHeaderDivider(props)
   const xValueHeaderDividerHeight = shouldShowXValueTitleDivider ? (2 * boxPaddingY) + getShouldShowXValueHeaderDividerLineWidth(props) : 0
-
-  // Create tooltip box rect (position and dimensions of the box)
-  const boxHeight = (numSeries * lineHeight) + (2 * boxPaddingY) + xValueHeaderTextHeight + xValueHeaderDividerHeight
-  const boxWidth = tooltipBoxContentMetrics.contentWidth + (2 * boxPaddingX)
-  const tooltipBoxPosition: Point2D = {
-    x: determineTooltipBoxXCoord(props.widthPx, boxWidth, nearestDatumOfAllSeries.fpX),
-    /* Position vertically centered relative to cursor position,
-     * ensuring that it doesn't overflow at the top (negative y position)
-     */
-    y: Math.max(0, cursorPoint.y - (boxHeight / 2)),
-  }
-
-  const xValueHeaderTextBoundingRect: Rect = {
-    x: tooltipBoxPosition.x + boxPaddingX,
-    y: tooltipBoxPosition.y + boxPaddingY,
-    width: tooltipBoxContentMetrics.contentWidth,
-    height: xValueHeaderTextHeight,
-  }
-  const xValueHeaderDividerBoundingRect: Rect = {
-    x: tooltipBoxPosition.x,
-    y: xValueHeaderTextBoundingRect.y + xValueHeaderTextBoundingRect.height,
-    width: boxWidth,
-    height: xValueHeaderDividerHeight,
-  }
-  const seriesPreviewsBoundingRect: Rect = {
-    x: tooltipBoxPosition.x + boxPaddingX,
-    y: xValueHeaderDividerBoundingRect.y + xValueHeaderDividerBoundingRect.height,
-    width: seriesPreviewWidth,
-    height: numSeries * lineHeight,
-  }
-  const seriesTextLinesBoundingRect: Rect = {
-    x: tooltipBoxPosition.x + boxPaddingX + seriesLineTextLeftMargin,
-    y: xValueHeaderDividerBoundingRect.y + xValueHeaderDividerBoundingRect.height,
-    width: tooltipBoxContentMetrics.contentWidth - seriesLineTextLeftMargin,
-    height: numSeries * lineHeight,
-  }
-
-  const tooltipBoxRect: Rect = {
-    x: tooltipBoxPosition.x,
-    y: tooltipBoxPosition.y,
-    width: boxWidth,
-    height: boxHeight,
-  }
 
   // Calculate width of each series line component
   const labelTextWidths = mapDict(labelTexts, (_, text) => measureTextWidth(ctx, text))
@@ -295,13 +179,10 @@ export const draw = (
     margin: { bottom: 0 },
     columnJustification: ColumnJustification.CENTER,
     columns: [{
-      height: xValueHeaderTextHeight,
+      height: lineHeight,
       width: measureTextWidth(ctx, xValueHeaderText),
       render: rect => {
-        console.log('drawing title row: ', rect)
-        ctx.strokeStyle = 'blue'
-        ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
-        ctx.fillText(xValueHeaderText, rect.x, rect.y + lineHeight)
+        drawXValueHeaderText(ctx, rect, xValueHeaderText, props.tooltipOptions?.xValueLabelTextOptions)
       },
     }],
   }
@@ -312,21 +193,32 @@ export const draw = (
     columns: [{
       width: null, // Full width of the box
       render: rect => {
-        console.log('drawing divider row: ', rect)
-        ctx.strokeStyle = 'red'
-        ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
+        drawXValueHeaderDividerLine(ctx, rect, props.tooltipOptions?.xValueLabelDividerOptions)
       },
     }],
   }
 
+  const seriesKeys = Object.keys(highlightedDatums)
+
   const seriesPreviewColumn: InputColumn = {
     width: seriesPreviewWidth,
+    margin: { right: PREVIEW_RIGHT_MARGIN },
     rowTemplate: {
       height: lineHeight,
       render: (rect, i) => {
-        console.log('drawing series preview row: ', rect)
-        ctx.strokeStyle = 'green'
-        ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
+        const seriesKey = seriesKeys[i]
+
+        drawSeriesPreview(
+          ctx,
+          shouldDrawMarkerPreviews[seriesKey],
+          shouldDrawConnectingLinePreviews[seriesKey],
+          rect.x,
+          rect.y + rect.height / 2,
+          rect.width,
+          lineHeight,
+          props,
+          seriesKey,
+        )
       },
     },
     numRows: numSeries,
@@ -337,79 +229,53 @@ export const draw = (
     rowTemplate: {
       height: lineHeight,
       render: (rect, i) => {
-        console.log('drawing label-value row: ', rect)
-        ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
+        const seriesKey = seriesKeys[i]
+
+        // Calculate y coordinate, vertically centered in row
+        const textHeight = measureTextLineHeight(ctx, labelTexts[seriesKey])
+        const differenceInHeight = Math.max(0, rect.height - textHeight)
+        const y = rect.y + rect.height - differenceInHeight / 2
+
+        ctx.fillStyle = props?.tooltipOptions?.textColor ?? DEFAULT_TEXT_COLOR
+        ctx.font = createTextStyleInternal(props, false) // Series key text is not bold
+        ctx.fillText(labelTexts[seriesKey], rect.x, y)
+        ctx.font = createTextStyleInternal(props, true) // value is bold
+        ctx.fillText(valueTexts[seriesKey], rect.x + labelTextWidths[seriesKey], y)
       },
     },
     numRows: numSeries,
   }
 
   const inputColumn: InputColumn = {
-    padding: 5,
+    render: rect => {
+      drawBox(ctx, rect, props)
+    },
+    padding: { left: boxPaddingX, right: boxPaddingX, top: boxPaddingY, bottom: boxPaddingY },
     rows: [
-      titleRow,
-      dividerRow,
+      shouldShowXValueTitle ? titleRow : null,
+      shouldShowXValueTitleDivider ? dividerRow : null,
       {
         columns: [
-          seriesPreviewColumn,
+          shouldDrawAtleastOnePreview ? seriesPreviewColumn : null,
           seriesLabelValueColumn,
         ],
       },
     ],
   }
 
-  ctx.strokeStyle = 'black'
-
   const column = sizeInputColumn(inputColumn)
-  console.log(column)
 
   const { boundingWidth, boundingHeight } = column
 
-  ctx.lineWidth = 2
-  ctx.strokeRect(tooltipBoxPosition.x, tooltipBoxPosition.y, boundingWidth, boundingHeight)
+  const tooltipBoxPosition: Point2D = {
+    x: determineTooltipBoxXCoord(props.widthPx, boundingWidth, nearestDatumOfAllSeries.fpX),
+    /* Position vertically centered relative to cursor position,
+     * ensuring that it doesn't overflow at the top (negative y position)
+     */
+    y: Math.max(0, cursorPoint.y - (boundingHeight / 2)),
+  }
+
   renderColumn({ x: tooltipBoxPosition.x, y: tooltipBoxPosition.y, width: boundingWidth, height: boundingHeight }, column, 0)
-
-  return
-
-  // Draw box
-  drawBox(ctx, tooltipBoxRect, props)
-  // Draw x value header
-  if (shouldShowXValueTitle) {
-    drawXValueHeaderText(
-      ctx,
-      xValueHeaderTextBoundingRect,
-      xValueHeaderText,
-      tooltipBoxContentMetrics.xValueHeaderTextWidth,
-      props.tooltipOptions?.xValueLabelTextOptions,
-    )
-  }
-  if (shouldShowXValueTitleDivider) {
-    drawXValueHeaderDividerLine(
-      ctx,
-      xValueHeaderDividerBoundingRect,
-      props.tooltipOptions?.xValueLabelDividerOptions,
-    )
-  }
-  // Draw series previews (i.e. marker and/or connecting line)
-  drawSeriesPreviews(
-    ctx,
-    seriesPreviewsBoundingRect,
-    lineHeight,
-    shouldDrawMarkerPreviews,
-    shouldDrawConnectingLinePreviews,
-    props,
-  )
-  // Draw series label and value text lines
-  drawSeriesTextLines(
-    ctx,
-    seriesTextLinesBoundingRect,
-    lineHeight,
-    lineVerticalPadding,
-    labelTexts,
-    valueTexts,
-    tooltipBoxContentMetrics.labelTextWidths,
-    props,
-  )
 }
 
 export default draw

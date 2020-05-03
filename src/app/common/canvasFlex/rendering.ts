@@ -68,16 +68,18 @@ const getStartingXOfColumns = (totalColumnWidth: number, rowX: number, rowWidth:
 }
 
 const renderColumnRows = (rect: Rect, column: Column) => {
-  const totalDefinedHeight = column.rows.reduce((acc, row) => acc + (row.height ?? 0) + getVerticalMargin(row.margin), 0)
+  const _rows = column.rows.filter(row => row != null)
+
+  const totalDefinedHeight = _rows.reduce((acc, row) => acc + (row.height ?? 0) + getVerticalMargin(row.margin), 0)
   const totalUndefinedHeight = Math.max(0, rect.height - totalDefinedHeight)
-  const numRowsWithUndefinedHeight = column.rows.filter(row => row.height == null).length
+  const numRowsWithUndefinedHeight = _rows.filter(row => (row.height == null && row.boundingHeight === 0)).length
 
   const heightPerRowWithUndefinedHeight = numRowsWithUndefinedHeight === 0
     ? 0
     : totalUndefinedHeight / numRowsWithUndefinedHeight
 
   let { y } = rect
-  column.rows.forEach((row, i) => {
+  _rows.forEach((row, i) => {
     const topMargin = getTopMargin(row.margin)
     const bottomMargin = getBottomMargin(row.margin)
     const leftMargin = getLeftMargin(row.margin)
@@ -93,9 +95,11 @@ const renderColumnRows = (rect: Rect, column: Column) => {
 }
 
 const renderRowColumns = (rect: Rect, row: Row) => {
-  const totalDefinedWidth = row.columns.reduce((acc, col) => acc + (col.width ?? 0) + getHorizontalMargin(col.margin), 0)
+  const _columns = row.columns.filter(col => col != null)
+
+  const totalDefinedWidth = _columns.reduce((acc, col) => acc + (col.width ?? 0) + getHorizontalMargin(col.margin), 0)
   const totalUndefinedWidth = Math.max(0, rect.width - totalDefinedWidth)
-  const numColumnsWithUndefinedWidth = row.columns.filter(col => col.width == null).length
+  const numColumnsWithUndefinedWidth = _columns.filter(col => (col.width == null && col.boundingWidth === 0)).length
 
   const widthPerColumnWithUndefinedWidth = numColumnsWithUndefinedWidth === 0
     ? 0
@@ -105,7 +109,7 @@ const renderRowColumns = (rect: Rect, row: Row) => {
     ? getStartingXOfColumns(totalDefinedWidth, rect.x, rect.width, row.columnJustification)
     : rect.x
 
-  row.columns.forEach((col, i) => {
+  _columns.filter(col => col != null).forEach((col, i) => {
     const topMargin = getTopMargin(col.margin)
     const leftMargin = getLeftMargin(col.margin)
     const rightMargin = getRightMargin(col.margin)

@@ -59,8 +59,8 @@ export const get2DContext = (
   return ctx
 }
 
-export const measureTextLineHeight = (ctx: CanvasRenderingContext2D) => {
-  const metrics = ctx.measureText('gQ')
+export const measureTextLineHeight = (ctx: CanvasRenderingContext2D, text?: string) => {
+  const metrics = ctx.measureText(text ?? 'gQ')
   return (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent)
 }
 
