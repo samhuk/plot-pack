@@ -1,7 +1,7 @@
 /* eslint-disable no-use-before-define */
 import { Column, Row, ColumnJustification, Padding } from './types'
 import { Rect } from '../types/geometry'
-import { getLeftMargin, getRightMargin, getTopMargin, getBottomMargin, getLeftPadding, getTopPadding, getBottomPadding, getRightPadding } from './dimensions'
+import { getLeftMargin, getRightMargin, getTopMargin, getBottomMargin, getLeftPadding, getTopPadding, getBottomPadding, getRightPadding, getVerticalMargin, getHorizontalMargin } from './dimensions'
 
 const createPaddedRect = (rect: Rect, padding: Padding): Rect => {
   const topPadding = getTopPadding(padding)
@@ -18,19 +18,39 @@ const createPaddedRect = (rect: Rect, padding: Padding): Rect => {
 }
 
 const renderColumnRowTemplate = (rect: Rect, rowTemplate: Row, numRows: number) => {
-  const rowHeight = rowTemplate.height ?? rect.height / numRows
+  const topMargin = getTopMargin(rowTemplate.margin)
+  const bottomMargin = getBottomMargin(rowTemplate.margin)
+  const leftMargin = getLeftMargin(rowTemplate.margin)
+  const rightMargin = getRightMargin(rowTemplate.margin)
+
+  const width = rowTemplate.width ?? (rect.width - leftMargin - rightMargin)
+  const height = rowTemplate.height ?? ((rect.height / numRows) - topMargin - bottomMargin)
+
+  const x = rect.x + leftMargin
   let { y } = rect
+
   for (let i = 0; i < numRows; i += 1) {
-    renderRow({ x: rect.x, y, width: rect.width, height: rowHeight }, rowTemplate, i)
-    y += rowHeight
+    y += topMargin
+    renderRow({ x, y, width, height }, rowTemplate, i)
+    y += height + bottomMargin
   }
 }
 const renderRowColumnTemplate = (rect: Rect, columnTemplate: Column, numColumns: number) => {
-  const columnWidth = columnTemplate.width ?? rect.width / numColumns
+  const topMargin = getTopMargin(columnTemplate.margin)
+  const leftMargin = getLeftMargin(columnTemplate.margin)
+  const rightMargin = getRightMargin(columnTemplate.margin)
+  const bottomMargin = getBottomMargin(columnTemplate.margin)
+
+  const width = columnTemplate.width ?? ((rect.width / numColumns) - leftMargin - rightMargin)
+  const height = columnTemplate.height ?? (rect.height - topMargin - bottomMargin)
+
   let { x } = rect
+  const y = rect.y + topMargin
+
   for (let i = 0; i < numColumns; i += 1) {
-    renderColumn({ x, y: rect.y, width: columnWidth, height: rect.height }, columnTemplate, i)
-    x += columnWidth
+    x += leftMargin
+    renderColumn({ x, y, width, height }, columnTemplate, i)
+    x += width + rightMargin
   }
 }
 
@@ -47,11 +67,9 @@ const getStartingXOfColumns = (totalColumnWidth: number, rowX: number, rowWidth:
   }
 }
 
-const getColumnMarginWidth = (column: Column) => getLeftMargin(column.margin) + getRightMargin(column.margin)
-
 const renderColumnRows = (rect: Rect, column: Column) => {
-  const totalDefinedHeight = column.rows.reduce((acc, row) => (row.height != null ? acc + row.height : acc), 0)
-  const totalUndefinedHeight = rect.height - totalDefinedHeight
+  const totalDefinedHeight = column.rows.reduce((acc, row) => acc + (row.height ?? 0) + getVerticalMargin(row.margin), 0)
+  const totalUndefinedHeight = Math.max(0, rect.height - totalDefinedHeight)
   const numRowsWithUndefinedHeight = column.rows.filter(row => row.height == null).length
 
   const heightPerRowWithUndefinedHeight = numRowsWithUndefinedHeight === 0
@@ -60,15 +78,23 @@ const renderColumnRows = (rect: Rect, column: Column) => {
 
   let { y } = rect
   column.rows.forEach((row, i) => {
-    const height = row.height ?? heightPerRowWithUndefinedHeight
-    renderRow({ x: rect.x, y, width: rect.width, height }, row, i)
-    y += height
+    const topMargin = getTopMargin(row.margin)
+    const bottomMargin = getBottomMargin(row.margin)
+    const leftMargin = getLeftMargin(row.margin)
+    const rightMargin = getRightMargin(row.margin)
+
+    const x = rect.x + leftMargin
+    const width = row.width ?? (rect.width - leftMargin - rightMargin)
+    const height = row.height ?? (row.boundingHeight !== 0 ? row.boundingHeight : heightPerRowWithUndefinedHeight)
+    y += topMargin
+    renderRow({ x, y, width, height }, row, i)
+    y += height + bottomMargin
   })
 }
 
 const renderRowColumns = (rect: Rect, row: Row) => {
-  const totalDefinedWidth = row.columns.reduce((acc, col) => acc + (col.width ?? 0) + getColumnMarginWidth(col), 0)
-  const totalUndefinedWidth = rect.width - totalDefinedWidth
+  const totalDefinedWidth = row.columns.reduce((acc, col) => acc + (col.width ?? 0) + getHorizontalMargin(col.margin), 0)
+  const totalUndefinedWidth = Math.max(0, rect.width - totalDefinedWidth)
   const numColumnsWithUndefinedWidth = row.columns.filter(col => col.width == null).length
 
   const widthPerColumnWithUndefinedWidth = numColumnsWithUndefinedWidth === 0
@@ -81,12 +107,13 @@ const renderRowColumns = (rect: Rect, row: Row) => {
 
   row.columns.forEach((col, i) => {
     const topMargin = getTopMargin(col.margin)
-    const bottomMargin = getBottomMargin(col.margin)
     const leftMargin = getLeftMargin(col.margin)
     const rightMargin = getRightMargin(col.margin)
+    const bottomMargin = getBottomMargin(col.margin)
+
     const y = rect.y + topMargin
-    const width = col.width ?? widthPerColumnWithUndefinedWidth
-    const height = rect.height - topMargin - bottomMargin
+    const width = col.width ?? (col.boundingWidth !== 0 ? col.boundingWidth : widthPerColumnWithUndefinedWidth)
+    const height = col.height ?? (rect.height - topMargin - bottomMargin)
     x += leftMargin
     renderColumn({ x, y, width, height }, col, i)
     x += width + rightMargin
@@ -94,10 +121,13 @@ const renderRowColumns = (rect: Rect, row: Row) => {
 }
 
 const renderRow = (rect: Rect, row: Row, index: number) => {
-  const paddedRect = createPaddedRect(rect, row.padding)
+  if (row == null)
+    return
 
   if (row.render != null)
-    row.render(paddedRect, index)
+    row.render(rect, index)
+
+  const paddedRect = createPaddedRect(rect, row.padding)
 
   if (row.columnTemplate != null && row.numColumns > 0)
     renderRowColumnTemplate(paddedRect, row.columnTemplate, row.numColumns)
@@ -107,10 +137,13 @@ const renderRow = (rect: Rect, row: Row, index: number) => {
 }
 
 export const renderColumn = (rect: Rect, column: Column, index: number) => {
-  const paddedRect = createPaddedRect(rect, column.padding)
+  if (column == null)
+    return
 
   if (column.render != null)
-    column.render(paddedRect, index)
+    column.render(rect, index)
+
+  const paddedRect = createPaddedRect(rect, column.padding)
 
   if (column.rowTemplate != null && column.numRows > 0)
     renderColumnRowTemplate(paddedRect, column.rowTemplate, column.numRows)

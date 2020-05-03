@@ -1,5 +1,5 @@
 /* eslint-disable no-use-before-define */
-import { Row, Column, Margin, SizedColumn, SizedRow, Padding } from './types'
+import { Row, Column, Margin, Padding, InputColumn, InputRow } from './types'
 
 export const getLeftPadding = (padding: Padding) => (padding != null
   ? (typeof padding === 'number'
@@ -85,7 +85,7 @@ export const getVerticalMargin = (margin: Margin) => (margin != null
   ) : 0
 )
 
-const getDimensionsOfColumnTemplates = (columnTemplate: Column, numColumns: number) => {
+const getDimensionsOfColumnTemplates = (columnTemplate: InputColumn, numColumns: number) => {
   let width = 0
   let height = 0
 
@@ -99,7 +99,7 @@ const getDimensionsOfColumnTemplates = (columnTemplate: Column, numColumns: numb
   return { width, height }
 }
 
-const getDimensionsOfColumns = (columns: Column[]) => {
+const getDimensionsOfColumns = (columns: InputColumn[]) => {
   let width = 0
   let height = 0
 
@@ -113,7 +113,7 @@ const getDimensionsOfColumns = (columns: Column[]) => {
   return { width, height }
 }
 
-const getDimensionsOfRowTemplates = (rowTemplate: Row, numRows: number) => {
+const getDimensionsOfRowTemplates = (rowTemplate: InputRow, numRows: number) => {
   let width = 0
   let height = 0
 
@@ -127,7 +127,7 @@ const getDimensionsOfRowTemplates = (rowTemplate: Row, numRows: number) => {
   return { width, height }
 }
 
-const getDimensionsOfRows = (rows: Row[]) => {
+const getDimensionsOfRows = (rows: InputRow[]) => {
   let width = 0
   let height = 0
 
@@ -141,7 +141,7 @@ const getDimensionsOfRows = (rows: Row[]) => {
   return { width, height }
 }
 
-const getDimensionsOfRow = (row: Row): { height: number, width: number } => {
+const getDimensionsOfRow = (row: InputRow): { height: number, width: number } => {
   if (row == null)
     return { width: 0, height: 0 }
 
@@ -152,13 +152,17 @@ const getDimensionsOfRow = (row: Row): { height: number, width: number } => {
       : { width: 0, height: 0 }
     )
 
-  const width = (row.width ?? dimensionsOfColumns.width) + getHorizontalMargin(row.margin) + getHorizontalPadding(row.padding)
-  const height = (row.height ?? dimensionsOfColumns.height) + getVerticalMargin(row.margin) + getVerticalPadding(row.padding)
+  const width = (row.width ?? (dimensionsOfColumns.width + getHorizontalPadding(row.padding))) + getHorizontalMargin(row.margin)
+  const height = (row.height ?? (dimensionsOfColumns.height + getVerticalPadding(row.padding))) + getVerticalMargin(row.margin)
+
+  const _row = row as Row
+  _row.boundingWidth = width
+  _row.boundingHeight = height
 
   return { width, height }
 }
 
-export const getDimensionsOfColumn = (column: Column): { height: number, width: number } => {
+const getDimensionsOfColumn = (column: InputColumn): { height: number, width: number } => {
   if (column == null)
     return { width: 0, height: 0 }
 
@@ -169,9 +173,17 @@ export const getDimensionsOfColumn = (column: Column): { height: number, width: 
       : { width: 0, height: 0 }
     )
 
+  const width = (column.width ?? (dimensionsOfRows.width + getHorizontalPadding(column.padding))) + getHorizontalMargin(column.margin)
+  const height = (column.height ?? (dimensionsOfRows.height + getVerticalPadding(column.padding))) + getVerticalMargin(column.margin)
 
-  const width = (column.width ?? dimensionsOfRows.width) + getHorizontalMargin(column.margin) + getHorizontalPadding(column.padding)
-  const height = (column.height ?? dimensionsOfRows.height) + getVerticalMargin(column.margin) + getVerticalPadding(column.padding)
+  const _column = column as Column
+  _column.boundingWidth = width
+  _column.boundingHeight = height
 
   return { width, height }
+}
+
+export const sizeInputColumn = (column: InputColumn): Column => {
+  getDimensionsOfColumn(column)
+  return column as Column
 }

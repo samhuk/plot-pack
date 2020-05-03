@@ -13,9 +13,9 @@ import { getMarkerSize, drawStandardMarker } from './marker'
 import { drawConnectingLine } from './connectingLine'
 import { formatNumber } from './axisMarkerLabels'
 import { TextOptions, LineOptions } from '../../common/types/canvas'
-import { getDimensionsOfColumn } from '../../common/canvasFlex/dimensions'
+import { sizeInputColumn } from '../../common/canvasFlex/dimensions'
 import { renderColumn } from '../../common/canvasFlex/rendering'
-import { Column, ColumnJustification } from '../../common/canvasFlex/types'
+import { ColumnJustification, InputColumn, InputRow } from '../../common/canvasFlex/types'
 
 const PREVIEW_RIGHT_MARGIN = 10
 const DEFAULT_BOX_PADDING_X = 6
@@ -291,68 +291,83 @@ export const draw = (
   const seriesTextLineWidths = combineDicts(labelTextWidths, valueTextWidths, (_, w1, w2) => w1 + w2)
   const maximumSeriesTextLineWidth = findEntryOfMaxValue(seriesTextLineWidths).value
 
-  const column: Column = {
+  const titleRow: InputRow = {
+    margin: { bottom: 0 },
+    columnJustification: ColumnJustification.CENTER,
+    columns: [{
+      height: xValueHeaderTextHeight,
+      width: measureTextWidth(ctx, xValueHeaderText),
+      render: rect => {
+        console.log('drawing title row: ', rect)
+        ctx.strokeStyle = 'blue'
+        ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
+        ctx.fillText(xValueHeaderText, rect.x, rect.y + lineHeight)
+      },
+    }],
+  }
+
+  const dividerRow: InputRow = {
+    margin: { bottom: 0 },
+    height: xValueHeaderDividerHeight,
+    columns: [{
+      width: null, // Full width of the box
+      render: rect => {
+        console.log('drawing divider row: ', rect)
+        ctx.strokeStyle = 'red'
+        ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
+      },
+    }],
+  }
+
+  const seriesPreviewColumn: InputColumn = {
+    width: seriesPreviewWidth,
+    rowTemplate: {
+      height: lineHeight,
+      render: (rect, i) => {
+        console.log('drawing series preview row: ', rect)
+        ctx.strokeStyle = 'green'
+        ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
+      },
+    },
+    numRows: numSeries,
+  }
+
+  const seriesLabelValueColumn: InputColumn = {
+    width: maximumSeriesTextLineWidth,
+    rowTemplate: {
+      height: lineHeight,
+      render: (rect, i) => {
+        console.log('drawing label-value row: ', rect)
+        ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
+      },
+    },
+    numRows: numSeries,
+  }
+
+  const inputColumn: InputColumn = {
+    padding: 5,
     rows: [
-      {
-        columnJustification: ColumnJustification.CENTER,
-        columns: [{
-          margin: 15,
-          height: xValueHeaderTextHeight,
-          width: measureTextWidth(ctx, xValueHeaderText),
-          render: rect => {
-            console.log('drawing title row: ', rect)
-            ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
-          },
-        }],
-      },
-      {
-        height: xValueHeaderTextHeight,
-        columns: [{
-          width: null, // Full width of the box
-          render: rect => {
-            console.log('drawing divider row: ', rect)
-            ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
-          },
-        }],
-      },
+      titleRow,
+      dividerRow,
       {
         columns: [
-          {
-            width: seriesPreviewWidth,
-            rowTemplate: {
-              height: lineHeight,
-              render: (rect, i) => {
-                console.log('drawing series preview row: ', rect)
-                ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
-              },
-            },
-            numRows: numSeries,
-          },
-          {
-            width: maximumSeriesTextLineWidth,
-            rowTemplate: {
-              height: lineHeight,
-              render: (rect, i) => {
-                console.log('drawing label-value row: ', rect)
-                ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
-              },
-            },
-            numRows: numSeries,
-          },
+          seriesPreviewColumn,
+          seriesLabelValueColumn,
         ],
       },
     ],
   }
 
   ctx.strokeStyle = 'black'
-  ctx.lineWidth = 1
 
-  const dimensions = getDimensionsOfColumn(column)
-  console.log(dimensions)
+  const column = sizeInputColumn(inputColumn)
+  console.log(column)
 
-  ctx.strokeRect(tooltipBoxPosition.x, tooltipBoxPosition.y, dimensions.width + 2 * boxPaddingX, dimensions.height + 2 * boxPaddingY)
+  const { boundingWidth, boundingHeight } = column
 
-  renderColumn({ ...tooltipBoxPosition, width: dimensions.width + 2 * boxPaddingX, height: dimensions.height + 2 * boxPaddingY }, column, 0)
+  ctx.lineWidth = 2
+  ctx.strokeRect(tooltipBoxPosition.x, tooltipBoxPosition.y, boundingWidth, boundingHeight)
+  renderColumn({ x: tooltipBoxPosition.x, y: tooltipBoxPosition.y, width: boundingWidth, height: boundingHeight }, column, 0)
 
   return
 

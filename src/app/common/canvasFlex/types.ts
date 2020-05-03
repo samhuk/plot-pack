@@ -6,13 +6,13 @@ export enum ColumnJustification {
   CENTER
 }
 
-export type Margin = number | { left: number, right: number, top: number, bottom: number }
+export type Margin = number | { left?: number, right?: number, top?: number, bottom?: number }
 
-export type Padding = number | { left: number, right: number, top: number, bottom: number }
+export type Padding = number | { left?: number, right?: number, top?: number, bottom?: number }
 
-export type Column = {
-  rows?: Row[]
-  rowTemplate?: Row
+export type InputColumn = {
+  rows?: InputRow[]
+  rowTemplate?: InputRow
   numRows?: number
   width?: number
   height?: number
@@ -21,9 +21,9 @@ export type Column = {
   render?: (rect: Rect, index: number) => void
 }
 
-export type Row = {
-  columns?: Column[]
-  columnTemplate?: Column
+export type InputRow = {
+  columns?: InputColumn[]
+  columnTemplate?: InputColumn
   numColumns?: number
   width?: number
   height?: number
@@ -33,14 +33,31 @@ export type Row = {
   render?: (rect: Rect, index: number) => void
 }
 
-export type SizedColumn = Column & {
+export type Column = {
+  numRows?: number
+  width?: number
+  height?: number
+  margin?: Margin
+  padding?: Padding
+  render?: (rect: Rect, index: number) => void
+
   boundingHeight: number
   boundingWidth: number
-  rows: SizedRow[]
+  rows: Row[]
+  rowTemplate: Row
 }
 
-export type SizedRow = Row & {
+export type Row = {
+  numColumns?: number
+  width?: number
+  height?: number
+  columnJustification?: ColumnJustification
+  margin?: Margin
+  padding?: Padding
+  render?: (rect: Rect, index: number) => void
+
   boundingHeight: number
   boundingWidth: number
-  columns: SizedColumn[]
+  columns: Column[]
+  columnTemplate: Column
 }
