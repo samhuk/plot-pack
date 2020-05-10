@@ -6,39 +6,53 @@ export enum ColumnJustification {
   CENTER
 }
 
-export type Margin = number | { left?: number, right?: number, top?: number, bottom?: number }
+export enum SizeUnit {
+  PX,
+  PERCENT
+}
 
-export type Padding = number | { left?: number, right?: number, top?: number, bottom?: number }
+export type InputMargin = number | Margin
 
-export type InputColumn = {
+export type InputPadding = number | Padding
+
+export type Margin = { left?: number, right?: number, top?: number, bottom?: number }
+
+export type Padding = { left?: number, right?: number, top?: number, bottom?: number }
+
+export type ElementOptions = {
+  width?: number
+  height?: number
+  widthUnits?: SizeUnit
+  heightUnits?: SizeUnit
+  margin?: InputMargin
+  padding?: InputPadding
+}
+
+export type InputColumn = ElementOptions & {
   rows?: InputRow[]
   rowTemplate?: InputRow
   numRows?: number
-  width?: number
-  height?: number
-  margin?: Margin
-  padding?: Padding
+
+  evenlyFillAvailableWidth?: boolean
+
   render?: (rect: Rect, index: number) => void
 }
 
-export type InputRow = {
+export type InputRow = ElementOptions & {
   columns?: InputColumn[]
   columnTemplate?: InputColumn
   numColumns?: number
-  width?: number
-  height?: number
+
+  evenlyFillAvailableHeight?: boolean
+
   columnJustification?: ColumnJustification
-  margin?: Margin
-  padding?: Padding
   render?: (rect: Rect, index: number) => void
 }
 
-export type Column = {
+export type Column = ElementOptions & {
+  evenlyFillAvailableWidth?: boolean
+
   numRows?: number
-  width?: number
-  height?: number
-  margin?: Margin
-  padding?: Padding
   render?: (rect: Rect, index: number) => void
 
   boundingHeight: number
@@ -47,13 +61,11 @@ export type Column = {
   rowTemplate: Row
 }
 
-export type Row = {
+export type Row = ElementOptions & {
+  evenlyFillAvailableHeight?: boolean
+
   numColumns?: number
-  width?: number
-  height?: number
   columnJustification?: ColumnJustification
-  margin?: Margin
-  padding?: Padding
   render?: (rect: Rect, index: number) => void
 
   boundingHeight: number

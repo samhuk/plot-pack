@@ -15,7 +15,7 @@ import { formatNumber } from './axisMarkerLabels'
 import { TextOptions, LineOptions } from '../../common/types/canvas'
 import { sizeInputColumn } from '../../common/canvasFlex/dimensions'
 import { renderColumn } from '../../common/canvasFlex/rendering'
-import { ColumnJustification, InputColumn, InputRow } from '../../common/canvasFlex/types'
+import { ColumnJustification, InputColumn, InputRow, SizeUnit } from '../../common/canvasFlex/types'
 
 const PREVIEW_RIGHT_MARGIN = 10
 const DEFAULT_BOX_PADDING_X = 6
@@ -198,10 +198,15 @@ export const draw = (
   const titleRow: InputRow = {
     margin: { bottom: 0 },
     columnJustification: ColumnJustification.CENTER,
+    height: lineHeight,
+    width: 100,
+    widthUnits: SizeUnit.PERCENT,
     columns: [{
-      height: lineHeight,
+      height: 100,
+      heightUnits: SizeUnit.PERCENT,
       width: measureTextWidth(ctx, xValueHeaderText),
       render: rect => {
+        ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
         drawXValueHeaderText(ctx, rect, xValueHeaderText, props.tooltipOptions?.xValueLabelTextOptions)
       },
     }],
@@ -209,10 +214,15 @@ export const draw = (
 
   const dividerRow: InputRow = {
     margin: { bottom: 0 },
-    height: xValueHeaderDividerHeight,
+    width: 100, // Full width of the box
+    widthUnits: SizeUnit.PERCENT,
+    padding: 0,
     columns: [{
-      width: null, // Full width of the box
+      width: 100, // Full width of the box
+      widthUnits: SizeUnit.PERCENT,
+      height: xValueHeaderDividerHeight,
       render: rect => {
+        ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
         drawXValueHeaderDividerLine(ctx, rect, props.tooltipOptions?.xValueLabelDividerOptions)
       },
     }],
@@ -249,6 +259,7 @@ export const draw = (
     rowTemplate: {
       height: lineHeight,
       render: (rect, i) => {
+        ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
         const seriesKey = seriesKeys[i]
         drawSeriesLabelValueText(ctx, rect, labelTexts[seriesKey], valueTexts[seriesKey], labelTextWidths[seriesKey], props)
       },

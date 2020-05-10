@@ -1,84 +1,98 @@
 /* eslint-disable no-use-before-define */
-import { Row, Column, Margin, Padding, InputColumn, InputRow } from './types'
+import { Row, Column, Margin, Padding, InputColumn, InputRow, SizeUnit, InputMargin, InputPadding } from './types'
 
-export const getLeftPadding = (padding: Padding) => (padding != null
+export const getLeftPadding = (padding: InputPadding) => (padding != null
   ? (typeof padding === 'number'
     ? padding
     : (padding.left ?? 0)
   ) : 0
 )
 
-export const getRightPadding = (padding: Padding) => (padding != null
+export const getRightPadding = (padding: InputPadding) => (padding != null
   ? (typeof padding === 'number'
     ? padding
     : (padding.right ?? 0)
   ) : 0
 )
 
-export const getHorizontalPadding = (padding: Padding) => (padding != null
-  ? (typeof padding === 'number'
-    ? 2 * padding
-    : (padding.left ?? 0) + (padding.right ?? 0)
-  ) : 0
-)
-
-export const getVerticalPadding = (padding: Padding) => (padding != null
-  ? (typeof padding === 'number'
-    ? 2 * padding
-    : (padding.top ?? 0) + (padding.bottom ?? 0)
-  ) : 0
-)
-
-export const getTopPadding = (padding: Padding) => (padding != null
+export const getTopPadding = (padding: InputPadding): number => (padding != null
   ? (typeof padding === 'number'
     ? padding
     : (padding.top ?? 0)
   ) : 0
 )
 
-export const getBottomPadding = (padding: Padding) => (padding != null
+export const getBottomPadding = (padding: InputPadding): number => (padding != null
   ? (typeof padding === 'number'
     ? padding
     : (padding.bottom ?? 0)
   ) : 0
 )
 
-export const getLeftMargin = (margin: Margin) => (margin != null
+export const getHorizontalPadding = (padding: InputPadding): number => (padding != null
+  ? (typeof padding === 'number'
+    ? 2 * padding
+    : (padding.left ?? 0) + (padding.right ?? 0)
+  ) : 0
+)
+
+export const getVerticalPadding = (padding: InputPadding): number => (padding != null
+  ? (typeof padding === 'number'
+    ? 2 * padding
+    : (padding.top ?? 0) + (padding.bottom ?? 0)
+  ) : 0
+)
+
+export const getNormalizedPadding = (inputPadding: InputPadding): Padding => ({
+  top: getTopPadding(inputPadding),
+  bottom: getBottomPadding(inputPadding),
+  left: getLeftPadding(inputPadding),
+  right: getRightPadding(inputPadding),
+})
+
+export const getLeftMargin = (margin: InputMargin): number => (margin != null
   ? (typeof margin === 'number'
     ? margin
     : (margin.left ?? 0)
   ) : 0
 )
 
-export const getRightMargin = (margin: Margin) => (margin != null
+export const getRightMargin = (margin: InputMargin): number => (margin != null
   ? (typeof margin === 'number'
     ? margin
     : (margin.right ?? 0)
   ) : 0
 )
 
-export const getTopMargin = (margin: Margin) => (margin != null
+export const getTopMargin = (margin: InputMargin): number => (margin != null
   ? (typeof margin === 'number'
     ? margin
     : (margin.top ?? 0)
   ) : 0
 )
 
-export const getBottomMargin = (margin: Margin) => (margin != null
+export const getBottomMargin = (margin: InputMargin): number => (margin != null
   ? (typeof margin === 'number'
     ? margin
     : (margin.bottom ?? 0)
   ) : 0
 )
 
-export const getHorizontalMargin = (margin: Margin) => (margin != null
+export const getNormalizedMargin = (inputMargin: InputMargin): Margin => ({
+  top: getTopMargin(inputMargin),
+  bottom: getBottomMargin(inputMargin),
+  left: getLeftMargin(inputMargin),
+  right: getRightMargin(inputMargin),
+})
+
+export const getHorizontalMargin = (margin: InputMargin) => (margin != null
   ? (typeof margin === 'number'
     ? 2 * margin
     : (margin.left ?? 0) + (margin.right ?? 0)
   ) : 0
 )
 
-export const getVerticalMargin = (margin: Margin) => (margin != null
+export const getVerticalMargin = (margin: InputMargin) => (margin != null
   ? (typeof margin === 'number'
     ? 2 * margin
     : (margin.top ?? 0) + (margin.bottom ?? 0)
@@ -152,8 +166,12 @@ const getDimensionsOfRow = (row: InputRow): { height: number, width: number } =>
       : { width: 0, height: 0 }
     )
 
-  const width = (row.width ?? (dimensionsOfColumns.width + getHorizontalPadding(row.padding))) + getHorizontalMargin(row.margin)
-  const height = (row.height ?? (dimensionsOfColumns.height + getVerticalPadding(row.padding))) + getVerticalMargin(row.margin)
+  const width = row.widthUnits === SizeUnit.PERCENT
+    ? 0
+    : (row.width ?? (dimensionsOfColumns.width + getHorizontalPadding(row.padding))) + getHorizontalMargin(row.margin)
+  const height = row.heightUnits === SizeUnit.PERCENT
+    ? 0
+    : (row.height ?? (dimensionsOfColumns.height + getVerticalPadding(row.padding))) + getVerticalMargin(row.margin)
 
   const _row = row as Row
   _row.boundingWidth = width
@@ -173,8 +191,12 @@ const getDimensionsOfColumn = (column: InputColumn): { height: number, width: nu
       : { width: 0, height: 0 }
     )
 
-  const width = (column.width ?? (dimensionsOfRows.width + getHorizontalPadding(column.padding))) + getHorizontalMargin(column.margin)
-  const height = (column.height ?? (dimensionsOfRows.height + getVerticalPadding(column.padding))) + getVerticalMargin(column.margin)
+  const width = column.widthUnits === SizeUnit.PERCENT
+    ? 0
+    : (column.width ?? (dimensionsOfRows.width + getHorizontalPadding(column.padding))) + getHorizontalMargin(column.margin)
+  const height = column.heightUnits === SizeUnit.PERCENT
+    ? 0
+    : (column.height ?? (dimensionsOfRows.height + getVerticalPadding(column.padding))) + getVerticalMargin(column.margin)
 
   const _column = column as Column
   _column.boundingWidth = width
