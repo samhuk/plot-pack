@@ -206,7 +206,6 @@ export const draw = (
       heightUnits: SizeUnit.PERCENT,
       width: measureTextWidth(ctx, xValueHeaderText),
       render: rect => {
-        ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
         drawXValueHeaderText(ctx, rect, xValueHeaderText, props.tooltipOptions?.xValueLabelTextOptions)
       },
     }],
@@ -222,7 +221,6 @@ export const draw = (
       widthUnits: SizeUnit.PERCENT,
       height: xValueHeaderDividerHeight,
       render: rect => {
-        ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
         drawXValueHeaderDividerLine(ctx, rect, props.tooltipOptions?.xValueLabelDividerOptions)
       },
     }],
@@ -259,7 +257,6 @@ export const draw = (
     rowTemplate: {
       height: lineHeight,
       render: (rect, i) => {
-        ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
         const seriesKey = seriesKeys[i]
         drawSeriesLabelValueText(ctx, rect, labelTexts[seriesKey], valueTexts[seriesKey], labelTextWidths[seriesKey], props)
       },
