@@ -212,18 +212,12 @@ export const draw = (
   }
 
   const dividerRow: InputRow = {
-    margin: { bottom: 0 },
     width: 100, // Full width of the box
     widthUnits: SizeUnit.PERCENT,
-    padding: 0,
-    columns: [{
-      width: 100, // Full width of the box
-      widthUnits: SizeUnit.PERCENT,
-      height: xValueHeaderDividerHeight,
-      render: rect => {
-        drawXValueHeaderDividerLine(ctx, rect, props.tooltipOptions?.xValueLabelDividerOptions)
-      },
-    }],
+    height: xValueHeaderDividerHeight,
+    render: rect => {
+      drawXValueHeaderDividerLine(ctx, rect, props.tooltipOptions?.xValueLabelDividerOptions)
+    },
   }
 
   const seriesKeys = Object.keys(highlightedDatums)
