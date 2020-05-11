@@ -277,43 +277,39 @@ export const draw = (
   const seriesTextLineWidths = combineDicts(labelTextWidths, valueTextWidths, (_, w1, w2) => w1 + w2)
   const maximumSeriesTextLineWidth = findEntryOfMaxValue(seriesTextLineWidths).value
 
-  const titleRow = createTitleRow(ctx, lineHeight, xValueHeaderText, props)
-
-  const dividerRow: InputRow = createTitleDividerRow(ctx, xValueHeaderDividerHeight, props)
-
-  const seriesPreviewColumn = createSeriesPreviewColumn(
-    ctx,
-    seriesPreviewWidth,
-    lineHeight,
-    shouldDrawMarkerPreviews,
-    shouldDrawConnectingLinePreviews,
-    props,
-    Object.keys(highlightedDatums),
-  )
-
-  const seriesLabelValueColumn = createSeriesLabelValueColumn(
-    ctx,
-    maximumSeriesTextLineWidth,
-    lineHeight,
-    labelTexts,
-    valueTexts,
-    labelTextWidths,
-    props,
-    Object.keys(highlightedDatums),
-  )
-
   const inputColumn: InputColumn = {
     render: rect => {
       drawBox(ctx, rect, props)
     },
     padding: { left: boxPaddingX, right: boxPaddingX, top: boxPaddingY, bottom: boxPaddingY },
     rows: [
-      shouldShowXValueTitle ? titleRow : null,
-      shouldShowXValueTitleDivider ? dividerRow : null,
+      // Title row
+      shouldShowXValueTitle ? createTitleRow(ctx, lineHeight, xValueHeaderText, props) : null,
+      // divider row
+      shouldShowXValueTitleDivider ? createTitleDividerRow(ctx, xValueHeaderDividerHeight, props) : null,
       {
         columns: [
-          shouldDrawAtleastOnePreview ? seriesPreviewColumn : null,
-          seriesLabelValueColumn,
+          // Series preview column (marker and connecting line)
+          shouldDrawAtleastOnePreview ? createSeriesPreviewColumn(
+            ctx,
+            seriesPreviewWidth,
+            lineHeight,
+            shouldDrawMarkerPreviews,
+            shouldDrawConnectingLinePreviews,
+            props,
+            Object.keys(highlightedDatums),
+          ) : null,
+          // Series label and value column
+          createSeriesLabelValueColumn(
+            ctx,
+            maximumSeriesTextLineWidth,
+            lineHeight,
+            labelTexts,
+            valueTexts,
+            labelTextWidths,
+            props,
+            Object.keys(highlightedDatums),
+          ),
         ],
       },
     ],

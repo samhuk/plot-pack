@@ -1,19 +1,15 @@
 /* eslint-disable no-use-before-define */
-import { Column, Row, ColumnJustification, SizeUnit, InputPadding } from './types'
+import { Column, Row, ColumnJustification, SizeUnit, InputPadding, Margin } from './types'
 import { Rect } from '../types/geometry'
-import { getLeftMargin,
-  getRightMargin,
-  getVerticalMargin,
-  getNormalizedMargin,
-  getNormalizedPadding,
-  getHorizontalMargin } from './dimensions'
+import { getNormalizedMargin } from './margin'
+import { getNormalizedPadding } from './padding'
 
 const createPaddedRect = (rect: Rect, inputPadding: InputPadding): Rect => {
   const padding = getNormalizedPadding(inputPadding)
 
   return {
     x: rect.x + padding.left,
-    y: rect.y + padding.right,
+    y: rect.y + padding.top,
     width: Math.max(0, rect.width - (padding.left + padding.right)),
     height: Math.max(0, rect.height - (padding.top + padding.bottom)),
   }
@@ -28,11 +24,15 @@ const renderColumnRowTemplate = (rect: Rect, rowTemplate: Row, numRows: number) 
   const x = rect.x + margin.left
   let { y } = rect
 
+  // Create the rect for each row
+  const rowRects: Rect[] = []
   for (let i = 0; i < numRows; i += 1) {
     y += margin.top
-    renderRow({ x, y, width, height }, rowTemplate, i)
+    rowRects.push({ x, y, width, height })
     y += height + margin.bottom
   }
+  // Render each row
+  rowRects.forEach((rowRect, i) => renderRow(rowRect, rowTemplate, i))
 }
 const renderRowColumnTemplate = (rect: Rect, columnTemplate: Column, numColumns: number) => {
   const margin = getNormalizedMargin(columnTemplate.margin)
@@ -43,11 +43,15 @@ const renderRowColumnTemplate = (rect: Rect, columnTemplate: Column, numColumns:
   const y = rect.y + margin.top
   let { x } = rect
 
+  // Create the rect for each column
+  const columnRects: Rect[] = []
   for (let i = 0; i < numColumns; i += 1) {
     x += margin.left
-    renderColumn({ x, y, width, height }, columnTemplate, i)
+    columnRects.push({ x, y, width, height })
     x += width + margin.right
   }
+  // Render each column
+  columnRects.forEach((colRect, i) => renderColumn(colRect, columnTemplate, i))
 }
 
 const getStartingXOfColumns = (totalColumnWidth: number, rowX: number, rowWidth: number, columnJustification: ColumnJustification) => {
@@ -63,18 +67,25 @@ const getStartingXOfColumns = (totalColumnWidth: number, rowX: number, rowWidth:
   }
 }
 
-const getRowHeight = (columnRect: Rect, row: Row, evenlyFillHeightValue: number) => (
+const getRowWidth = (columnRect: Rect, row: Row, rowMargin: Margin) => (
+  row.widthUnits === SizeUnit.PERCENT
+    ? ((row.width ?? 0) * columnRect.width) / 100 - rowMargin.left - rowMargin.right
+    : (row.width ?? row.boundingWidth)
+)
+
+const getRowHeight = (columnRect: Rect, row: Row, rowMargin: Margin, evenlyFillHeightValue: number) => (
   row.heightUnits === SizeUnit.PERCENT
-    ? ((row.height ?? 0) * columnRect.height) / 100 - getVerticalMargin(row.margin)
+    ? ((row.height ?? 0) * columnRect.height) / 100 - rowMargin.top - rowMargin.bottom
     : (row.height ?? ((row.evenlyFillAvailableHeight ?? false) ? evenlyFillHeightValue : row.boundingHeight))
 )
 
 const renderColumnRows = (rect: Rect, column: Column) => {
   const _rows = column.rows.filter(row => row != null)
 
-  const totalExplicitHeight = _rows.reduce((acc, row) => (
-    acc + getRowHeight(rect, row, 0) + getVerticalMargin(row.margin)
-  ), 0)
+  const totalExplicitHeight = _rows.reduce((acc, row) => {
+    const rowMargin = getNormalizedMargin(row.margin)
+    return acc + getRowHeight(rect, row, rowMargin, 0) + rowMargin.top + rowMargin.bottom
+  }, 0)
   const totalImplicitHeight = Math.max(0, rect.height - totalExplicitHeight)
   const numRowsWithImplicitHeight = _rows.filter(row => (row.height == null && !row.evenlyFillAvailableHeight)).length
 
@@ -85,26 +96,30 @@ const renderColumnRows = (rect: Rect, column: Column) => {
   let { y } = rect
   _rows
     .map((row): { row: Row, rect: Rect } => {
-      const margin = getNormalizedMargin(row.margin)
+      const rowMargin = getNormalizedMargin(row.margin)
 
-      const x = rect.x + margin.left
-      const width = row.widthUnits === SizeUnit.PERCENT
-        ? ((row.width ?? 0) * rect.width) / 100 - margin.left - margin.right
-        : (row.width ?? row.boundingWidth)
-      const height = getRowHeight(rect, row, heightPerRowWithUndefinedHeight)
+      const width = getRowWidth(rect, row, rowMargin)
+      const height = getRowHeight(rect, row, rowMargin, heightPerRowWithUndefinedHeight)
 
-      y += margin.top
+      const x = rect.x + rowMargin.left
+      y += rowMargin.top
       const rowRect: Rect = { x, y, width, height }
-      y += height + margin.bottom
+      y += height + rowMargin.bottom
 
       return { row, rect: rowRect }
     })
     .forEach((rowAndRect, i) => renderRow(rowAndRect.rect, rowAndRect.row, i))
 }
 
-const getColumnWidth = (rowRect: Rect, column: Column, evenlyFillWidthValue: number) => (
+const getColumnHeight = (rowRect: Rect, column: Column, columnMargin: Margin) => (
+  column.heightUnits === SizeUnit.PERCENT
+    ? ((column.height ?? 0) * rowRect.height) / 100 - columnMargin.top - columnMargin.bottom
+    : (column.height ?? column.boundingHeight)
+)
+
+const getColumnWidth = (rowRect: Rect, column: Column, columnMargin: Margin, evenlyFillWidthValue: number) => (
   column.widthUnits === SizeUnit.PERCENT
-    ? ((column.width ?? 0) * rowRect.width) / 100 - getHorizontalMargin(column.margin)
+    ? ((column.width ?? 0) * rowRect.width) / 100 - columnMargin.left - columnMargin.right
     : (column.width ?? ((column.evenlyFillAvailableWidth ?? false) ? evenlyFillWidthValue : column.boundingWidth))
 )
 
@@ -112,10 +127,9 @@ const renderRowColumns = (rect: Rect, row: Row) => {
   const _columns = row.columns.filter(col => col != null)
 
   const totalExplicitWidth = _columns.reduce((acc, col) => {
-    const definedWidth = getColumnWidth(rect, col, 0)
-    const leftMargin = getLeftMargin(col.margin)
-    const rightMargin = getRightMargin(col.margin)
-    return acc + definedWidth + leftMargin + rightMargin
+    const columnMargin = getNormalizedMargin(col.margin)
+    const definedWidth = getColumnWidth(rect, col, columnMargin, 0)
+    return acc + definedWidth + columnMargin.left + columnMargin.right
   }, 0)
   const totalImplicitWidth = Math.max(0, rect.width - totalExplicitWidth)
   const numColumnsWithImplicitWidth = _columns.filter(col => col.width == null && col.evenlyFillAvailableWidth).length
@@ -130,17 +144,15 @@ const renderRowColumns = (rect: Rect, row: Row) => {
 
   _columns
     .map((col): { column: Column, rect: Rect } => {
-      const margin = getNormalizedMargin(col.margin)
+      const columnMargin = getNormalizedMargin(col.margin)
 
-      const y = rect.y + margin.top
-      const width = getColumnWidth(rect, col, widthPerColumnWithImplicitWidth)
-      const height = col.heightUnits === SizeUnit.PERCENT
-        ? ((col.height ?? 0) * rect.height) / 100 - margin.top - margin.bottom
-        : (col.height ?? col.boundingHeight)
+      const width = getColumnWidth(rect, col, columnMargin, widthPerColumnWithImplicitWidth)
+      const height = getColumnHeight(rect, col, columnMargin)
 
-      x += margin.left
+      const y = rect.y + columnMargin.top
+      x += columnMargin.left
       const columnRect: Rect = { x, y, width, height }
-      x += width + margin.right
+      x += width + columnMargin.right
 
       return { column: col, rect: columnRect }
     })
