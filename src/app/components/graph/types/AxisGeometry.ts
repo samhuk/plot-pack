@@ -12,7 +12,7 @@
  * @param orthogonalScreenPosition Position of the axis in the orthogonal axis. For example,
  * for the X Axis, this would be it's vertical position (Y coordinate).
  * @param numGridLines Number of grid lines that fit on the axis for the
- * calculated dvGrid (i.e. this is `Math.abs((vl - vu) / dvGrid)`
+ * calculated dvGrid (i.e. this is something like (vl - vu) / dvGrid)
  */
 export type AxisGeometry = {
   vl: number

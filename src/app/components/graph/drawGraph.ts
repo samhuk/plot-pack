@@ -80,8 +80,8 @@ const getShouldShowErrorBars = (props: Options, seriesKey: string, axis: Axis2D)
  */
 const getShouldShowCustomMarkers = (props: Options, seriesKey: string) => (
   props.seriesOptions?.[seriesKey]?.markerOptions?.customOptions?.customRenderFunction
-    ?? props?.markerOptions?.customOptions?.customRenderFunction != null
-)
+    ?? props?.markerOptions?.customOptions?.customRenderFunction
+) != null
 
 const getShouldShowLineOfBestFit = (props: Options, seriesKey: string) => (
   // Series visibility options takes precedence
@@ -205,7 +205,7 @@ export const draw = (ctx: CanvasRenderingContext2D, g: GraphGeometry, props: Opt
 
   drawBackground(ctx, props)
 
-  // Draw the base graph, i.e. axes, grid lines, labels, title, etc.
+  // Draw the base graph, i.e. axes lines, grid lines, labels, title, etc., but no series data.
   drawGraph(ctx, g.axesGeometry, props)
 
   // Draw series data for each series, i.e. markers, error bars, connecting line, etc.
