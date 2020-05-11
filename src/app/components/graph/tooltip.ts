@@ -87,19 +87,17 @@ const drawSeriesPreview = (
   ctx: CanvasRenderingContext2D,
   shouldDrawMarkerPreview: boolean,
   shouldDrawConnectingLinePreview: boolean,
-  x: number,
-  y: number,
-  previewWidth: number,
-  lineHeight: number,
+  rect: Rect,
   props: Options,
   seriesKey: string,
 ) => {
+  const y = rect.y + rect.height / 2 // Vertically centered
   if (shouldDrawMarkerPreview) {
-    const markerSize = Math.min(lineHeight, getMarkerSize(props, seriesKey))
-    drawStandardMarker(ctx, x + previewWidth / 2, y, props, seriesKey, markerSize)
+    const markerSize = Math.min(rect.height, getMarkerSize(props, seriesKey)) // limit height to rect height
+    drawStandardMarker(ctx, rect.x + rect.width / 2, y, props, seriesKey, markerSize)
   }
   if (shouldDrawConnectingLinePreview)
-    drawConnectingLine(ctx, x, y, x + previewWidth, y, props, seriesKey)
+    drawConnectingLine(ctx, { x: rect.x, y }, { x: rect.x + rect.width, y }, props, seriesKey)
 }
 
 const drawXValueHeaderText = (
@@ -143,6 +141,90 @@ const drawSeriesLabelValueText = (
   ctx.font = createTextStyleInternal(props, true) // value is bold
   ctx.fillText(valueText, rect.x + labelTextWidth, y)
 }
+
+const createTitleRow = (
+  ctx: CanvasRenderingContext2D,
+  lineHeight: number,
+  text: string,
+  props: Options,
+): InputRow => ({
+  margin: { bottom: 0 },
+  columnJustification: ColumnJustification.CENTER,
+  height: lineHeight,
+  width: 100,
+  widthUnits: SizeUnit.PERCENT,
+  columns: [{
+    height: 100,
+    heightUnits: SizeUnit.PERCENT,
+    width: measureTextWidth(ctx, text),
+    render: rect => {
+      drawXValueHeaderText(ctx, rect, text, props.tooltipOptions?.xValueLabelTextOptions)
+    },
+  }],
+})
+
+const createTitleDividerRow = (
+  ctx: CanvasRenderingContext2D,
+  height: number,
+  props: Options,
+): InputRow => ({
+  width: 100, // Full width of the box
+  widthUnits: SizeUnit.PERCENT,
+  height,
+  render: rect => {
+    drawXValueHeaderDividerLine(ctx, rect, props.tooltipOptions?.xValueLabelDividerOptions)
+  },
+})
+
+const createSeriesPreviewColumn = (
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  shouldDrawMarkerPreviews: { [seriesKey: string]: boolean },
+  shouldDrawConnectingLinePreviews: { [seriesKey: string]: boolean },
+  props: Options,
+  seriesKeys: string[],
+): InputColumn => ({
+  width,
+  margin: { right: PREVIEW_RIGHT_MARGIN },
+  rowTemplate: {
+    height,
+    render: (rect, i) => {
+      const seriesKey = seriesKeys[i]
+
+      drawSeriesPreview(
+        ctx,
+        shouldDrawMarkerPreviews[seriesKey],
+        shouldDrawConnectingLinePreviews[seriesKey],
+        rect,
+        props,
+        seriesKey,
+      )
+    },
+  },
+  numRows: seriesKeys.length,
+})
+
+const createSeriesLabelValueColumn = (
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  labelTexts: { [seriesKey: string]: string },
+  valueTexts: { [seriesKey: string]: string },
+  labelTextWidths: { [seriesKey: string]: number },
+  props: Options,
+  seriesKeys: string[],
+): InputColumn => ({
+  width,
+  rowTemplate: {
+    height,
+    render: (rect, i) => {
+      const seriesKey = seriesKeys[i]
+      drawSeriesLabelValueText(ctx, rect, labelTexts[seriesKey], valueTexts[seriesKey], labelTextWidths[seriesKey], props)
+    },
+  },
+  numRows: seriesKeys.length,
+})
 
 export const draw = (
   ctx: CanvasRenderingContext2D,
@@ -195,68 +277,30 @@ export const draw = (
   const seriesTextLineWidths = combineDicts(labelTextWidths, valueTextWidths, (_, w1, w2) => w1 + w2)
   const maximumSeriesTextLineWidth = findEntryOfMaxValue(seriesTextLineWidths).value
 
-  const titleRow: InputRow = {
-    margin: { bottom: 0 },
-    columnJustification: ColumnJustification.CENTER,
-    height: lineHeight,
-    width: 100,
-    widthUnits: SizeUnit.PERCENT,
-    columns: [{
-      height: 100,
-      heightUnits: SizeUnit.PERCENT,
-      width: measureTextWidth(ctx, xValueHeaderText),
-      render: rect => {
-        drawXValueHeaderText(ctx, rect, xValueHeaderText, props.tooltipOptions?.xValueLabelTextOptions)
-      },
-    }],
-  }
+  const titleRow = createTitleRow(ctx, lineHeight, xValueHeaderText, props)
 
-  const dividerRow: InputRow = {
-    width: 100, // Full width of the box
-    widthUnits: SizeUnit.PERCENT,
-    height: xValueHeaderDividerHeight,
-    render: rect => {
-      drawXValueHeaderDividerLine(ctx, rect, props.tooltipOptions?.xValueLabelDividerOptions)
-    },
-  }
+  const dividerRow: InputRow = createTitleDividerRow(ctx, xValueHeaderDividerHeight, props)
 
-  const seriesKeys = Object.keys(highlightedDatums)
+  const seriesPreviewColumn = createSeriesPreviewColumn(
+    ctx,
+    seriesPreviewWidth,
+    lineHeight,
+    shouldDrawMarkerPreviews,
+    shouldDrawConnectingLinePreviews,
+    props,
+    Object.keys(highlightedDatums),
+  )
 
-  const seriesPreviewColumn: InputColumn = {
-    width: seriesPreviewWidth,
-    margin: { right: PREVIEW_RIGHT_MARGIN },
-    rowTemplate: {
-      height: lineHeight,
-      render: (rect, i) => {
-        const seriesKey = seriesKeys[i]
-
-        drawSeriesPreview(
-          ctx,
-          shouldDrawMarkerPreviews[seriesKey],
-          shouldDrawConnectingLinePreviews[seriesKey],
-          rect.x,
-          rect.y + rect.height / 2,
-          rect.width,
-          lineHeight,
-          props,
-          seriesKey,
-        )
-      },
-    },
-    numRows: numSeries,
-  }
-
-  const seriesLabelValueColumn: InputColumn = {
-    width: maximumSeriesTextLineWidth,
-    rowTemplate: {
-      height: lineHeight,
-      render: (rect, i) => {
-        const seriesKey = seriesKeys[i]
-        drawSeriesLabelValueText(ctx, rect, labelTexts[seriesKey], valueTexts[seriesKey], labelTextWidths[seriesKey], props)
-      },
-    },
-    numRows: numSeries,
-  }
+  const seriesLabelValueColumn = createSeriesLabelValueColumn(
+    ctx,
+    maximumSeriesTextLineWidth,
+    lineHeight,
+    labelTexts,
+    valueTexts,
+    labelTextWidths,
+    props,
+    Object.keys(highlightedDatums),
+  )
 
   const inputColumn: InputColumn = {
     render: rect => {

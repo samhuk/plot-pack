@@ -1,5 +1,6 @@
 import Options from './types/Options'
 import PositionedDatum from './types/PositionedDatum'
+import { Point2D } from '../../common/types/geometry'
 
 const DEFAULT_LINE_WIDTH = 2
 const DEFAULT_COLOR = 'black'
@@ -18,10 +19,8 @@ const getConnectingLineColor = (props: Options, seriesKey: string) => (
 
 export const drawConnectingLine = (
   ctx: CanvasRenderingContext2D,
-  pX: number,
-  pY: number,
-  prevPx: number,
-  prevPy: number,
+  fromPosition: Point2D,
+  toPosition: Point2D,
   props: Options,
   seriesKey: string,
 ) => {
@@ -33,8 +32,8 @@ export const drawConnectingLine = (
   ctx.lineWidth = lineWidth
 
   const path = new Path2D()
-  path.moveTo(prevPx, prevPy)
-  path.lineTo(pX, pY)
+  path.moveTo(fromPosition.x, fromPosition.y)
+  path.lineTo(toPosition.x, toPosition.y)
   ctx.stroke(path)
 }
 
