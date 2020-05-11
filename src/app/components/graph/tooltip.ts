@@ -8,9 +8,8 @@ import { measureTextWidth,
   applyTextOptionsToContext,
   applyLineOptionsToContext } from '../../common/helpers/canvas'
 import PositionedDatum from './types/PositionedDatum'
-import { getShouldShowMarkers, getShouldShowConnectingLine } from './drawGraph'
-import { getMarkerSize, drawStandardMarker } from './marker'
-import { drawConnectingLine } from './connectingLine'
+import { getMarkerSize, drawStandardMarker, getShouldShowMarkers } from './marker'
+import { drawConnectingLine, getShouldShowConnectingLine } from './connectingLine'
 import { formatNumber } from './axisMarkerLabels'
 import { TextOptions, LineOptions } from '../../common/types/canvas'
 import { sizeInputColumn } from '../../common/canvasFlex/dimensions'

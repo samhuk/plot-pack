@@ -7,6 +7,31 @@ const DEFAULT_MARKER_LINE_WIDTH = 2
 const DEFAULT_MARKET_COLOR = 'black'
 const DEFAULT_MARKER_TYPE = MarkerType.DOT
 
+/**
+ * Determines whether markers should be shown for the given series.
+ */
+export const getShouldShowMarkers = (props: Options, seriesKey: string) => (
+  // Series visibility options takes precedence
+  props.seriesOptions?.[seriesKey]?.visibilityOptions?.showMarkers
+    // ...then general visibility options
+    ?? props.visibilityOptions?.showMarkers
+    // ...else default to true
+    ?? true
+) && (
+  props.seriesOptions?.[seriesKey]?.markerOptions?.customOptions?.doesCompliment
+    ?? props.markerOptions?.customOptions?.doesCompliment
+    ?? true
+)
+
+/**
+ * Determines whether to draw a custom marker, via determining if the functions
+ * required to do so have been defined.
+ */
+export const getShouldShowCustomMarkers = (props: Options, seriesKey: string) => (
+  props.seriesOptions?.[seriesKey]?.markerOptions?.customOptions?.customRenderFunction
+    ?? props?.markerOptions?.customOptions?.customRenderFunction
+) != null
+
 const createDotMarkerPath = (x: number, y: number, size: number): Path2D => {
   const path = new Path2D()
   path.moveTo(x, y)

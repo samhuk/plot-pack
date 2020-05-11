@@ -4,84 +4,18 @@ import Options from './types/Options'
 import GraphGeometry from './types/GraphGeometry'
 import XAxisOrientation from './types/xAxisOrientation'
 import YAxisOrientation from './types/yAxisOrientation'
-import { drawCustomMarker, drawStandardMarker } from './marker'
+import { drawCustomMarker, drawStandardMarker, getShouldShowCustomMarkers, getShouldShowMarkers } from './marker'
 import PositionedDatum from './types/PositionedDatum'
-import drawDatumsConnectingLine from './connectingLine'
-import { drawXAxisGridLines, drawYAxisGridLines } from './axisGridLines'
-import { drawAxisMarkerLabels } from './axisMarkerLabels'
-import { drawXAxisAxisMarkerLines, drawYAxisAxisMarkerLines } from './axisMarkerLines'
-import { drawXAxisLine, drawYAxisLine } from './axisLines'
+import drawDatumsConnectingLine, { getShouldShowConnectingLine } from './connectingLine'
+import { drawXAxisGridLines, drawYAxisGridLines, getShouldShowAxisGridLines } from './axisGridLines'
+import { drawAxisMarkerLabels, getShouldShowAxisMarkerLabels } from './axisMarkerLabels'
+import { drawXAxisAxisMarkerLines, drawYAxisAxisMarkerLines, getShouldShowAxisMarkerLines } from './axisMarkerLines'
+import { drawXAxisLine, drawYAxisLine, getShouldShowAxisLine } from './axisLines'
 import { drawStraightLineOfBestFit } from './straightLineOfBestFit'
 import drawAxesLabels from './axisLabels'
-import drawDatumErrorBarsForDatums from './errorBars'
+import drawDatumErrorBarsForDatums, { getShouldShowErrorBars } from './errorBars'
 import AxesGeometry from './types/AxesGeometry'
 import drawTitle from './title'
-
-const getShouldShowAxisLine = (props: Options, axis: Axis2D) => (
-  props.axesOptions?.[axis]?.visibilityOptions?.showAxisLine
-    ?? props.visibilityOptions?.showAxesLines
-    ?? true
-)
-
-const getShouldShowAxisGridLines = (props: Options, axis: Axis2D) => (
-  props.axesOptions?.[axis]?.visibilityOptions?.showGridLines
-    ?? props.visibilityOptions?.showGridLines
-    ?? true
-)
-
-const getShouldShowAxisMarkerLines = (props: Options, axis: Axis2D) => (
-  props.axesOptions?.[axis]?.visibilityOptions?.showAxisMarkerLines
-    ?? props.visibilityOptions?.showAxesMarkerLines
-    ?? true
-)
-
-const getShouldShowAxisMarkerLabels = (props: Options, axis: Axis2D) => (
-  props.axesOptions?.[axis]?.visibilityOptions?.showAxisMarkerLabels
-    ?? props.visibilityOptions?.showAxesMarkerLabels
-    ?? true
-)
-
-/**
- * Determines whether markers should be shown for the given series.
- */
-export const getShouldShowMarkers = (props: Options, seriesKey: string) => (
-  // Series visibility options takes precedence
-  props.seriesOptions?.[seriesKey]?.visibilityOptions?.showMarkers
-    // ...then general visibility options
-    ?? props.visibilityOptions?.showMarkers
-    // ...else default to true
-    ?? true
-) && (
-  props.seriesOptions?.[seriesKey]?.markerOptions?.customOptions?.doesCompliment
-    ?? props.markerOptions?.customOptions?.doesCompliment
-    ?? true
-)
-
-/**
- * Determines whether a connecting line should be shown for the given series.
- */
-export const getShouldShowConnectingLine = (props: Options, seriesKey: string) => (
-  // Series visibility options takes precedence
-  props.seriesOptions?.[seriesKey]?.visibilityOptions?.showConnectingLine
-    // ...then general visibility options
-    ?? props.visibilityOptions?.showConnectingLine
-    // ...else default to false
-    ?? false
-)
-
-const getShouldShowErrorBars = (props: Options, seriesKey: string, axis: Axis2D) => (
-  props.seriesOptions?.[seriesKey]?.errorBarsOptions?.[axis]?.mode
-    ?? props?.errorBarsOptions?.[axis]?.mode
-) != null
-
-/**
- * Determines whether to draw a custom marker, via determining if the functions
- * required to do so have been defined.
- */
-const getShouldShowCustomMarkers = (props: Options, seriesKey: string) => (
-  props.seriesOptions?.[seriesKey]?.markerOptions?.customOptions?.customRenderFunction
-    ?? props?.markerOptions?.customOptions?.customRenderFunction
-) != null
 
 const getShouldShowLineOfBestFit = (props: Options, seriesKey: string) => (
   // Series visibility options takes precedence
@@ -91,7 +25,6 @@ const getShouldShowLineOfBestFit = (props: Options, seriesKey: string) => (
     // ...else default to false
     ?? false
 )
-
 
 export const getXAxisYPosition = (orientation: XAxisOrientation, plY: number, puY: number, yAxisPOrigin: number) => {
   switch (orientation) {

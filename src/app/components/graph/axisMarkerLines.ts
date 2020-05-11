@@ -10,6 +10,12 @@ const DEFAULT_MARKER_LINE_WIDTH = 3
 const DEFAULT_MARKER_LINE_LENGTH = 5
 const DEFAULT_MARKER_LINE_COLOR = 'black'
 
+export const getShouldShowAxisMarkerLines = (props: Options, axis: Axis2D) => (
+  props.axesOptions?.[axis]?.visibilityOptions?.showAxisMarkerLines
+    ?? props.visibilityOptions?.showAxesMarkerLines
+    ?? true
+)
+
 export const getMarkerLineLength = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.markerLineOptions?.length
   ?? DEFAULT_MARKER_LINE_LENGTH
 
@@ -18,7 +24,8 @@ export const drawXAxisAxisMarkerLines = (
   axesGeometry: AxesGeometry,
   props: Options,
 ) => {
-  const shouldDraw = applyLineOptionsToContext(ctx, props?.axesOptions?.[Axis2D.X]?.markerLineOptions, DEFAULT_MARKER_LINE_WIDTH, DEFAULT_MARKER_LINE_COLOR)
+  const markerLineOptions = props?.axesOptions?.[Axis2D.X]?.markerLineOptions
+  const shouldDraw = applyLineOptionsToContext(ctx, markerLineOptions, DEFAULT_MARKER_LINE_WIDTH, DEFAULT_MARKER_LINE_COLOR)
   if (!shouldDraw)
     return
 
@@ -43,7 +50,8 @@ export const drawYAxisAxisMarkerLines = (
   axesGeometry: AxesGeometry,
   props: Options,
 ) => {
-  const shouldDraw = applyLineOptionsToContext(ctx, props?.axesOptions?.[Axis2D.Y]?.markerLineOptions, DEFAULT_MARKER_LINE_WIDTH, DEFAULT_MARKER_LINE_COLOR)
+  const markerLineOptions = props?.axesOptions?.[Axis2D.Y]?.markerLineOptions
+  const shouldDraw = applyLineOptionsToContext(ctx, markerLineOptions, DEFAULT_MARKER_LINE_WIDTH, DEFAULT_MARKER_LINE_COLOR)
   if (!shouldDraw)
     return
 

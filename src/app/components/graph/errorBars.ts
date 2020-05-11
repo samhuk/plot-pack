@@ -8,6 +8,11 @@ const DEFAULT_CAP_SIZE = 8
 const DEFAULT_LINE_WIDTH = 1.5
 const DEFAULT_LINE_COLOR = 'black'
 
+export const getShouldShowErrorBars = (props: Options, seriesKey: string, axis: Axis2D) => (
+  props.seriesOptions?.[seriesKey]?.errorBarsOptions?.[axis]?.mode
+    ?? props?.errorBarsOptions?.[axis]?.mode
+) != null
+
 const getCapSize = (props: Options, seriesKey: string, axis: Axis2D) => (
   props?.seriesOptions?.[seriesKey]?.errorBarsOptions?.[axis]?.capSize
     ?? props?.errorBarsOptions?.[axis]?.capSize

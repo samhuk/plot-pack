@@ -289,10 +289,10 @@ export const render = () => {
             },
             2: {
               connectingLineOptions: {
-                color: 'blue',
+                color: 'green',
               },
               markerOptions: {
-                color: 'blue',
+                color: 'green',
               },
             },
           }}

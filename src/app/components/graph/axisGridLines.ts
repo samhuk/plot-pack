@@ -6,6 +6,12 @@ import { applyLineOptionsToContext } from '../../common/helpers/canvas'
 const DEFAULT_GRID_LINE_WIDTH = 0.5
 const DEFAULT_GRID_LINE_COLOR = 'black'
 
+export const getShouldShowAxisGridLines = (props: Options, axis: Axis2D) => (
+  props.axesOptions?.[axis]?.visibilityOptions?.showGridLines
+    ?? props.visibilityOptions?.showGridLines
+    ?? true
+)
+
 export const drawXAxisGridLines = (
   ctx: CanvasRenderingContext2D,
   axesGeometry: AxesGeometry,

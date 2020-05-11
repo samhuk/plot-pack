@@ -5,6 +5,18 @@ import { Point2D } from '../../common/types/geometry'
 const DEFAULT_LINE_WIDTH = 2
 const DEFAULT_COLOR = 'black'
 
+/**
+ * Determines whether a connecting line should be shown for the given series.
+ */
+export const getShouldShowConnectingLine = (props: Options, seriesKey: string) => (
+  // Series visibility options takes precedence
+  props.seriesOptions?.[seriesKey]?.visibilityOptions?.showConnectingLine
+    // ...then general visibility options
+    ?? props.visibilityOptions?.showConnectingLine
+    // ...else default to false
+    ?? false
+)
+
 const getConnectingLineLineWidth = (props: Options, seriesKey: string) => (
   props.seriesOptions?.[seriesKey]?.connectingLineOptions?.lineWidth
     ?? props.connectingLineOptions?.lineWidth

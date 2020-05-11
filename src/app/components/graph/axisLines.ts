@@ -6,6 +6,12 @@ import { applyLineOptionsToContext } from '../../common/helpers/canvas'
 const DEFAULT_LINE_WIDTH = 2
 const DEFAULT_COLOR = 'black'
 
+export const getShouldShowAxisLine = (props: Options, axis: Axis2D) => (
+  props.axesOptions?.[axis]?.visibilityOptions?.showAxisLine
+    ?? props.visibilityOptions?.showAxesLines
+    ?? true
+)
+
 export const drawXAxisLine = (ctx: CanvasRenderingContext2D, axesGeometry: AxesGeometry, props: Options) => {
   applyLineOptionsToContext(ctx, props.axesOptions?.[Axis2D.X]?.lineOptions, DEFAULT_LINE_WIDTH, DEFAULT_COLOR)
 

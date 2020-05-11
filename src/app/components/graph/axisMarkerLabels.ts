@@ -13,6 +13,12 @@ const DEFAULT_FONT_FAMILY = 'Helvetica'
 const DEFAULT_FONT_SIZE = 9
 const DEFAULT_COLOR = 'black'
 
+export const getShouldShowAxisMarkerLabels = (props: Options, axis: Axis2D) => (
+  props.axesOptions?.[axis]?.visibilityOptions?.showAxisMarkerLabels
+    ?? props.visibilityOptions?.showAxesMarkerLabels
+    ?? true
+)
+
 const getXAxisMarkerOrientation = (props: Options) => (props.axesOptions?.[Axis2D.X]?.markerOrientation as XAxisMarkerOrientation)
 
 const getYAxisMarkerOrientation = (props: Options) => (props.axesOptions?.[Axis2D.Y]?.markerOrientation as YAxisMarkerOrientation)
