@@ -1,7 +1,7 @@
 {
-  "name": "ui-pack-1",
+  "name": "plot-pack",
   "version": "1.0.0",
-  "description": "A first attempt at a UI pack",
+  "description": "Data visualization pack.",
   "main": "",
   "directories": {
     "test": "test"
@@ -56,6 +56,7 @@
     "sass-loader": "^8.0.2",
     "typescript": "^3.8.2",
     "webpack": "^4.42.0",
+    "webpack-cli": "^3.3.11",
     "webpack-dev-middleware": "^3.7.2",
     "webpack-hot-middleware": "^2.25.0",
     "webpack-merge": "^4.2.2"

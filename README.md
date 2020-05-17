@@ -1,6 +1,6 @@
-# ui-pack-2
+# Plot Pack
 
-React UI library
+Data visualization package
 
 # Advised Extensions
 
