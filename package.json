@@ -20,6 +20,13 @@
   },
   "author": "",
   "license": "MIT",
+  "keywords": [
+    "graph",
+    "chart",
+    "pie chart",
+    "plot",
+    "data"
+  ],
   "dependencies": {
     "@babel/polyfill": "^7.8.7",
     "core-js": "^3.6.4",
