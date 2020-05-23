@@ -7,7 +7,7 @@ const isProduction = process.env.NODE_ENV === 'production'
 
 // -- Paths
 const SRC_DIR = __dirname
-const BUILD_OUTPUT_DIR = path.resolve(__dirname, '../build')
+const BUILD_OUTPUT_DIR = path.resolve(__dirname, '../lib')
 const ENTRY_DIR = path.resolve(SRC_DIR, 'test/client')
 
 // -- Helpful functions

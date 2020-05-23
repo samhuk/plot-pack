@@ -11,7 +11,7 @@
 		"strict": true,
     "esModuleInterop": true,
     "jsx": "react",
-    "outDir": "./build"
+    "outDir": "./lib"
   },
 	"include": [
 		"./src/app"
