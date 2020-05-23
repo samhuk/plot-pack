@@ -36,7 +36,7 @@ export type Options = {
   wedgeFillColorHexes?: string[]
   textBoxDistanceFromCenter?: number
   labelFontFamily?: string
-  labelFontSize?: string
+  labelFontSize?: number
 }
 
 export default Options

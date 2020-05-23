@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json.schemastore.org/tsconfig",
+	"compilerOptions": {
+		"target": "es5",
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "declaration": true,
+    "allowJs": false,
+    "strictNullChecks": false,
+		"noEmit": false,
+		"strict": true,
+    "esModuleInterop": true,
+    "jsx": "react",
+    "outDir": "./build"
+  },
+	"include": [
+		"./src/app"
+  ],
+  "exclude": [
+    "**/*node_modules", "**/*build"
+  ]
+}

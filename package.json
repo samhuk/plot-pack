@@ -2,10 +2,22 @@
   "name": "plot-pack",
   "version": "1.0.0",
   "description": "Data visualization pack.",
-  "main": "",
-  "directories": {
-    "test": "test"
+  "files":[
+    "build"
+  ],
+  "scripts": {
+    "lint": "eslint --ext .jsx --ext .js,.ts,.tsx src/",
+    "lint:fix": "eslint --ext .jsx --ext .js,.ts,.tsx src/ --fix",
+    "start": "env-cmd -e debug nodemon --exec babel-node ./src/test/server/app.js",
+    "build-webpack": "npm run lint && rm -rf ./build && env-cmd -e build webpack --progress --config ./src/webpack.production.js",
+    "build-tsc": "npm run lint && rm -rf ./build && env-cmd -e build tsc -b \"tsconfig.production.json\" --verbose"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/samhuk/plot-pack"
+  },
+  "author": "",
+  "license": "MIT",
   "dependencies": {
     "@babel/polyfill": "^7.8.7",
     "@types/react-router-dom": "^5.1.3",
@@ -60,19 +72,5 @@
     "webpack-dev-middleware": "^3.7.2",
     "webpack-hot-middleware": "^2.25.0",
     "webpack-merge": "^4.2.2"
-  },
-  "scripts": {
-    "lint": "eslint --ext .jsx --ext .js,.ts,.tsx src/",
-    "lint:fix": "eslint --ext .jsx --ext .js,.ts,.tsx src/ --fix",
-    "start": "env-cmd -e debug nodemon --exec babel-node ./src/test/server/app.js",
-    "build-client": "rm -rf ./dist/client && env-cmd -e buildclient webpack --progress --config ./src/webpack.production.js",
-    "build-server": "rm -rf ./dist/server && mkdir -p ./dist/server && env-cmd -e buildserver babel ./src/test/server -s -d ./dist/server/main",
-    "build": "npm run lint && npm run build-server && npm run build-client"
-  },
-  "repository": {
-    "type": "git",
-    "url": "http://localhost:4000/samhuk/ui-pack-1.git"
-  },
-  "author": "",
-  "license": "MIT"
+  }
 }

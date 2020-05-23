@@ -4,6 +4,13 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const path = require('path')
 
 const isProduction = process.env.NODE_ENV === 'production'
+
+// -- Paths
+const SRC_DIR = __dirname
+const BUILD_OUTPUT_DIR = path.resolve(__dirname, '../build')
+const ENTRY_DIR = path.resolve(SRC_DIR, 'test/client')
+
+// -- Helpful functions
 const fileNameTemplate = ext => (isProduction
   ? `[name].[chunkhash].min.${ext}`
   : `[name].${ext}`)
@@ -12,19 +19,16 @@ const fileLoaderFileNameTemplate = () => (isProduction
   ? 'content/[name].[hash].[ext]'
   : 'content/[name].[ext]')
 
-const SRC_DIR = __dirname
-const CLIENT_BUILD_DIR = path.resolve(__dirname, '../dist/client')
-const CLIENT_DIR = path.resolve(SRC_DIR, 'test/client')
-
+// -- Config
 module.exports = {
   mode: isProduction ? 'production' : 'development',
   devtool: 'inline-source-map',
   devServer: { historyApiFallback: true },
   entry: [
-    path.resolve(CLIENT_DIR, 'main.tsx'),
+    path.resolve(ENTRY_DIR, 'main.tsx'),
   ],
   output: {
-    path: CLIENT_BUILD_DIR,
+    path: BUILD_OUTPUT_DIR,
     filename: fileNameTemplate('js'),
     publicPath: '/',
   },
@@ -32,10 +36,10 @@ module.exports = {
   plugins: [
     new webpack.EnvironmentPlugin({ NODE_ENV: 'development' }),
     new HtmlWebpackPlugin({
-      template: path.resolve(CLIENT_DIR, 'index.html'),
+      template: path.resolve(ENTRY_DIR, 'index.html'),
       filename: 'index.html',
       inject: 'body',
-      // favicon: path.resolve(CLIENT_DIR, '_content/favicon.ico'),
+      // favicon: path.resolve(ENTRY_DIR, '_content/favicon.ico'),
     }),
     new MiniCssExtractPlugin(),
   ],
