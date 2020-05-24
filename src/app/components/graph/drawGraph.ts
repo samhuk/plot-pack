@@ -16,6 +16,7 @@ import drawAxesLabels from './axisLabels'
 import drawDatumErrorBarsForDatums, { getShouldShowErrorBars } from './errorBars'
 import AxesGeometry from './types/AxesGeometry'
 import drawTitle from './title'
+import { CanvasDrawer } from '../../common/drawer/types'
 
 const getShouldShowLineOfBestFit = (props: Options, seriesKey: string) => (
   // Series visibility options takes precedence
@@ -133,8 +134,10 @@ const drawBackground = (ctx: CanvasRenderingContext2D, props: Options) => {
   ctx.fill(fillingRectPath)
 }
 
-export const draw = (ctx: CanvasRenderingContext2D, g: GraphGeometry, props: Options) => {
-  ctx.clearRect(0, 0, props.widthPx, props.heightPx)
+export const draw = (drawer: CanvasDrawer, g: GraphGeometry, props: Options) => {
+  drawer.clearRenderingSpace()
+
+  const ctx = drawer.getRenderingContext()
 
   drawBackground(ctx, props)
 
