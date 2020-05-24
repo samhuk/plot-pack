@@ -1,4 +1,4 @@
-import { Axis2D } from '../../common/types/geometry'
+import { Axis2D, Rect } from '../../common/types/geometry'
 
 import Options from './types/Options'
 import GraphGeometry from './types/GraphGeometry'
@@ -76,10 +76,11 @@ const drawDatumMarkers = (
 }
 
 const drawGraph = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   axesGeometry: AxesGeometry,
   props: Options,
 ) => {
+  const ctx = drawer.getRenderingContext()
   // Show axis lines by default
   if (getShouldShowAxisLine(props, Axis2D.X))
     drawXAxisLine(ctx, axesGeometry, props)
@@ -110,11 +111,12 @@ const drawGraph = (
 }
 
 const drawSeriesData = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   positionedDatums: PositionedDatum[],
   props: Options,
   seriesKey: string,
 ) => {
+  const ctx = drawer.getRenderingContext()
   if (getShouldShowCustomMarkers(props, seriesKey))
     drawCustomDatumMarkers(ctx, positionedDatums, props, seriesKey)
   if (getShouldShowMarkers(props, seriesKey))
@@ -127,29 +129,25 @@ const drawSeriesData = (
     drawDatumsConnectingLine(ctx, positionedDatums, props, seriesKey)
 }
 
-const drawBackground = (ctx: CanvasRenderingContext2D, props: Options) => {
-  const fillingRectPath = new Path2D()
-  fillingRectPath.rect(0, 0, props.widthPx, props.heightPx)
-  ctx.fillStyle = props.backgroundColor ?? 'white'
-  ctx.fill(fillingRectPath)
+const drawBackground = (drawer: CanvasDrawer, props: Options) => {
+  const rect: Rect = { x: 0, y: 0, width: props.widthPx, height: props.heightPx }
+  drawer.rect(rect, null, { color: props.backgroundColor ?? 'white' }, false, true)
 }
 
 export const draw = (drawer: CanvasDrawer, g: GraphGeometry, props: Options) => {
   drawer.clearRenderingSpace()
 
-  const ctx = drawer.getRenderingContext()
-
-  drawBackground(ctx, props)
+  drawBackground(drawer, props)
 
   // Draw the base graph, i.e. axes lines, grid lines, labels, title, etc., but no series data.
-  drawGraph(ctx, g.axesGeometry, props)
+  drawGraph(drawer, g.axesGeometry, props)
 
   // Draw series data for each series, i.e. markers, error bars, connecting line, etc.
   Object.entries(g.positionedDatums)
-    .forEach(([seriesKey, positionedDatums]) => drawSeriesData(ctx, positionedDatums, props, seriesKey))
+    .forEach(([seriesKey, positionedDatums]) => drawSeriesData(drawer, positionedDatums, props, seriesKey))
 
   // Draw straight lines of best fit for each series
   Object.entries(g.bestFitStraightLineEquations)
     .filter(([seriesKey, eq]) => eq != null && getShouldShowLineOfBestFit(props, seriesKey))
-    .forEach(([seriesKey, eq]) => drawStraightLineOfBestFit(ctx, eq, g.axesGeometry, props, seriesKey))
+    .forEach(([seriesKey, eq]) => drawStraightLineOfBestFit(drawer, eq, g.axesGeometry, props, seriesKey))
 }

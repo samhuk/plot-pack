@@ -2,6 +2,7 @@ import Options from './types/Options'
 import { StraightLineEquation, Axis2D } from '../../common/types/geometry'
 import { isInRange } from '../../common/helpers/math'
 import AxesGeometry from './types/AxesGeometry'
+import { CanvasDrawer } from '../../common/drawer/types'
 
 const DEFAULT_BEST_FIT_LINE_WIDTH = 2
 const DEFAULT_LINE_DASH_PATTERN = [5, 5]
@@ -26,7 +27,7 @@ const getStraightLineOfBestFitLineDashPattern = (props: Options, seriesKey: stri
 )
 
 export const drawStraightLineOfBestFit = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   bestFitStraightLineEquation: StraightLineEquation,
   axesGeometry: AxesGeometry,
   props: Options,
@@ -52,22 +53,18 @@ export const drawStraightLineOfBestFit = (
     y: axesGeometry[Axis2D.Y].p(upperValueIntersectionPoint.y),
   }
 
+  const ctx = drawer.getRenderingContext()
+
   ctx.save()
 
-  const lineWidth = getStraightLineOfBestFitLineWidth(props, seriesKey)
-  if (lineWidth <= 0)
-    return
-
-  const lineDashPattern = getStraightLineOfBestFitLineDashPattern(props, seriesKey)
-  ctx.lineWidth = lineWidth
-  ctx.strokeStyle = getStraightLineOfBestFitColor(props, seriesKey)
-  ctx.setLineDash(lineDashPattern)
-
-  const path = new Path2D()
-  path.moveTo(lowerScreenIntersectionPoint.x, lowerScreenIntersectionPoint.y)
-  path.lineTo(upperScreenIntersectionPoint.x, upperScreenIntersectionPoint.y)
-
-  ctx.stroke(path)
+  drawer.line(
+    [lowerScreenIntersectionPoint, upperScreenIntersectionPoint],
+    {
+      lineWidth: getStraightLineOfBestFitLineWidth(props, seriesKey),
+      color: getStraightLineOfBestFitColor(props, seriesKey),
+      dashPattern: getStraightLineOfBestFitLineDashPattern(props, seriesKey),
+    },
+  )
 
   ctx.restore()
 }

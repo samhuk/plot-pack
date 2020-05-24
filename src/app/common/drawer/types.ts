@@ -4,10 +4,10 @@ import { LineOptions } from '../types/canvas'
 type Drawer<T, R> = {
   line: (line: Line, lineOptions?: LineOptions) => R;
   path: (vertices: Point2D[], lineOptions?: LineOptions, fillOptions?: any) => R;
-  rect: (rect: Rect, lineOptions?: LineOptions, fillOptions?: any) => R;
-  circle: (centerPosition: Point2D, radius: number, lineOptions?: LineOptions, fillOptions?: any) => R;
+  rect: (rect: Rect, lineOptions?: LineOptions, fillOptions?: any, stroke?: boolean, fill?: boolean) => R;
+  circle: (centerPosition: Point2D, radius: number, lineOptions?: LineOptions, fillOptions?: any, stroke?: boolean, fill?: boolean) => R;
   arc: (sector: CircularSector, lineOptions?: LineOptions) => R;
-  isoscelesTriangle: (boundingRect: Rect, lineOptions?: LineOptions, fillOptions?: any) => R;
+  isoscelesTriangle: (boundingRect: Rect, lineOptions?: LineOptions, fillOptions?: any, stroke?: boolean, fill?: boolean) => R;
   applyLineOptions: (lineOptions?: LineOptions, defaultOptions?: LineOptions) => void;
   applyFillOptions: (fillOptions?: any, defaultOptions?: LineOptions) => void;
   getRenderingContext: () => T

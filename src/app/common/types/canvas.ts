@@ -9,3 +9,7 @@ export type LineOptions = {
   lineWidth?: number
   dashPattern?: number[]
 }
+
+export type FillOptions = {
+  color?: string
+}
