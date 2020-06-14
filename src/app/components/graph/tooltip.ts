@@ -8,13 +8,14 @@ import { measureTextWidth,
   applyTextOptionsToContext,
   applyLineOptionsToContext } from '../../common/helpers/canvas'
 import PositionedDatum from './types/PositionedDatum'
-import { getMarkerSize, drawStandardMarker, getShouldShowMarkers } from './marker'
+import { getSize as getMarkerSize, drawStandardMarker, getShouldShowMarkers } from './marker'
 import { drawConnectingLine, getShouldShowConnectingLine } from './connectingLine'
 import { formatNumber } from './axisMarkerLabels'
 import { TextOptions, LineOptions } from '../../common/types/canvas'
 import { sizeInputColumn } from '../../common/canvasFlex/dimensions'
 import { renderColumn } from '../../common/canvasFlex/rendering'
 import { ColumnJustification, InputColumn, InputRow, SizeUnit } from '../../common/canvasFlex/types'
+import { CanvasDrawer } from '../../common/drawer/types'
 
 const PREVIEW_RIGHT_MARGIN = 10
 const DEFAULT_BOX_PADDING_X = 6
@@ -83,17 +84,18 @@ const drawBox = (ctx: CanvasRenderingContext2D, boxRect: Rect, props: Options) =
 }
 
 const drawSeriesPreview = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   shouldDrawMarkerPreview: boolean,
   shouldDrawConnectingLinePreview: boolean,
   rect: Rect,
   props: Options,
   seriesKey: string,
 ) => {
+  const ctx = drawer.getRenderingContext()
   const y = rect.y + rect.height / 2 // Vertically centered
   if (shouldDrawMarkerPreview) {
     const markerSize = Math.min(rect.height, getMarkerSize(props, seriesKey)) // limit height to rect height
-    drawStandardMarker(ctx, rect.x + rect.width / 2, y, props, seriesKey, markerSize)
+    drawStandardMarker(drawer, rect.x + rect.width / 2, y, props, seriesKey, markerSize)
   }
   if (shouldDrawConnectingLinePreview)
     drawConnectingLine(ctx, { x: rect.x, y }, { x: rect.x + rect.width, y }, props, seriesKey)
@@ -176,7 +178,7 @@ const createTitleDividerRow = (
 })
 
 const createSeriesPreviewColumn = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   width: number,
   height: number,
   shouldDrawMarkerPreviews: { [seriesKey: string]: boolean },
@@ -190,9 +192,8 @@ const createSeriesPreviewColumn = (
     height,
     render: (rect, i) => {
       const seriesKey = seriesKeys[i]
-
       drawSeriesPreview(
-        ctx,
+        drawer,
         shouldDrawMarkerPreviews[seriesKey],
         shouldDrawConnectingLinePreviews[seriesKey],
         rect,
@@ -226,12 +227,13 @@ const createSeriesLabelValueColumn = (
 })
 
 export const draw = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   cursorPoint: Point2D,
   highlightedDatums: { [seriesKey: string]: PositionedDatum },
   nearestDatumOfAllSeries: PositionedDatum,
   props: Options,
 ) => {
+  const ctx = drawer.getRenderingContext()
   const numSeries = Object.keys(highlightedDatums).length
   if (numSeries === 0)
     return
@@ -290,7 +292,7 @@ export const draw = (
         columns: [
           // Series preview column (marker and connecting line)
           shouldDrawAtleastOnePreview ? createSeriesPreviewColumn(
-            ctx,
+            drawer,
             seriesPreviewWidth,
             lineHeight,
             shouldDrawMarkerPreviews,

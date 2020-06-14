@@ -1,6 +1,7 @@
 import MarkerType from './types/MarkerType'
 import PositionedDatum from './types/PositionedDatum'
 import Options from './types/Options'
+import { CanvasDrawer } from '../../common/drawer/types'
 
 export const DEFAULT_MARKER_SIZE = 8
 const DEFAULT_MARKER_LINE_WIDTH = 2
@@ -78,7 +79,7 @@ const createPlusMarkerPath = (x: number, y: number, size: number): Path2D => {
   return path
 }
 
-const createMarkerPath = (markerSize: number, markerType: MarkerType, x: number, y: number): Path2D => {
+const createPath = (markerSize: number, markerType: MarkerType, x: number, y: number): Path2D => {
   const _markerSize = markerSize ?? DEFAULT_MARKER_SIZE
   if (_markerSize < 0)
     return null
@@ -101,59 +102,61 @@ const createMarkerPath = (markerSize: number, markerType: MarkerType, x: number,
   }
 }
 
-export const getMarkerSize = (props: Options, seriesKey: string) => (
+export const getSize = (props: Options, seriesKey: string) => (
   props.seriesOptions?.[seriesKey]?.markerOptions?.size
     ?? props.markerOptions?.size
     ?? DEFAULT_MARKER_SIZE
 )
 
-const getMarkerType = (props: Options, seriesKey: string) => (
+const getType = (props: Options, seriesKey: string) => (
   props.seriesOptions?.[seriesKey]?.markerOptions?.type
     ?? props.markerOptions?.type
     ?? DEFAULT_MARKER_TYPE
 )
 
-const getMarkerColor = (props: Options, seriesKey: string) => (
+const getColor = (props: Options, seriesKey: string) => (
   props.seriesOptions?.[seriesKey]?.markerOptions?.color
     ?? props.markerOptions?.color
     ?? DEFAULT_MARKET_COLOR
 )
 
-const getMarkerLineWidth = (props: Options, seriesKey: string) => (
+const getLineWidth = (props: Options, seriesKey: string) => (
   props.seriesOptions?.[seriesKey]?.markerOptions?.lineWidth
     ?? props.markerOptions?.lineWidth
     ?? DEFAULT_MARKER_LINE_WIDTH
 )
 
 export const drawStandardMarker = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   pX: number,
   pY: number,
   props: Options,
   seriesKey: string,
   forcedSize?: number,
 ) => {
-  const markerSize = forcedSize ?? getMarkerSize(props, seriesKey)
-  const markerType = getMarkerType(props, seriesKey)
-  const markerPath = createMarkerPath(markerSize, markerType, pX, pY)
-  if (markerPath == null)
+  const size = forcedSize ?? getSize(props, seriesKey)
+  const type = getType(props, seriesKey)
+  const path = createPath(size, type, pX, pY)
+  if (path == null)
     return
 
-  const markerColor = getMarkerColor(props, seriesKey)
-  ctx.fillStyle = markerColor
-  ctx.strokeStyle = markerColor
-  ctx.setLineDash([])
+  const color = getColor(props, seriesKey)
 
-  const shouldFill = markerType !== MarkerType.CROSS && markerType !== MarkerType.PLUS
+  const shouldFill = type !== MarkerType.CROSS && type !== MarkerType.PLUS
   if (shouldFill) {
-    ctx.fill(markerPath)
+    const ctx = drawer.getRenderingContext()
+    ctx.fillStyle = color
+    ctx.fill(path)
   }
   else {
-    const lineWidth = getMarkerLineWidth(props, seriesKey)
+    const lineWidth = getLineWidth(props, seriesKey)
     if (lineWidth < 0)
       return
+
+    drawer.applyLineOptions({ color, lineWidth, dashPattern: [] })
+    const ctx = drawer.getRenderingContext()
     ctx.lineWidth = lineWidth
-    ctx.stroke(markerPath)
+    ctx.stroke(path)
   }
 }
 

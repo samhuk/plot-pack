@@ -1,6 +1,6 @@
 import PositionedDatum from './types/PositionedDatum'
 import Options from './types/Options'
-import { getMarkerSize } from './marker'
+import { getSize as getMarkerSize } from './marker'
 import DatumHighlightAppearanceType from './types/DatumHighlightAppearanceType'
 import { boundToRange } from '../../common/helpers/math'
 

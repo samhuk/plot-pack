@@ -1,5 +1,4 @@
 import GraphGeometry from './types/GraphGeometry'
-import { get2DContext } from '../../common/helpers/canvas'
 import { Options } from './types/Options'
 import { isInRange } from '../../common/helpers/math'
 import { Point2D, Axis2D } from '../../common/types/geometry'
@@ -12,6 +11,8 @@ import { mapDict, filterDict } from '../../common/helpers/dict'
 import { createDatumDistanceFunction } from './geometry'
 import drawTooltip, { getShouldDrawTooltip } from './tooltip'
 import DatumSnapMode from './types/DatumSnapMode'
+import { CanvasDrawer } from '../../common/drawer/types'
+import { createCanvasDrawer } from '../../common/drawer/canvasDrawer'
 
 type NearestDatum = PositionedDatum & {
   dp: number
@@ -97,12 +98,13 @@ const drawDatumHighlights = (
 }
 
 const draw = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   props: Options,
   graphGeometry: GraphGeometry,
   cursorPoint: Point2D,
 ) => {
-  ctx.clearRect(0, 0, props.widthPx, props.heightPx)
+  drawer.clearRenderingSpace()
+  const ctx = drawer.getRenderingContext()
 
   // Determine if the cursor is within the graph area
   const isCursorWithinGraphArea = isInRange(graphGeometry.axesGeometry[Axis2D.X].pl, graphGeometry.axesGeometry[Axis2D.X].pu, cursorPoint.x)
@@ -152,7 +154,7 @@ const draw = (
   // Tooltip is drawn last, since that has to be on top over everything else
   if (highlightedDatums != null) {
     if (getShouldDrawTooltip(props))
-      drawTooltip(ctx, cursorPoint, highlightedDatums, nearestDatumOfAllSeries, props)
+      drawTooltip(drawer, cursorPoint, highlightedDatums, nearestDatumOfAllSeries, props)
   }
 }
 
@@ -160,15 +162,15 @@ export const render = (canvas: HTMLCanvasElement, props: Options, graphGeometry:
   // eslint-disable-next-line no-param-reassign
   canvas.style.cursor = 'crosshair'
 
-  const ctx = get2DContext(canvas, props.widthPx, props.heightPx)
+  const drawer = createCanvasDrawer(canvas, props.heightPx, props.widthPx)
 
   // eslint-disable-next-line no-param-reassign
   canvas.onmousemove = e => {
-    draw(ctx, props, graphGeometry, { x: e.offsetX, y: e.offsetY })
+    draw(drawer, props, graphGeometry, { x: e.offsetX, y: e.offsetY })
   }
 
   // eslint-disable-next-line no-param-reassign
-  canvas.onmouseleave = () => ctx.clearRect(0, 0, props.widthPx, props.heightPx)
+  canvas.onmouseleave = () => drawer.clearRenderingSpace()
 }
 
 export default render

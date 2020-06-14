@@ -64,14 +64,14 @@ const drawCustomDatumMarkers = (
 }
 
 const drawDatumMarkers = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   positionedDatums: PositionedDatum[],
   props: Options,
   seriesKey: string,
 ) => {
   for (let i = 0; i < positionedDatums.length; i += 1) {
     const { fpX, fpY } = positionedDatums[i]
-    drawStandardMarker(ctx, fpX, fpY, props, seriesKey)
+    drawStandardMarker(drawer, fpX, fpY, props, seriesKey)
   }
 }
 
@@ -120,7 +120,7 @@ const drawSeriesData = (
   if (getShouldShowCustomMarkers(props, seriesKey))
     drawCustomDatumMarkers(ctx, positionedDatums, props, seriesKey)
   if (getShouldShowMarkers(props, seriesKey))
-    drawDatumMarkers(ctx, positionedDatums, props, seriesKey)
+    drawDatumMarkers(drawer, positionedDatums, props, seriesKey)
   if (getShouldShowErrorBars(props, seriesKey, Axis2D.X))
     drawDatumErrorBarsForDatums(ctx, positionedDatums, props, seriesKey, Axis2D.X)
   if (getShouldShowErrorBars(props, seriesKey, Axis2D.Y))
