@@ -6,7 +6,7 @@ Data visualization package
 
 ### Introduction
 
-A chart component that is capable of rendering many different types of graphs, in a flexible and configurable way.
+A chart component that is capable of rendering charts in a flexible and configurable way.
 
 ### Dependencies and Notable Technologies
 
@@ -71,8 +71,7 @@ export const MyComponent = () => (
 
 ## Introduction
 
-plot-pack is not currently accepting contribution to the main line at the current time due to the early stage of the package. This
-will be reconsidered when the package has reach an appropriate level of maturity.
+plot-pack is not currently accepting contribution to the main line at the current time due to the early stage of the package. This will be reconsidered when the package has reached an appropriate level of maturity.
 
 ## Advised IDE Extensions
 
