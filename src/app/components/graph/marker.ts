@@ -2,6 +2,7 @@ import MarkerType from './types/MarkerType'
 import PositionedDatum from './types/PositionedDatum'
 import Options from './types/Options'
 import { CanvasDrawer } from '../../common/drawer/types'
+import { Path, PathComponentType } from '../../common/drawer/path/types'
 
 export const DEFAULT_MARKER_SIZE = 8
 const DEFAULT_MARKER_LINE_WIDTH = 2
@@ -33,53 +34,48 @@ export const getShouldShowCustomMarkers = (props: Options, seriesKey: string) =>
     ?? props?.markerOptions?.customOptions?.customRenderFunction
 ) != null
 
-const createDotMarkerPath = (x: number, y: number, size: number): Path2D => {
-  const path = new Path2D()
-  path.moveTo(x, y)
-  path.arc(x, y, size / 2, 0, 2 * Math.PI)
-  return path
-}
+const createDotMarkerPath = (x: number, y: number, size: number): Path => [
+  { type: PathComponentType.CIRCLE, x, y, radius: size / 2 },
+]
 
-const createSquareMarkerPath = (x: number, y: number, size: number): Path2D => {
-  const path = new Path2D()
-  path.moveTo(x, y)
+const createSquareMarkerPath = (x: number, y: number, size: number): Path => {
   const halfSize = size / 2
-  path.rect(x - halfSize, y - halfSize, size, size)
-  return path
+  return [
+    { type: PathComponentType.RECT, x: x - halfSize, y: y - halfSize, height: size, width: size },
+  ]
 }
 
-const createTriangleMarkerPath = (x: number, y: number, size: number, inversed: boolean): Path2D => {
-  const path = new Path2D()
+const createTriangleMarkerPath = (x: number, y: number, size: number, inversed: boolean): Path => {
   const halfSize = size / 2
   const inversionFactor = inversed ? -1 : 1
-  path.moveTo(x - halfSize, y + inversionFactor * halfSize)
-  path.lineTo(x + halfSize, y + inversionFactor * halfSize)
-  path.lineTo(x, y - inversionFactor * halfSize)
-  path.closePath()
-  return path
+  return [
+    { x: x - halfSize, y: y + inversionFactor * halfSize, type: PathComponentType.MOVE_TO },
+    { x: x + halfSize, y: y + inversionFactor * halfSize, type: PathComponentType.LINE_TO },
+    { x, y: y - inversionFactor * halfSize, type: PathComponentType.LINE_TO },
+  ]
 }
 
-const createCrossMarkerPath = (x: number, y: number, size: number): Path2D => {
-  const path = new Path2D()
+const createCrossMarkerPath = (x: number, y: number, size: number): Path => {
   const halfSize = size / 2
-  path.moveTo(x - halfSize, y - halfSize)
-  path.lineTo(x + halfSize, y + halfSize)
-  path.moveTo(x - halfSize, y + halfSize)
-  path.lineTo(x + halfSize, y - halfSize)
-  return path
+  return [
+    { x: x - halfSize, y: y - halfSize, type: PathComponentType.MOVE_TO },
+    { x: x + halfSize, y: y + halfSize, type: PathComponentType.LINE_TO },
+    { x: x - halfSize, y: y + halfSize, type: PathComponentType.MOVE_TO },
+    { x: x + halfSize, y: y - halfSize, type: PathComponentType.LINE_TO },
+  ]
 }
 
-const createPlusMarkerPath = (x: number, y: number, size: number): Path2D => {
-  const path = new Path2D()
+const createPlusMarkerPath = (x: number, y: number, size: number): Path => {
   const halfSize = size / 2
-  path.moveTo(x - halfSize, y)
-  path.lineTo(x + halfSize, y)
-  path.moveTo(x, y - halfSize)
-  path.lineTo(x, y + halfSize)
-  return path
+  return [
+    { x: x - halfSize, y, type: PathComponentType.MOVE_TO },
+    { x: x + halfSize, y, type: PathComponentType.LINE_TO },
+    { x, y: y - halfSize, type: PathComponentType.MOVE_TO },
+    { x, y: y + halfSize, type: PathComponentType.LINE_TO },
+  ]
 }
 
-const createPath = (markerSize: number, markerType: MarkerType, x: number, y: number): Path2D => {
+const createPath = (markerSize: number, markerType: MarkerType, x: number, y: number): Path => {
   const _markerSize = markerSize ?? DEFAULT_MARKER_SIZE
   if (_markerSize < 0)
     return null
@@ -133,31 +129,21 @@ export const drawStandardMarker = (
   props: Options,
   seriesKey: string,
   forcedSize?: number,
-) => {
+): Path2D => {
   const size = forcedSize ?? getSize(props, seriesKey)
   const type = getType(props, seriesKey)
   const path = createPath(size, type, pX, pY)
   if (path == null)
-    return
+    return null
 
   const color = getColor(props, seriesKey)
 
   const shouldFill = type !== MarkerType.CROSS && type !== MarkerType.PLUS
-  if (shouldFill) {
-    const ctx = drawer.getRenderingContext()
-    ctx.fillStyle = color
-    ctx.fill(path)
-  }
-  else {
-    const lineWidth = getLineWidth(props, seriesKey)
-    if (lineWidth < 0)
-      return
+  if (shouldFill)
+    return drawer.path(path, { fill: true, stroke: false, fillOptions: { color } })
 
-    drawer.applyLineOptions({ color, lineWidth, dashPattern: [] })
-    const ctx = drawer.getRenderingContext()
-    ctx.lineWidth = lineWidth
-    ctx.stroke(path)
-  }
+  const lineWidth = getLineWidth(props, seriesKey)
+  return drawer.path(path, { fill: false, stroke: true, lineOptions: { color, lineWidth, dashPattern: [] } })
 }
 
 export const drawCustomMarker = (

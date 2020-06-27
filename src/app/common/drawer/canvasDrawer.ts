@@ -1,7 +1,9 @@
-import { CanvasDrawer, CanvasDrawerState } from './types'
+import { CanvasDrawer, CanvasDrawerState, DrawOptions } from './types'
 import { get2DContext } from '../helpers/canvas'
 import { LineOptions, FillOptions } from '../types/canvas'
-import { Line, CircularSector, Point2D, Rect } from '../types/geometry'
+import { Line, CircularSector, Rect, Circle } from '../types/geometry'
+import { createPath2DFromPath } from './path/path'
+import { Path, PathComponentType } from './path/types'
 
 /* eslint-disable no-param-reassign */
 
@@ -15,7 +17,14 @@ const applyFillOptions = (state: CanvasDrawerState, fillOptions: FillOptions) =>
   state.ctx.fillStyle = fillOptions.color
 }
 
-const drawClosedPath = (state: CanvasDrawerState, _path: Path2D, stroke: boolean, fill: boolean) => {
+const applyLineAndFillOptions = (state: CanvasDrawerState, lineOptions: LineOptions, fillOptions: FillOptions) => {
+  if (lineOptions != null)
+    applyLineOptions(state, lineOptions)
+  if (fillOptions != null)
+    applyFillOptions(state, fillOptions)
+}
+
+const drawPath2D = (state: CanvasDrawerState, _path: Path2D, stroke: boolean = true, fill: boolean = false) => {
   if (stroke ?? true) // stroke by default
     state.ctx.stroke(_path)
   if (fill ?? false) // don't fill by default
@@ -24,118 +33,136 @@ const drawClosedPath = (state: CanvasDrawerState, _path: Path2D, stroke: boolean
 
 /* eslint-enable no-param-reassign */
 
+export const createLinePath = (_line: Line): Path2D => {
+  const p = new Path2D()
+  p.moveTo(_line[0].x, _line[0].y)
+  p.lineTo(_line[1].x, _line[1].y)
+  return p
+}
+
 const line = (state: CanvasDrawerState, _line: Line, lineOptions: LineOptions): Path2D => {
   if (_line.length !== 2)
     return null
 
-  if (lineOptions != null)
-    applyLineOptions(state, lineOptions)
+  applyLineAndFillOptions(state, lineOptions, null)
 
-  const p = new Path2D()
-  p.moveTo(_line[0].x, _line[0].y)
-  p.lineTo(_line[1].x, _line[1].y)
+  if (state.ctx.lineWidth === 0)
+    return null
 
-  state.ctx.stroke(p)
-
+  const p = createLinePath(_line)
+  drawPath2D(state, p)
   return p
 }
 
-const arc = (state: CanvasDrawerState, sector: CircularSector, lineOptions: LineOptions): Path2D => {
-  if (lineOptions != null)
-    applyLineOptions(state, lineOptions)
-
+export const createArcPath = (sector: CircularSector): Path2D => {
   const p = new Path2D()
   p.arc(sector.position.x, sector.position.y, sector.radius, sector.arc.start, sector.arc.end)
+  return p
+}
 
-  state.ctx.stroke(p)
+const arc = (
+  state: CanvasDrawerState,
+  sector: CircularSector,
+  drawOptions: DrawOptions,
+): Path2D => {
+  const _drawOptions = drawOptions ?? { }
 
+  applyLineAndFillOptions(state, _drawOptions.lineOptions, _drawOptions.fillOptions)
+
+  if ((_drawOptions.stroke ?? true) && state.ctx.lineWidth === 0)
+    return null
+
+  const p = createArcPath(sector)
+  drawPath2D(state, p, _drawOptions.stroke, _drawOptions.fill)
+  return p
+}
+
+export const createCirclePath = (_circle: Circle): Path2D => {
+  const p = new Path2D()
+  const sector: CircularSector = { position: _circle.position, radius: _circle.radius, arc: { start: 0, end: 2 * Math.PI } }
+  p.arc(sector.position.x, sector.position.y, sector.radius, sector.arc.start, sector.arc.end)
   return p
 }
 
 const circle = (
   state: CanvasDrawerState,
-  centerPosition: Point2D,
-  radius: number,
-  lineOptions: LineOptions,
-  fillOptions: any,
-  stroke: boolean,
-  fill: boolean,
+  _circle: Circle,
+  drawOptions: DrawOptions,
 ): Path2D => {
-  if (lineOptions != null)
-    applyLineOptions(state, lineOptions)
-  if (fillOptions != null)
-    applyFillOptions(state, fillOptions)
+  const _drawOptions = drawOptions ?? { }
 
-  const p = new Path2D()
-  const sector: CircularSector = { position: centerPosition, radius, arc: { start: 0, end: 2 * Math.PI } }
-  p.arc(sector.position.x, sector.position.y, sector.radius, sector.arc.start, sector.arc.end)
+  applyLineAndFillOptions(state, _drawOptions.lineOptions, _drawOptions.fillOptions)
 
-  drawClosedPath(state, p, stroke, fill)
+  if ((_drawOptions.stroke ?? true) && state.ctx.lineWidth === 0)
+    return null
 
+  const p = createCirclePath(_circle)
+  drawPath2D(state, p, _drawOptions.stroke, _drawOptions.fill)
   return p
 }
 
 const path = (
   state: CanvasDrawerState,
-  vertices: Point2D[],
-  lineOptions: LineOptions,
-  fillOptions: any,
-  stroke: boolean,
-  fill: boolean,
+  _path: Path,
+  drawOptions: DrawOptions,
 ): Path2D => {
-  if (vertices.length < 2)
+  if (_path.length < 1)
     return null
 
-  if (lineOptions != null)
-    applyLineOptions(state, lineOptions)
-  if (fillOptions != null)
-    applyFillOptions(state, fillOptions)
+  const _drawOptions = drawOptions ?? { }
+  // Exit if the draw options mean that nothing will be visible
+  if ((_drawOptions.stroke ?? true) && !(_drawOptions.fill ?? false) && state.ctx.lineWidth === 0)
+    return null
 
-  const p = new Path2D()
-  p.moveTo(vertices[0].x, vertices[0].y)
-  for (let i = 1; i < vertices.length; i += 1)
-    p.lineTo(vertices[i].x, vertices[i].y)
+  applyLineAndFillOptions(state, _drawOptions.lineOptions, _drawOptions.fillOptions)
 
-  drawClosedPath(state, p, stroke, fill)
-
+  const p = createPath2DFromPath(_path)
+  drawPath2D(state, p, _drawOptions.stroke, _drawOptions.fill)
   return p
 }
 
-const rect = (state: CanvasDrawerState, _rect: Rect, lineOptions: LineOptions, fillOptions: any, stroke: boolean, fill: boolean): Path2D => {
-  if (lineOptions != null)
-    applyLineOptions(state, lineOptions)
-  if (fillOptions != null)
-    applyFillOptions(state, fillOptions)
-
+const createRectPath = (_rect: Rect): Path2D => {
   const p = new Path2D()
   p.rect(_rect.x, _rect.y, _rect.width, _rect.height)
-
-  drawClosedPath(state, p, stroke, fill)
-
   return p
 }
+
+const rect = (
+  state: CanvasDrawerState,
+  _rect: Rect,
+  drawOptions: DrawOptions,
+): Path2D => {
+  const _drawOptions = drawOptions ?? { }
+  applyLineAndFillOptions(state, _drawOptions.lineOptions, _drawOptions.fillOptions)
+
+  if ((_drawOptions.stroke ?? true) && state.ctx.lineWidth === 0)
+    return null
+
+  const p = createRectPath(_rect)
+  drawPath2D(state, p, _drawOptions.stroke, _drawOptions.fill)
+  return p
+}
+
+export const createIsoscelesTrianglePath = (boundingRect: Rect): Path => ([
+  { type: PathComponentType.MOVE_TO, x: boundingRect.x, y: boundingRect.y + boundingRect.height },
+  { type: PathComponentType.LINE_TO, x: boundingRect.x + (boundingRect.width / 2), y: boundingRect.y },
+  { type: PathComponentType.LINE_TO, x: boundingRect.x + boundingRect.width, y: boundingRect.y + boundingRect.height },
+  { type: PathComponentType.LINE_TO, x: boundingRect.x, y: boundingRect.y + boundingRect.height },
+])
 
 const isoscelesTriangle = (
   state: CanvasDrawerState,
   boundingRect: Rect,
-  lineOptions: LineOptions,
-  fillOptions: any,
-  stroke: boolean,
-  fill: boolean,
+  drawOptions: DrawOptions,
 ): Path2D => {
-  if (lineOptions != null)
-    applyLineOptions(state, lineOptions)
-  if (fillOptions != null)
-    applyFillOptions(state, fillOptions)
+  applyLineAndFillOptions(state, drawOptions.lineOptions, drawOptions.fillOptions)
 
-  const p = new Path2D()
-  p.moveTo(boundingRect.x, boundingRect.y + boundingRect.height)
-  p.lineTo(boundingRect.x + (boundingRect.width / 2), boundingRect.y)
-  p.lineTo(boundingRect.x + boundingRect.width, boundingRect.y + boundingRect.height)
+  if ((drawOptions.stroke ?? true) && state.ctx.lineWidth === 0)
+    return null
 
-  drawClosedPath(state, p, stroke, fill)
-
-  return p
+  const path2D = createPath2DFromPath(createIsoscelesTrianglePath(boundingRect))
+  drawPath2D(state, path2D, drawOptions.stroke, drawOptions.fill)
+  return path2D
 }
 
 const clearRenderingSpace = (state: CanvasDrawerState, rectToClear: Rect) => {
@@ -160,11 +187,13 @@ export const createCanvasDrawer = (
     applyFillOptions: fillOptions => applyFillOptions(state, fillOptions),
     getRenderingContext: () => state.ctx,
     line: (_line, lineOptions) => line(state, _line, lineOptions),
-    arc: (sector, lineOptions) => arc(state, sector, lineOptions),
-    circle: (centerPosition, radius, lineOptions, fillOptions, stroke, fill) => circle(state, centerPosition, radius, lineOptions, fillOptions, stroke, fill),
-    path: (vertices, lineOptions, fillOptions) => path(state, vertices, lineOptions, fillOptions, true, false),
-    rect: (_rect, lineOptions, fillOptions, stroke, fill) => rect(state, _rect, lineOptions, fillOptions, stroke, fill),
-    isoscelesTriangle: (boundingRect, lineOptions, fillOptions, stroke, fill) => isoscelesTriangle(state, boundingRect, lineOptions, fillOptions, stroke, fill),
+    arc: (sector, drawOptions) => arc(state, sector, drawOptions),
+    circle: (_circle, drawOptions) => circle(state, _circle, drawOptions),
+    path: (_path, drawOptions) => path(state, _path, drawOptions),
+    rect: (_rect, drawOptions) => rect(state, _rect, drawOptions),
+    isoscelesTriangle: (boundingRect, drawOptions) => (
+      isoscelesTriangle(state, boundingRect, drawOptions)
+    ),
     clearRenderingSpace: rectToClear => clearRenderingSpace(state, rectToClear),
   }
 }

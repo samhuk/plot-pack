@@ -43,8 +43,11 @@ export type Arc = {
   end: number
 }
 
-export type CircularSector = {
+export type Circle = {
   position: Point2D,
+  radius: number,
+}
+
+export type CircularSector = Circle & {
   arc: Arc,
-  radius: number
 }

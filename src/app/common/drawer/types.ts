@@ -1,17 +1,28 @@
-import { Point2D, Rect, Line, CircularSector } from '../types/geometry'
-import { LineOptions } from '../types/canvas'
+import { Rect, Line, Circle, CircularSector } from '../types/geometry'
+import { LineOptions, FillOptions } from '../types/canvas'
+import { Path } from './path/types'
+
+export type DrawOptions = {
+  lineOptions?: LineOptions
+  fillOptions?: FillOptions
+  stroke?: boolean
+  fill?: boolean
+}
 
 type Drawer<T, R> = {
-  line: (line: Line, lineOptions?: LineOptions) => R;
-  path: (vertices: Point2D[], lineOptions?: LineOptions, fillOptions?: any) => R;
-  rect: (rect: Rect, lineOptions?: LineOptions, fillOptions?: any, stroke?: boolean, fill?: boolean) => R;
-  circle: (centerPosition: Point2D, radius: number, lineOptions?: LineOptions, fillOptions?: any, stroke?: boolean, fill?: boolean) => R;
-  arc: (sector: CircularSector, lineOptions?: LineOptions) => R;
-  isoscelesTriangle: (boundingRect: Rect, lineOptions?: LineOptions, fillOptions?: any, stroke?: boolean, fill?: boolean) => R;
-  applyLineOptions: (lineOptions?: LineOptions, defaultOptions?: LineOptions) => void;
-  applyFillOptions: (fillOptions?: any, defaultOptions?: LineOptions) => void;
-  getRenderingContext: () => T
+  // -- Draw commands
+  line: (line: Line, lineOptions?: LineOptions) => R
+  rect: (rect: Rect, drawOptions?: DrawOptions) => R
+  circle: (circle: Circle, drawOptions?: DrawOptions) => R
+  arc: (sector: CircularSector, drawOptions?: DrawOptions) => R
+  isoscelesTriangle: (boundingRect: Rect, drawOptions?: DrawOptions) => R
+  path: (drawerPath: Path, drawOptions?: DrawOptions) => R
   clearRenderingSpace: (rectToClear?: Rect) => void
+  // -- Style modifiers
+  applyLineOptions: (lineOptions?: LineOptions, defaultOptions?: LineOptions) => void
+  applyFillOptions: (fillOptions?: any, defaultOptions?: LineOptions) => void
+  // -- Misc
+  getRenderingContext: () => T
 }
 
 export type CanvasDrawer = Drawer<CanvasRenderingContext2D, Path2D>

@@ -131,7 +131,7 @@ const drawSeriesData = (
 
 const drawBackground = (drawer: CanvasDrawer, props: Options) => {
   const rect: Rect = { x: 0, y: 0, width: props.widthPx, height: props.heightPx }
-  drawer.rect(rect, null, { color: props.backgroundColor ?? 'white' }, false, true)
+  drawer.rect(rect, { stroke: false, fill: true, fillOptions: { color: props.backgroundColor ?? 'white' } })
 }
 
 export const draw = (drawer: CanvasDrawer, g: GraphGeometry, props: Options) => {
