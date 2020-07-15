@@ -1,5 +1,5 @@
 import React from 'react'
-import Graph from '../../../../../app/components/graph'
+import Graph from '../../../../../app/components/graph/react'
 import DatumFocusPointDeterminationMode from '../../../../../app/components/graph/types/DatumFocusPointDeterminationMode'
 import { Axis2D } from '../../../../../app/common/types/geometry'
 import PositionedDatum from '../../../../../app/components/graph/types/PositionedDatum'

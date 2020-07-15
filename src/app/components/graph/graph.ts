@@ -7,7 +7,7 @@ export const render = (canvas: HTMLCanvasElement, props: Options, graphGeometry:
   if (props.series == null || Object.keys(props.series).length === 0)
     return
 
-  const drawer = createCanvasDrawer(canvas, props.widthPx, props.heightPx)
+  const drawer = createCanvasDrawer(canvas, props.heightPx, props.widthPx)
   draw(drawer, graphGeometry, props)
 }
 

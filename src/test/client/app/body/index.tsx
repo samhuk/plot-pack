@@ -8,6 +8,7 @@ import {
 import PieChart from './pieChart'
 import Graph from './graph/graph'
 import Candlestick from './graph/candlestick'
+import DarkModeFlexDimensions from './graph/darkModeFlexDimensions'
 
 export const render = () => (
   <Router>
@@ -26,6 +27,9 @@ export const render = () => (
           <li>
             <Link to="/graph-candlestick">Graph - Candlestick</Link>
           </li>
+          <li>
+            <Link to="/graph-dark-flex">Graph - Dark Mode w/ Flexible Dimensions</Link>
+          </li>
         </ul>
         <Switch>
           <Route path="/" exact>
@@ -36,6 +40,9 @@ export const render = () => (
           </Route>
           <Route path="/graph">
             <Graph />
+          </Route>
+          <Route path="/graph-dark-flex">
+            <DarkModeFlexDimensions />
           </Route>
           <Route path="/graph-candlestick">
             <Candlestick />

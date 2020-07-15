@@ -1,5 +1,6 @@
 @import "./mixins/header";
 @import "./mixins/body";
+@import "./mixins/graph";
 @import "./mixins/sandbox.scss";
 @import "./mixins/interop.scss";
 
@@ -17,6 +18,7 @@ $font-family: Arial, Geneva, Helvetica, sans-serif;
 // Mixins
 @include headerMixin($primary-color, $primary-background, 60px);
 @include bodyMixin($primary-background);
+@include graphMixin();
 @include sandboxMixin();
 @include interopMixin();
 

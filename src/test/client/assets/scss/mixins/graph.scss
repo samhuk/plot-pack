@@ -1,0 +1,8 @@
+@mixin graphMixin() {
+  .dark-mode-flex-dimensions .sandbox {
+    display: flex;
+    flex-direction: column;
+    max-width: 500px;
+    height: 500px;
+  }
+}
