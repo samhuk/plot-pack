@@ -86,6 +86,27 @@ const createContainer = (options: InputOptions) => {
   return innerContainer
 }
 
+const bindContainerResizeToResizeFunction = (
+  container: HTMLElement,
+  canvasElements: CanvasElements,
+  inputOptions: InputOptions,
+  bindHeight: boolean,
+  bindWidth: boolean,
+): ResizeObserver => {
+  const _onResize = createHandleResizeEventFunction(inputOptions, container, canvasElements, bindHeight, bindWidth)
+  let _currentContainerRect = container.getBoundingClientRect()
+  const resizeObserver = new ResizeObserver(() => {
+    const _newContainerRect = container.getBoundingClientRect()
+    if (!areClientRectsEqualSize(_currentContainerRect, _newContainerRect))
+      _onResize()
+    _currentContainerRect = _newContainerRect
+  })
+
+  resizeObserver.observe(container)
+
+  return resizeObserver
+}
+
 export const render = (container: HTMLElement, options: InputOptions): RenderedGraph => {
   const inputOptions: InputOptions = cloneInputOptions(options)
   const canvasElements = createCanvasElements()
@@ -100,19 +121,9 @@ export const render = (container: HTMLElement, options: InputOptions): RenderedG
 
   const _options: Options = applyContainerBoundingRectToOptions(innerContainer, inputOptions, bindHeight, bindWidth)
 
-  let resizeObserver: ResizeObserver = null
-  if (bindHeight || bindWidth) {
-    const _onResize = createHandleResizeEventFunction(inputOptions, innerContainer, canvasElements, bindHeight, bindWidth)
-    let _currentContainerRect = innerContainer.getBoundingClientRect()
-    resizeObserver = new ResizeObserver(() => {
-      const _newContainerRect = innerContainer.getBoundingClientRect()
-      if (!areClientRectsEqualSize(_currentContainerRect, _newContainerRect))
-        _onResize()
-      _currentContainerRect = _newContainerRect
-    })
-
-    resizeObserver.observe(innerContainer)
-  }
+  const resizeObserver: ResizeObserver = bindHeight || bindWidth
+    ? bindContainerResizeToResizeFunction(innerContainer, canvasElements, inputOptions, bindHeight, bindWidth)
+    : null
 
   renderIntoCanvasElements(canvasElements, _options)
 
