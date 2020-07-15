@@ -1,8 +1,8 @@
-import Options from "./Options"
+import CommonOptions from './CommonOptions'
 
-export type InputOptions = Options & {
-  heightPx?: number;
-  widthPx?: number;
+export type InputOptions = CommonOptions & {
+  heightPx?: number
+  widthPx?: number
 }
 
 export default InputOptions

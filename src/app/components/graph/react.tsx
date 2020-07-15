@@ -4,8 +4,11 @@ import InputOptions from './types/InputOptions'
 
 export const Graph = (props: InputOptions) => {
   const onElementReady = (element: HTMLElement): void => {
-    if (element != null)
+    if (element != null) {
+      if (element.firstElementChild != null)
+        element.removeChild(element.firstElementChild)
       render(element, props)
+    }
   }
 
   return (

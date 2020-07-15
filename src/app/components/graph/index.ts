@@ -1,14 +1,23 @@
+import ResizeObserver from 'resize-observer-polyfill'
 import Options from './types/Options'
 import renderGraph from './graph'
 import { createGraphGeometry } from './geometry'
 import renderInteractivity from './interactivity'
 import CanvasElements from './types/CanvasElements'
-import cloneOptions from './optionsHelper'
+import cloneInputOptions from './optionsHelper'
 import { RenderedGraph } from './types/RenderedGraph'
+import InputOptions from './types/InputOptions'
 
 const CONTAINER_CLASS = 'pp-graph'
 
-const applyContainerBoundingRectToOptions = (container: HTMLElement, options: Options, bindHeight: boolean, bindWidth: boolean) => {
+const areClientRectsEqualSize = (r1: DOMRect, r2: DOMRect): boolean => (
+  r1.width === r2.width
+  && r1.height === r2.height
+  && r1.top === r2.top
+  && r1.left === r2.left
+)
+
+const applyContainerBoundingRectToOptions = (container: HTMLElement, options: InputOptions, bindHeight: boolean, bindWidth: boolean): Options => {
   const boundingRect = container.getBoundingClientRect()
   if (bindHeight)
     // eslint-disable-next-line no-param-reassign
@@ -16,6 +25,8 @@ const applyContainerBoundingRectToOptions = (container: HTMLElement, options: Op
   if (bindWidth)
     // eslint-disable-next-line no-param-reassign
     options.widthPx = boundingRect.width
+
+  return options as Options
 }
 
 const renderIntoCanvasElements = (canvasElements: CanvasElements, options: Options) => {
@@ -30,24 +41,23 @@ const addCanvasElementsToContainer = (container: HTMLElement, canvasElements: Ca
 }
 
 const handleResizeEvent = (
-  e: UIEvent,
-  options: Options,
+  options: InputOptions,
   container: HTMLElement,
   canvasElements: CanvasElements,
   bindHeight: boolean,
   bindWidth: boolean,
 ) => {
-  applyContainerBoundingRectToOptions(container, options, bindHeight, bindWidth)
-  renderIntoCanvasElements(canvasElements, options)
+  const _options = applyContainerBoundingRectToOptions(container, options, bindHeight, bindWidth)
+  renderIntoCanvasElements(canvasElements, _options)
 }
 
 const createHandleResizeEventFunction = (
-  options: Options,
+  options: InputOptions,
   container: HTMLElement,
   canvasElements: CanvasElements,
   bindHeight: boolean,
   bindWidth: boolean,
-) => (e: UIEvent) => handleResizeEvent(e, options, container, canvasElements, bindHeight, bindWidth)
+) => () => handleResizeEvent(options, container, canvasElements, bindHeight, bindWidth)
 
 const createCanvasElements = (): CanvasElements => {
   const graphCanvasElement = document.createElement('canvas')
@@ -66,7 +76,7 @@ const createCanvasElements = (): CanvasElements => {
   }
 }
 
-const createContainer = (options: Options) => {
+const createContainer = (options: InputOptions) => {
   // Create element
   const innerContainer = document.createElement('div')
   innerContainer.classList.add(CONTAINER_CLASS)
@@ -76,8 +86,8 @@ const createContainer = (options: Options) => {
   return innerContainer
 }
 
-export const render = (container: HTMLElement, options: Options): RenderedGraph => {
-  const _options = cloneOptions(options)
+export const render = (container: HTMLElement, options: InputOptions): RenderedGraph => {
+  const inputOptions: InputOptions = cloneInputOptions(options)
   const canvasElements = createCanvasElements()
 
   const innerContainer = createContainer(options)
@@ -85,20 +95,31 @@ export const render = (container: HTMLElement, options: Options): RenderedGraph 
 
   addCanvasElementsToContainer(innerContainer, canvasElements)
 
-  const bindHeight = options.heightPx == null
-  const bindWidth = options.widthPx == null
+  const bindHeight = inputOptions.heightPx == null
+  const bindWidth = inputOptions.widthPx == null
 
-  const _onResize = createHandleResizeEventFunction(_options, innerContainer, canvasElements, bindHeight, bindWidth)
-  if (_options.heightPx == null || _options.widthPx == null)
-    window.addEventListener('resize', _onResize)
+  const _options: Options = applyContainerBoundingRectToOptions(innerContainer, inputOptions, bindHeight, bindWidth)
 
-  applyContainerBoundingRectToOptions(innerContainer, _options, bindHeight, bindWidth)
+  let resizeObserver: ResizeObserver = null
+  if (bindHeight || bindWidth) {
+    const _onResize = createHandleResizeEventFunction(inputOptions, innerContainer, canvasElements, bindHeight, bindWidth)
+    let _currentContainerRect = innerContainer.getBoundingClientRect()
+    resizeObserver = new ResizeObserver(() => {
+      const _newContainerRect = innerContainer.getBoundingClientRect()
+      if (!areClientRectsEqualSize(_currentContainerRect, _newContainerRect))
+        _onResize()
+      _currentContainerRect = _newContainerRect
+    })
+
+    resizeObserver.observe(innerContainer)
+  }
 
   renderIntoCanvasElements(canvasElements, _options)
 
   return {
     destroy: () => {
-      window.removeEventListener('resize', _onResize)
+      if (resizeObserver != null)
+        resizeObserver.disconnect()
     },
   }
 }

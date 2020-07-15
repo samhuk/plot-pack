@@ -47,8 +47,6 @@ export const DarkModeFlexDimensions = () => {
         </div>
         <div style={{ height: '50%' }}>
           <Graph
-            heightPx={null}
-            widthPx={null}
             series={{
               1: data1WithErrorBars,
               2: data2,
