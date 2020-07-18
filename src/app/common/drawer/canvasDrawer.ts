@@ -7,21 +7,21 @@ import { Path, PathComponentType } from './path/types'
 
 /* eslint-disable no-param-reassign */
 
-const applyLineOptions = (state: CanvasDrawerState, lineOptions: LineOptions) => {
-  state.ctx.lineWidth = lineOptions.lineWidth
-  state.ctx.setLineDash(lineOptions.dashPattern ?? [])
-  state.ctx.strokeStyle = lineOptions.color
+const applyLineOptions = (state: CanvasDrawerState, lineOptions: LineOptions, fallbackOptions: LineOptions) => {
+  state.ctx.lineWidth = lineOptions?.lineWidth ?? fallbackOptions?.lineWidth ?? 1
+  state.ctx.setLineDash(lineOptions?.dashPattern ?? fallbackOptions?.dashPattern ?? [])
+  state.ctx.strokeStyle = lineOptions?.color ?? fallbackOptions.color ?? 'black'
 }
 
-const applyFillOptions = (state: CanvasDrawerState, fillOptions: FillOptions) => {
-  state.ctx.fillStyle = fillOptions.color
+const applyFillOptions = (state: CanvasDrawerState, fillOptions: FillOptions, fallbackOptions: FillOptions) => {
+  state.ctx.fillStyle = fillOptions?.color ?? fallbackOptions?.color ?? 'black'
 }
 
 const applyLineAndFillOptions = (state: CanvasDrawerState, lineOptions: LineOptions, fillOptions: FillOptions) => {
   if (lineOptions != null)
-    applyLineOptions(state, lineOptions)
+    applyLineOptions(state, lineOptions, null)
   if (fillOptions != null)
-    applyFillOptions(state, fillOptions)
+    applyFillOptions(state, fillOptions, null)
 }
 
 const drawPath2D = (state: CanvasDrawerState, _path: Path2D, stroke: boolean = true, fill: boolean = false) => {
@@ -183,8 +183,8 @@ export const createCanvasDrawer = (
   }
 
   return {
-    applyLineOptions: lineOptions => applyLineOptions(state, lineOptions),
-    applyFillOptions: fillOptions => applyFillOptions(state, fillOptions),
+    applyLineOptions: (lineOptions, fallbackOptions) => applyLineOptions(state, lineOptions, fallbackOptions),
+    applyFillOptions: (fillOptions, fallbackOptions) => applyFillOptions(state, fillOptions, fallbackOptions),
     getRenderingContext: () => state.ctx,
     line: (_line, lineOptions) => line(state, _line, lineOptions),
     arc: (sector, drawOptions) => arc(state, sector, drawOptions),

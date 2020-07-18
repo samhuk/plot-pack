@@ -8,6 +8,7 @@ import XAxisMarkerOrientation from './types/XAxixMarkerOrientation'
 import YAxisMarkerOrientation from './types/YAxisMarkerOrientation'
 import { determineXAxisMarkerPositioning, determineYAxisMarkerPositioning } from './axisMarkerPositioning'
 import AxisMarkerLabel from './types/AxisMarkerLabel'
+import { CanvasDrawer } from '../../common/drawer/types'
 
 const DEFAULT_FONT_FAMILY = 'Helvetica'
 const DEFAULT_FONT_SIZE = 9
@@ -74,11 +75,12 @@ const calculateMarkerLabelOffsetVector = (
 }
 
 const createAxisMarkerLabels = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   axesGeometry: AxesGeometry,
   axis: Axis2D,
   props: Options,
-) => {
+): AxisMarkerLabel[] => {
+  const ctx = drawer.getRenderingContext()
   applyTextOptionsToContext(ctx, props.axesOptions?.[axis]?.markerLabelOptions, DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE, DEFAULT_COLOR)
 
   const { orthogonalScreenPosition } = axesGeometry[axis]
@@ -101,20 +103,21 @@ const createAxisMarkerLabels = (
 }
 
 export const createAxesMarkerLabels = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   axesGeometry: AxesGeometry,
   props: Options,
 ): { [axis in Axis2D]: AxisMarkerLabel[] } => ({
-  [Axis2D.X]: createAxisMarkerLabels(ctx, axesGeometry, Axis2D.X, props),
-  [Axis2D.Y]: createAxisMarkerLabels(ctx, axesGeometry, Axis2D.Y, props),
+  [Axis2D.X]: createAxisMarkerLabels(drawer, axesGeometry, Axis2D.X, props),
+  [Axis2D.Y]: createAxisMarkerLabels(drawer, axesGeometry, Axis2D.Y, props),
 })
 
 export const drawAxisMarkerLabels = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   axesGeometry: AxesGeometry,
   axis: Axis2D,
   props: Options,
 ) => {
-  const axisMarkerLabels = createAxisMarkerLabels(ctx, axesGeometry, axis, props)
+  const axisMarkerLabels = createAxisMarkerLabels(drawer, axesGeometry, axis, props)
+  const ctx = drawer.getRenderingContext()
   axisMarkerLabels.forEach(l => ctx.fillText(l.text, l.textRect.x, l.textRect.y))
 }

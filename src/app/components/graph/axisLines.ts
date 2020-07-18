@@ -1,10 +1,14 @@
 import Options from './types/Options'
-import { Axis2D } from '../../common/types/geometry'
+import { Axis2D, Line } from '../../common/types/geometry'
 import AxesGeometry from './types/AxesGeometry'
-import { applyLineOptionsToContext } from '../../common/helpers/canvas'
+import { CanvasDrawer } from '../../common/drawer/types'
+import { LineOptions } from '../../common/types/canvas'
 
-const DEFAULT_LINE_WIDTH = 2
-const DEFAULT_COLOR = 'black'
+const DEFAULT_LINE_OPTIONS: LineOptions = {
+  color: 'black',
+  lineWidth: 2,
+  dashPattern: [],
+}
 
 export const getShouldShowAxisLine = (props: Options, axis: Axis2D) => (
   props.axesOptions?.[axis]?.visibilityOptions?.showAxisLine
@@ -12,24 +16,15 @@ export const getShouldShowAxisLine = (props: Options, axis: Axis2D) => (
     ?? true
 )
 
-export const drawXAxisLine = (ctx: CanvasRenderingContext2D, axesGeometry: AxesGeometry, props: Options) => {
-  applyLineOptionsToContext(ctx, props.axesOptions?.[Axis2D.X]?.lineOptions, DEFAULT_LINE_WIDTH, DEFAULT_COLOR)
+const createLine = (axesGeometry: AxesGeometry, axis: Axis2D): Line => {
+  const { orthogonalScreenPosition } = axesGeometry[axis]
 
-  const y = axesGeometry[Axis2D.X].orthogonalScreenPosition
-
-  const path = new Path2D()
-  path.moveTo(axesGeometry[Axis2D.X].pl, y)
-  path.lineTo(axesGeometry[Axis2D.X].pu, y)
-  ctx.stroke(path)
+  return axis === Axis2D.X
+    ? [{ x: axesGeometry[Axis2D.X].pl, y: orthogonalScreenPosition }, { x: axesGeometry[Axis2D.X].pu, y: orthogonalScreenPosition }]
+    : [{ x: orthogonalScreenPosition, y: axesGeometry[Axis2D.Y].pl }, { x: orthogonalScreenPosition, y: axesGeometry[Axis2D.Y].pu }]
 }
 
-export const drawYAxisLine = (ctx: CanvasRenderingContext2D, axesGeometry: AxesGeometry, props: Options) => {
-  applyLineOptionsToContext(ctx, props.axesOptions?.[Axis2D.Y]?.lineOptions, DEFAULT_LINE_WIDTH, DEFAULT_COLOR)
-
-  const x = axesGeometry[Axis2D.Y].orthogonalScreenPosition
-
-  const path = new Path2D()
-  path.moveTo(x, axesGeometry[Axis2D.Y].pl)
-  path.lineTo(x, axesGeometry[Axis2D.Y].pu)
-  ctx.stroke(path)
+export const drawAxisLine = (drawer: CanvasDrawer, axesGeometry: AxesGeometry, props: Options, axis: Axis2D) => {
+  drawer.applyLineOptions(props.axesOptions?.[Axis2D.X]?.lineOptions, DEFAULT_LINE_OPTIONS)
+  drawer.line(createLine(axesGeometry, axis))
 }

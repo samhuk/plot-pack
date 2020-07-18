@@ -14,8 +14,8 @@ import DatumFocusPointDeterminationMode from './types/DatumFocusPointDeterminati
 import UnfocusedPositionedDatum from './types/UnfocusedPositionedDatum'
 import DatumFocusPoint from './types/DatumFocusPoint'
 import { normalizeDatumsErrorBarsValues } from './errorBars'
-import { get2DContext } from '../../common/helpers/canvas'
 import { createAxesGeometry } from './axesGeometry'
+import { createCanvasDrawer } from '../../common/drawer/canvasDrawer'
 
 const kdTree: any = require('kd-tree-javascript')
 
@@ -214,7 +214,7 @@ const createDatumDimensionStringList = (datumSnapMode: DatumSnapMode): string[] 
  * in that case...
  */
 export const createGraphGeometry = (canvas: HTMLCanvasElement, props: Options): GraphGeometry => {
-  const ctx = get2DContext(canvas, props.widthPx, props.heightPx)
+  const drawer = createCanvasDrawer(canvas, props.heightPx, props.widthPx)
 
   const normalizedSeries = mapDict(props.series, (seriesKey, datums) => normalizeDatumsErrorBarsValues(datums, props, seriesKey))
 
@@ -247,7 +247,7 @@ export const createGraphGeometry = (canvas: HTMLCanvasElement, props: Options): 
     },
   }
 
-  const axesGeometry = createAxesGeometry(ctx, props, axesValueBound, axesValueRangeForceOptions)
+  const axesGeometry = createAxesGeometry(drawer, props, axesValueBound, axesValueRangeForceOptions)
 
   // Calculate positioned datums, adding screen position and a focus point to each datum.
   const positionedDatums = mapDict(normalizedSeries, (seriesKey, datums) => (

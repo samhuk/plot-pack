@@ -4,11 +4,17 @@ import AxesGeometry from './types/AxesGeometry'
 import { determineXAxisMarkerPositioning, determineYAxisMarkerPositioning } from './axisMarkerPositioning'
 import XAxisMarkerOrientation from './types/XAxixMarkerOrientation'
 import YAxisMarkerOrientation from './types/YAxisMarkerOrientation'
-import { applyLineOptionsToContext } from '../../common/helpers/canvas'
+import { LineOptions } from '../../common/types/canvas'
+import { CanvasDrawer } from '../../common/drawer/types'
+import { Path, PathComponentType } from '../../common/drawer/path/types'
 
-const DEFAULT_MARKER_LINE_WIDTH = 3
 const DEFAULT_MARKER_LINE_LENGTH = 5
-const DEFAULT_MARKER_LINE_COLOR = 'black'
+
+const DEFAULT_LINE_OPTIONS: LineOptions = {
+  color: 'black',
+  lineWidth: 3,
+  dashPattern: [],
+}
 
 export const getShouldShowAxisMarkerLines = (props: Options, axis: Axis2D) => (
   props.axesOptions?.[axis]?.visibilityOptions?.showAxisMarkerLines
@@ -16,57 +22,58 @@ export const getShouldShowAxisMarkerLines = (props: Options, axis: Axis2D) => (
     ?? true
 )
 
-export const getMarkerLineLength = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.markerLineOptions?.length
-  ?? DEFAULT_MARKER_LINE_LENGTH
+export const getMarkerLineLength = (props: Options, axis: Axis2D) => (
+  props.axesOptions?.[axis]?.markerLineOptions?.length
+    ?? DEFAULT_MARKER_LINE_LENGTH
+)
 
-export const drawXAxisAxisMarkerLines = (
-  ctx: CanvasRenderingContext2D,
-  axesGeometry: AxesGeometry,
-  props: Options,
-) => {
-  const markerLineOptions = props?.axesOptions?.[Axis2D.X]?.markerLineOptions
-  const shouldDraw = applyLineOptionsToContext(ctx, markerLineOptions, DEFAULT_MARKER_LINE_WIDTH, DEFAULT_MARKER_LINE_COLOR)
-  if (!shouldDraw)
-    return
-
-  const y = axesGeometry[Axis2D.X].orthogonalScreenPosition
-  const markerLength = getMarkerLineLength(props, Axis2D.X)
-
-  const markerPosition = props.axesOptions?.[Axis2D.X]?.markerOrientation as XAxisMarkerOrientation
-  const { shouldPlaceBelow } = determineXAxisMarkerPositioning(axesGeometry, markerPosition)
-  const markerEndY = y + (shouldPlaceBelow ? 1 : -1) * markerLength
-
-  const path = new Path2D()
-  for (let i = 0; i < axesGeometry[Axis2D.X].numGridLines; i += 1) {
-    const x = axesGeometry[Axis2D.X].pl + axesGeometry[Axis2D.X].dpGrid * i
-    path.moveTo(x, y)
-    path.lineTo(x, markerEndY)
+const determineShouldGoIntoNegativeDirection = (props: Options, axesGeometry: AxesGeometry, axis: Axis2D): boolean => {
+  if (axis === Axis2D.X) {
+    const markerPosition = props.axesOptions?.[Axis2D.X]?.markerOrientation as XAxisMarkerOrientation
+    return determineXAxisMarkerPositioning(axesGeometry, markerPosition).shouldPlaceBelow
   }
-  ctx.stroke(path)
-}
-
-export const drawYAxisAxisMarkerLines = (
-  ctx: CanvasRenderingContext2D,
-  axesGeometry: AxesGeometry,
-  props: Options,
-) => {
-  const markerLineOptions = props?.axesOptions?.[Axis2D.Y]?.markerLineOptions
-  const shouldDraw = applyLineOptionsToContext(ctx, markerLineOptions, DEFAULT_MARKER_LINE_WIDTH, DEFAULT_MARKER_LINE_COLOR)
-  if (!shouldDraw)
-    return
-
-  const x = axesGeometry[Axis2D.Y].orthogonalScreenPosition
-  const markerLength = getMarkerLineLength(props, Axis2D.Y)
 
   const markerPosition = props.axesOptions?.[Axis2D.Y]?.markerOrientation as YAxisMarkerOrientation
-  const { shouldPlaceLeft } = determineYAxisMarkerPositioning(axesGeometry, markerPosition)
-  const markerEndX = x + (shouldPlaceLeft ? -1 : 1) * markerLength
+  return determineYAxisMarkerPositioning(axesGeometry, markerPosition).shouldPlaceLeft
+}
 
-  const path = new Path2D()
-  for (let i = 0; i < axesGeometry[Axis2D.Y].numGridLines; i += 1) {
-    const y = axesGeometry[Axis2D.Y].pl + axesGeometry[Axis2D.Y].dpGrid * i
-    path.moveTo(x, y)
-    path.lineTo(markerEndX, y)
+const determineOrthogonalPositions = (props: Options, axesGeometry: AxesGeometry, axis: Axis2D): { start: number, end: number } => {
+  const { orthogonalScreenPosition } = axesGeometry[axis]
+  const markerLength = getMarkerLineLength(props, axis)
+  const shouldGoIntoNegativeDirection = determineShouldGoIntoNegativeDirection(props, axesGeometry, axis)
+  const orthogonalScreenPositionEnd = orthogonalScreenPosition + (shouldGoIntoNegativeDirection ? 1 : -1) * markerLength
+  return { start: orthogonalScreenPosition, end: orthogonalScreenPositionEnd }
+}
+
+const createPath = (props: Options, axesGeometry: AxesGeometry, axis: Axis2D): Path => {
+  const path: Path = []
+
+  const orthogonalScreenPositions = determineOrthogonalPositions(props, axesGeometry, axis)
+
+  if (axis === Axis2D.X) {
+    for (let i = 0; i < axesGeometry[Axis2D.X].numGridLines; i += 1) {
+      const x = axesGeometry[Axis2D.X].pl + axesGeometry[Axis2D.X].dpGrid * i
+      path.push({ type: PathComponentType.MOVE_TO, x, y: orthogonalScreenPositions.start })
+      path.push({ type: PathComponentType.LINE_TO, x, y: orthogonalScreenPositions.end })
+    }
   }
-  ctx.stroke(path)
+  else {
+    for (let i = 0; i < axesGeometry[Axis2D.Y].numGridLines; i += 1) {
+      const y = axesGeometry[Axis2D.Y].pl + axesGeometry[Axis2D.Y].dpGrid * i
+      path.push({ type: PathComponentType.MOVE_TO, x: orthogonalScreenPositions.start, y })
+      path.push({ type: PathComponentType.LINE_TO, x: orthogonalScreenPositions.end, y })
+    }
+  }
+
+  return path
+}
+
+export const drawAxisAxisMarkerLines = (
+  drawer: CanvasDrawer,
+  axesGeometry: AxesGeometry,
+  props: Options,
+  axis: Axis2D,
+) => {
+  drawer.applyLineOptions(props?.axesOptions?.[axis]?.markerLineOptions, DEFAULT_LINE_OPTIONS)
+  drawer.path(createPath(props, axesGeometry, axis))
 }

@@ -14,6 +14,7 @@ import Bound from './types/Bound'
 import UnpositionedAxisGeometry from './types/UnpositionedAxisGeometry'
 import { AxesValueRangeForceOptions, AxisValueRangeForceOptions } from './geometry'
 import { getBoundingRectOfRects } from '../../common/helpers/geometry'
+import { CanvasDrawer } from '../../common/drawer/types'
 
 const DEFAULT_AXIS_MARGIN = 15
 const DEFAULT_DP_GRID_MIN = 30
@@ -172,41 +173,43 @@ const calculateAxesGeometry = (
 }
 
 const getMarginDueToAxisLabel = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   props: Options,
   axis: Axis2D,
 ): number => {
   const xAxisLabelText = getAxisLabelText(props, Axis2D.X)
   if (xAxisLabelText == null)
     return 0
+  const ctx = drawer.getRenderingContext()
   applyTextOptionsToContext(ctx, props.axesOptions?.[axis]?.labelOptions)
   return getAxisLabelExteriorMargin(props, axis) + measureTextLineHeight(ctx)
 }
 
 const getMarginDueToTitle = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   props: Options,
 ): number => {
   const titleText = getTitle(props)
   if (titleText == null)
     return 0
+  const ctx = drawer.getRenderingContext()
   applyTextOptionsToContext(ctx, getTitleOptions(props))
   return getTitleExteriorMargin(props) + measureTextLineHeight(ctx)
 }
 
 const getAxisMargin = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.axisMargin ?? DEFAULT_AXIS_MARGIN
 
-const createAxesScreenBound = (ctx: CanvasRenderingContext2D, props: Options): AxesBound => {
+const createAxesScreenBound = (drawer: CanvasDrawer, props: Options): AxesBound => {
   const isXAxisLabelOnBottom = true
   const isYAxisLabelOnLeft = true
 
   const xAxisMargin = getAxisMargin(props, Axis2D.X)
   const yAxisMargin = getAxisMargin(props, Axis2D.Y)
 
-  const xAxisMarginDueToLabel = getMarginDueToAxisLabel(ctx, props, Axis2D.X)
-  const yAxisMarginDueToLabel = getMarginDueToAxisLabel(ctx, props, Axis2D.Y)
+  const xAxisMarginDueToLabel = getMarginDueToAxisLabel(drawer, props, Axis2D.X)
+  const yAxisMarginDueToLabel = getMarginDueToAxisLabel(drawer, props, Axis2D.Y)
 
-  const yAxisUpperMarginDueToTitle = getMarginDueToTitle(ctx, props)
+  const yAxisUpperMarginDueToTitle = getMarginDueToTitle(drawer, props)
 
   const axesScreenBound: AxesBound = {
     [Axis2D.X]: {
@@ -233,13 +236,13 @@ const getBoundingScreenRectsOfAxesMarkerLabels = (
  * tentative axes geometry over the given axes screen bounds.
  */
 const calculateAxisMarkerLabelOverrun = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   tentativeAxesGeometry: AxesGeometry,
   tentativeAxesScreenBound: AxesBound,
   props: Options,
 ): { left: number, right: number, top: number, bottom: number } => {
   // Create throwaway axis marker labels to determine how much, if at all, they overrun the tentative axes
-  const axesMarkerLabels = createAxesMarkerLabels(ctx, tentativeAxesGeometry, props)
+  const axesMarkerLabels = createAxesMarkerLabels(drawer, tentativeAxesGeometry, props)
   // Get the bounding rect of each axis' marker labels
   const axesMarkerLabelsBoundingRects = getBoundingScreenRectsOfAxesMarkerLabels(axesMarkerLabels)
   // Calculate the overrun for each direction
@@ -254,13 +257,13 @@ const calculateAxisMarkerLabelOverrun = (
 }
 
 export const createAxesGeometry = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   props: Options,
   axesValueBound: AxesBound,
   axesValueRangeForceOptions: AxesValueRangeForceOptions,
 ) => {
   // Calculate the tentative screen bounds of axes, not taking into account the effect of axis marker labels
-  const tentativeAxesScreenBound: AxesBound = createAxesScreenBound(ctx, props)
+  const tentativeAxesScreenBound: AxesBound = createAxesScreenBound(drawer, props)
   const axesDpMin = { [Axis2D.X]: DEFAULT_DP_GRID_MIN, [Axis2D.Y]: DEFAULT_DP_GRID_MIN }
   const axesDvGrid = { [Axis2D.X]: props.axesOptions?.[Axis2D.X]?.dvGrid, [Axis2D.Y]: props.axesOptions?.[Axis2D.Y]?.dvGrid }
   // Calculate the tentative geometry of the axes, not taking into account the effect of axis marker labels
@@ -273,7 +276,7 @@ export const createAxesGeometry = (
     axesDvGrid,
     axesValueRangeForceOptions,
   )
-  const axisMarkerLabelOverruns = calculateAxisMarkerLabelOverrun(ctx, tentativeAxesGeometry, tentativeAxesScreenBound, props)
+  const axisMarkerLabelOverruns = calculateAxisMarkerLabelOverrun(drawer, tentativeAxesGeometry, tentativeAxesScreenBound, props)
   // Adjust screen bounds to account for any overruns
   const adjustedAxesScreenBound: AxesBound = {
     [Axis2D.X]: {

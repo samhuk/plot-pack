@@ -7,10 +7,10 @@ import YAxisOrientation from './types/yAxisOrientation'
 import { drawCustomMarker, drawStandardMarker, getShouldShowCustomMarkers, getShouldShowMarkers } from './marker'
 import PositionedDatum from './types/PositionedDatum'
 import drawDatumsConnectingLine, { getShouldShowConnectingLine } from './connectingLine'
-import { drawXAxisGridLines, drawYAxisGridLines, getShouldShowAxisGridLines } from './axisGridLines'
+import { drawAxisGridLines, getShouldShowAxisGridLines } from './axisGridLines'
 import { drawAxisMarkerLabels, getShouldShowAxisMarkerLabels } from './axisMarkerLabels'
-import { drawXAxisAxisMarkerLines, drawYAxisAxisMarkerLines, getShouldShowAxisMarkerLines } from './axisMarkerLines'
-import { drawXAxisLine, drawYAxisLine, getShouldShowAxisLine } from './axisLines'
+import { drawAxisAxisMarkerLines, getShouldShowAxisMarkerLines } from './axisMarkerLines'
+import { drawAxisLine, getShouldShowAxisLine } from './axisLines'
 import { drawStraightLineOfBestFit } from './straightLineOfBestFit'
 import drawAxesLabels from './axisLabels'
 import drawDatumErrorBarsForDatums, { getShouldShowErrorBars } from './errorBars'
@@ -83,27 +83,27 @@ const drawGraph = (
   const ctx = drawer.getRenderingContext()
   // Show axis lines by default
   if (getShouldShowAxisLine(props, Axis2D.X))
-    drawXAxisLine(ctx, axesGeometry, props)
+    drawAxisLine(drawer, axesGeometry, props, Axis2D.X)
   if (getShouldShowAxisLine(props, Axis2D.Y))
-    drawYAxisLine(ctx, axesGeometry, props)
+    drawAxisLine(drawer, axesGeometry, props, Axis2D.Y)
 
   // Show grid lines by default
   if (getShouldShowAxisGridLines(props, Axis2D.X))
-    drawXAxisGridLines(ctx, axesGeometry, props)
+    drawAxisGridLines(drawer, axesGeometry, props, Axis2D.X)
   if (getShouldShowAxisGridLines(props, Axis2D.Y))
-    drawYAxisGridLines(ctx, axesGeometry, props)
+    drawAxisGridLines(drawer, axesGeometry, props, Axis2D.Y)
 
   // Show axis marker lines by default
   if (getShouldShowAxisMarkerLines(props, Axis2D.X))
-    drawXAxisAxisMarkerLines(ctx, axesGeometry, props)
+    drawAxisAxisMarkerLines(drawer, axesGeometry, props, Axis2D.X)
   if (getShouldShowAxisMarkerLines(props, Axis2D.Y))
-    drawYAxisAxisMarkerLines(ctx, axesGeometry, props)
+    drawAxisAxisMarkerLines(drawer, axesGeometry, props, Axis2D.Y)
 
   // Show axis marker labels by default
   if (getShouldShowAxisMarkerLabels(props, Axis2D.X))
-    drawAxisMarkerLabels(ctx, axesGeometry, Axis2D.X, props)
+    drawAxisMarkerLabels(drawer, axesGeometry, Axis2D.X, props)
   if (getShouldShowAxisMarkerLabels(props, Axis2D.Y))
-    drawAxisMarkerLabels(ctx, axesGeometry, Axis2D.Y, props)
+    drawAxisMarkerLabels(drawer, axesGeometry, Axis2D.Y, props)
 
   drawAxesLabels(ctx, axesGeometry, props)
 
