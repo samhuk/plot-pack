@@ -87,7 +87,7 @@ const renderColumnRows = (rect: Rect, column: Column) => {
     return acc + getRowHeight(rect, row, rowMargin, 0) + rowMargin.top + rowMargin.bottom
   }, 0)
   const totalImplicitHeight = Math.max(0, rect.height - totalExplicitHeight)
-  const numRowsWithImplicitHeight = _rows.filter(row => (row.height == null && !row.evenlyFillAvailableHeight)).length
+  const numRowsWithImplicitHeight = _rows.filter(row => (row.height == null && row.evenlyFillAvailableHeight)).length
 
   const heightPerRowWithUndefinedHeight = numRowsWithImplicitHeight === 0
     ? 0
