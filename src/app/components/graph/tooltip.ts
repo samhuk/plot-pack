@@ -12,7 +12,7 @@ import { getSize as getMarkerSize, drawStandardMarker, getShouldShowMarkers } fr
 import { drawConnectingLine, getShouldShowConnectingLine } from './connectingLine'
 import { formatNumber } from './axisMarkerLabels'
 import { TextOptions, LineOptions } from '../../common/types/canvas'
-import { sizeInputColumn } from '../../common/canvasFlex/dimensions'
+import { sizeInputColumn } from '../../common/canvasFlex/boundingDimensions'
 import { renderColumn } from '../../common/canvasFlex/rendering'
 import { ColumnJustification, InputColumn, InputRow, SizeUnit } from '../../common/canvasFlex/types'
 import { CanvasDrawer } from '../../common/drawer/types'

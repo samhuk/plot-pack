@@ -1,8 +1,9 @@
 /* eslint-disable no-use-before-define */
-import { Column, Row, ColumnJustification, SizeUnit, InputPadding, Margin } from './types'
+import { Column, Row, ColumnJustification, SizeUnit, InputPadding, Margin, InputColumn, CalculatedRects } from './types'
 import { Rect } from '../types/geometry'
 import { getNormalizedMargin } from './margin'
 import { getNormalizedPadding } from './padding'
+import { sizeInputColumn } from './boundingDimensions'
 
 const createPaddedRect = (rect: Rect, inputPadding: InputPadding): Rect => {
   const padding = getNormalizedPadding(inputPadding)
@@ -15,7 +16,7 @@ const createPaddedRect = (rect: Rect, inputPadding: InputPadding): Rect => {
   }
 }
 
-const renderColumnRowTemplate = (rect: Rect, rowTemplate: Row, numRows: number) => {
+const renderColumnRowTemplate = (rect: Rect, rowTemplate: Row, numRows: number): CalculatedRects => {
   const margin = getNormalizedMargin(rowTemplate.margin)
 
   const width = rowTemplate.width ?? (rect.width - margin.left - margin.right)
@@ -31,10 +32,17 @@ const renderColumnRowTemplate = (rect: Rect, rowTemplate: Row, numRows: number) 
     rowRects.push({ x, y, width, height })
     y += height + margin.bottom
   }
+  const calculatedRects: CalculatedRects = {}
   // Render each row
-  rowRects.forEach((rowRect, i) => renderRow(rowRect, rowTemplate, i))
+  rowRects.forEach((rowRect, i) => {
+    if (rowTemplate.id != null)
+      calculatedRects[`${rowTemplate.id}-${i}`] = rowRect
+    renderRow(rowRect, rowTemplate, i)
+  })
+
+  return calculatedRects
 }
-const renderRowColumnTemplate = (rect: Rect, columnTemplate: Column, numColumns: number) => {
+const renderRowColumnTemplate = (rect: Rect, columnTemplate: Column, numColumns: number): CalculatedRects => {
   const margin = getNormalizedMargin(columnTemplate.margin)
 
   const width = columnTemplate.width ?? ((rect.width / numColumns) - margin.left - margin.right)
@@ -50,8 +58,15 @@ const renderRowColumnTemplate = (rect: Rect, columnTemplate: Column, numColumns:
     columnRects.push({ x, y, width, height })
     x += width + margin.right
   }
+  const calculatedRects: CalculatedRects = {}
   // Render each column
-  columnRects.forEach((colRect, i) => renderColumn(colRect, columnTemplate, i))
+  columnRects.forEach((colRect, i) => {
+    if (columnTemplate.id != null)
+      calculatedRects[`${columnTemplate.id}-${i}`] = colRect
+    renderColumn(colRect, columnTemplate, i)
+  })
+
+  return calculatedRects
 }
 
 const getStartingXOfColumns = (totalColumnWidth: number, rowX: number, rowWidth: number, columnJustification: ColumnJustification) => {
@@ -79,7 +94,7 @@ const getRowHeight = (columnRect: Rect, row: Row, rowMargin: Margin, evenlyFillH
     : (row.height ?? ((row.evenlyFillAvailableHeight ?? false) ? evenlyFillHeightValue : row.boundingHeight))
 )
 
-const renderColumnRows = (rect: Rect, column: Column) => {
+const renderColumnRows = (rect: Rect, column: Column): CalculatedRects => {
   const _rows = column.rows.filter(row => row != null)
 
   const totalExplicitHeight = _rows.reduce((acc, row) => {
@@ -92,6 +107,8 @@ const renderColumnRows = (rect: Rect, column: Column) => {
   const heightPerRowWithUndefinedHeight = numRowsWithImplicitHeight === 0
     ? 0
     : totalImplicitHeight / numRowsWithImplicitHeight
+
+  const calculatedRects: CalculatedRects = {}
 
   let { y } = rect
   _rows
@@ -108,7 +125,14 @@ const renderColumnRows = (rect: Rect, column: Column) => {
 
       return { row, rect: rowRect }
     })
-    .forEach((rowAndRect, i) => renderRow(rowAndRect.rect, rowAndRect.row, i))
+    .forEach((rowAndRect, i) => {
+      if (rowAndRect.row.id != null)
+        calculatedRects[rowAndRect.row.id] = rowAndRect.rect
+      const _childCalculatedRects = renderRow(rowAndRect.rect, rowAndRect.row, i)
+      Object.entries(_childCalculatedRects).forEach(([id, _rect]) => calculatedRects[id] = _rect)
+    })
+
+  return calculatedRects
 }
 
 const getColumnHeight = (rowRect: Rect, column: Column, columnMargin: Margin) => (
@@ -123,7 +147,7 @@ const getColumnWidth = (rowRect: Rect, column: Column, columnMargin: Margin, eve
     : (column.width ?? ((column.evenlyFillAvailableWidth ?? false) ? evenlyFillWidthValue : column.boundingWidth))
 )
 
-const renderRowColumns = (rect: Rect, row: Row) => {
+const renderRowColumns = (rect: Rect, row: Row): CalculatedRects => {
   const _columns = row.columns.filter(col => col != null)
 
   const totalExplicitWidth = _columns.reduce((acc, col) => {
@@ -137,6 +161,8 @@ const renderRowColumns = (rect: Rect, row: Row) => {
   const widthPerColumnWithImplicitWidth = numColumnsWithImplicitWidth === 0
     ? 0
     : totalImplicitWidth / numColumnsWithImplicitWidth
+
+  const calculatedRects: CalculatedRects = {}
 
   let x = row.columnJustification != null && widthPerColumnWithImplicitWidth === 0
     ? getStartingXOfColumns(totalExplicitWidth, rect.x, rect.width, row.columnJustification)
@@ -156,35 +182,57 @@ const renderRowColumns = (rect: Rect, row: Row) => {
 
       return { column: col, rect: columnRect }
     })
-    .forEach((colAndRect, i) => renderColumn(colAndRect.rect, colAndRect.column, i))
+    .forEach((colAndRect, i) => {
+      if (colAndRect.column.id != null)
+        calculatedRects[colAndRect.column.id] = colAndRect.rect
+      const _childCalculatedRects = renderColumn(colAndRect.rect, colAndRect.column, i)
+      Object.entries(_childCalculatedRects).forEach(([id, _rect]) => calculatedRects[id] = _rect)
+    })
+
+  return calculatedRects
 }
 
-const renderRow = (rect: Rect, row: Row, index: number) => {
+const renderRow = (rect: Rect, row: Row, index: number): CalculatedRects => {
   if (row == null)
-    return
+    return {}
 
   if (row.render != null)
     row.render(rect, index)
 
   const paddedRect = createPaddedRect(rect, row.padding)
 
-  if (row.columnTemplate != null && row.numColumns > 0)
-    renderRowColumnTemplate(paddedRect, row.columnTemplate, row.numColumns)
-  else if (row.columns != null)
-    renderRowColumns(paddedRect, row)
+  return row.columnTemplate != null && row.numColumns > 0
+    ? renderRowColumnTemplate(paddedRect, row.columnTemplate, row.numColumns)
+    : (row.columns != null
+      ? renderRowColumns(paddedRect, row)
+      : {}
+    )
 }
 
-export const renderColumn = (rect: Rect, column: Column, index: number) => {
+export const renderColumn = (rect: Rect, column: Column, index: number): CalculatedRects => {
   if (column == null)
-    return
+    return {}
 
   if (column.render != null)
     column.render(rect, index)
 
   const paddedRect = createPaddedRect(rect, column.padding)
 
-  if (column.rowTemplate != null && column.numRows > 0)
-    renderColumnRowTemplate(paddedRect, column.rowTemplate, column.numRows)
-  else if (column.rows != null)
-    renderColumnRows(paddedRect, column)
+  return column.rowTemplate != null && column.numRows > 0
+    ? renderColumnRowTemplate(paddedRect, column.rowTemplate, column.numRows)
+    : (column.rows != null
+      ? renderColumnRows(paddedRect, column)
+      : {}
+    )
+}
+
+/**
+ * Renders the given InputColumn. This will place the column at (0, 0) with the
+ * bounding width and height of the column. If the column's height and/or width
+ * are need to be known before rendering, then sizeInputColumn and then
+ * renderColumn should be used separately instead.
+ */
+export const renderInputColumn = (inputColumn: InputColumn): CalculatedRects => {
+  const column = sizeInputColumn(inputColumn)
+  return renderColumn({ x: 0, y: 0, height: column.boundingHeight, width: column.boundingWidth }, column, 0)
 }
