@@ -17,8 +17,6 @@ import drawDatumErrorBarsForDatums, { getShouldShowErrorBars } from './errorBars
 import AxesGeometry from './types/AxesGeometry'
 import drawTitle from './title'
 import { CanvasDrawer } from '../../common/drawer/types'
-import { InputColumn, SizeUnit } from '../../common/canvasFlex/types'
-import { renderInputColumn } from '../../common/canvasFlex/rendering'
 
 const getShouldShowLineOfBestFit = (props: Options, seriesKey: string) => (
   // Series visibility options takes precedence
@@ -153,73 +151,4 @@ export const draw = (drawer: CanvasDrawer, g: GraphGeometry, props: Options) => 
   Object.entries(g.bestFitStraightLineEquations)
     .filter(([seriesKey, eq]) => eq != null && getShouldShowLineOfBestFit(props, seriesKey))
     .forEach(([seriesKey, eq]) => drawStraightLineOfBestFit(drawer, eq, g.axesGeometry, props, seriesKey))
-
-  const inputColumn: InputColumn = {
-    height: props.heightPx,
-    width: props.widthPx,
-    widthUnits: SizeUnit.PX,
-    rows: [
-      // -- Title
-      {
-        height: 50,
-        heightUnits: SizeUnit.PX,
-        width: 100,
-        widthUnits: SizeUnit.PERCENT,
-        padding: { top: 10 },
-        columns: [{
-          id: 'TITLE',
-          height: 100,
-          heightUnits: SizeUnit.PERCENT,
-          width: 100,
-          widthUnits: SizeUnit.PERCENT,
-        }],
-      },
-      {
-        evenlyFillAvailableHeight: true,
-        width: 100,
-        widthUnits: SizeUnit.PERCENT,
-        columns: [
-          // -- LHS y-axis label
-          {
-            id: 'LHS Y-AXIS LABEL',
-            width: 50,
-            widthUnits: SizeUnit.PX,
-            height: 100,
-            heightUnits: SizeUnit.PERCENT,
-            padding: { left: 10 },
-          },
-          // Graph
-          {
-            id: 'GRAPH',
-            evenlyFillAvailableWidth: true,
-            height: 100,
-            heightUnits: SizeUnit.PERCENT,
-          },
-        ],
-      },
-      // Bottom x-axis label
-      {
-        height: 50,
-        heightUnits: SizeUnit.PX,
-        width: 100,
-        widthUnits: SizeUnit.PERCENT,
-        padding: { bottom: 10 },
-        columns: [{
-          id: 'BOTTOM X-AXIS LABEL',
-          height: 100,
-          heightUnits: SizeUnit.PERCENT,
-          width: 100,
-          widthUnits: SizeUnit.PERCENT,
-        }],
-      },
-    ],
-  }
-
-  const rects = renderInputColumn(inputColumn)
-  drawer.rect(rects['TITLE'], { lineOptions: { color: 'red' } })
-  drawer.rect(rects['LHS Y-AXIS LABEL'], { lineOptions: { color: 'green' } })
-  drawer.rect(rects['GRAPH'], { lineOptions: { color: 'blue' } })
-  drawer.rect(rects['BOTTOM X-AXIS LABEL'], { lineOptions: { color: 'purple' } })
-
-  console.log(rects)
 }

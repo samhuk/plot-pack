@@ -1,8 +1,5 @@
 import { Options } from './types/Options'
-import { Axis2D, BoundingRect } from '../../common/types/geometry'
-import { getAxisLabelText, getExteriorMargin as getAxisLabelExteriorMargin } from './axisLabels'
-import { measureTextLineHeight, applyTextOptionsToContext } from '../../common/helpers/canvas'
-import { getTitle, getTitleOptions, getExteriorMargin as getTitleExteriorMargin } from './title'
+import { Axis2D, BoundingRect, Rect } from '../../common/types/geometry'
 import AxesBound from './types/AxesBound'
 import AxisMarkerLabel from './types/AxisMarkerLabel'
 import AxesGeometry from './types/AxesGeometry'
@@ -16,7 +13,6 @@ import { AxesValueRangeForceOptions, AxisValueRangeForceOptions } from './geomet
 import { getBoundingRectOfRects } from '../../common/helpers/geometry'
 import { CanvasDrawer } from '../../common/drawer/types'
 
-const DEFAULT_AXIS_MARGIN = 15
 const DEFAULT_DP_GRID_MIN = 30
 
 const calculateAutoDvGrid = (vl: number, vu: number, dp: number, dpMin: number) => {
@@ -172,58 +168,6 @@ const calculateAxesGeometry = (
   }
 }
 
-const getMarginDueToAxisLabel = (
-  drawer: CanvasDrawer,
-  props: Options,
-  axis: Axis2D,
-): number => {
-  const xAxisLabelText = getAxisLabelText(props, Axis2D.X)
-  if (xAxisLabelText == null)
-    return 0
-  const ctx = drawer.getRenderingContext()
-  applyTextOptionsToContext(ctx, props.axesOptions?.[axis]?.labelOptions)
-  return getAxisLabelExteriorMargin(props, axis) + measureTextLineHeight(ctx)
-}
-
-const getMarginDueToTitle = (
-  drawer: CanvasDrawer,
-  props: Options,
-): number => {
-  const titleText = getTitle(props)
-  if (titleText == null)
-    return 0
-  const ctx = drawer.getRenderingContext()
-  applyTextOptionsToContext(ctx, getTitleOptions(props))
-  return getTitleExteriorMargin(props) + measureTextLineHeight(ctx)
-}
-
-const getAxisMargin = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.axisMargin ?? DEFAULT_AXIS_MARGIN
-
-const createAxesScreenBound = (drawer: CanvasDrawer, props: Options): AxesBound => {
-  const isXAxisLabelOnBottom = true
-  const isYAxisLabelOnLeft = true
-
-  const xAxisMargin = getAxisMargin(props, Axis2D.X)
-  const yAxisMargin = getAxisMargin(props, Axis2D.Y)
-
-  const xAxisMarginDueToLabel = getMarginDueToAxisLabel(drawer, props, Axis2D.X)
-  const yAxisMarginDueToLabel = getMarginDueToAxisLabel(drawer, props, Axis2D.Y)
-
-  const yAxisUpperMarginDueToTitle = getMarginDueToTitle(drawer, props)
-
-  const axesScreenBound: AxesBound = {
-    [Axis2D.X]: {
-      lower: yAxisMargin + (isYAxisLabelOnLeft ? yAxisMarginDueToLabel : 0),
-      upper: props.widthPx - yAxisMargin - (isYAxisLabelOnLeft ? 0 : yAxisMarginDueToLabel),
-    },
-    [Axis2D.Y]: {
-      lower: props.heightPx - xAxisMargin - (isXAxisLabelOnBottom ? xAxisMarginDueToLabel : 0),
-      upper: xAxisMargin + (isXAxisLabelOnBottom ? 0 : xAxisMarginDueToLabel) + yAxisUpperMarginDueToTitle,
-    },
-  }
-  return axesScreenBound
-}
-
 const getBoundingScreenRectsOfAxesMarkerLabels = (
   axesMarkerLabels: { [axis in Axis2D]: AxisMarkerLabel[] },
 ): { [axis in Axis2D]: BoundingRect } => ({
@@ -261,9 +205,13 @@ export const createAxesGeometry = (
   props: Options,
   axesValueBound: AxesBound,
   axesValueRangeForceOptions: AxesValueRangeForceOptions,
-) => {
+  axesAvailableScreenRect: Rect,
+): AxesGeometry => {
   // Calculate the tentative screen bounds of axes, not taking into account the effect of axis marker labels
-  const tentativeAxesScreenBound: AxesBound = createAxesScreenBound(drawer, props)
+  const tentativeAxesScreenBound: AxesBound = {
+    [Axis2D.X]: { lower: axesAvailableScreenRect.x, upper: axesAvailableScreenRect.x + axesAvailableScreenRect.width },
+    [Axis2D.Y]: { upper: axesAvailableScreenRect.y, lower: axesAvailableScreenRect.y + axesAvailableScreenRect.height },
+  }
   const axesDpMin = { [Axis2D.X]: DEFAULT_DP_GRID_MIN, [Axis2D.Y]: DEFAULT_DP_GRID_MIN }
   const axesDvGrid = { [Axis2D.X]: props.axesOptions?.[Axis2D.X]?.dvGrid, [Axis2D.Y]: props.axesOptions?.[Axis2D.Y]?.dvGrid }
   // Calculate the tentative geometry of the axes, not taking into account the effect of axis marker labels

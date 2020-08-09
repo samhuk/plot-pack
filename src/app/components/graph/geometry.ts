@@ -16,6 +16,15 @@ import DatumFocusPoint from './types/DatumFocusPoint'
 import { normalizeDatumsErrorBarsValues } from './errorBars'
 import { createAxesGeometry } from './axesGeometry'
 import { createCanvasDrawer } from '../../common/drawer/canvasDrawer'
+import { InputColumn, SizeUnit, InputRow, ColumnJustification } from '../../common/canvasFlex/types'
+import GraphComponents from './types/GraphComponents'
+import { renderInputColumn } from '../../common/canvasFlex/rendering'
+import { getAxisLabelText, getExteriorMargin as getAxisLabelExteriorMargin } from './axisLabels'
+import { getTitle, getTitleOptions, getExteriorMargin as getTitleExteriorMargin } from './title'
+import { measureTextLineHeight, measureTextWidth, applyTextOptionsToContext } from '../../common/helpers/canvas'
+import { CanvasDrawer } from '../../common/drawer/types'
+
+const DEFAULT_AXIS_MARGIN = 15
 
 const kdTree: any = require('kd-tree-javascript')
 
@@ -190,6 +199,119 @@ const createDatumDimensionStringList = (datumSnapMode: DatumSnapMode): string[] 
   }
 }
 
+const createTitleRow = (drawer: CanvasDrawer, props: Options): InputRow => {
+  const titleText = getTitle(props)
+  if (titleText == null)
+    return null
+
+  applyTextOptionsToContext(drawer.getRenderingContext(), getTitleOptions(props))
+  const titleTextHeight = measureTextLineHeight(drawer.getRenderingContext())
+  const titleTextWidth = measureTextWidth(drawer.getRenderingContext(), titleText)
+  return {
+    height: titleTextHeight,
+    heightUnits: SizeUnit.PX,
+    width: 100,
+    widthUnits: SizeUnit.PERCENT,
+    margin: { top: getTitleExteriorMargin(props) },
+    columnJustification: ColumnJustification.CENTER,
+    columns: [{
+      id: GraphComponents.TITLE_BAR,
+      height: 100,
+      heightUnits: SizeUnit.PERCENT,
+      width: titleTextWidth,
+      widthUnits: SizeUnit.PERCENT,
+    }],
+  }
+}
+
+const createYAxisLabelColumn = (drawer: CanvasDrawer, props: Options): InputColumn => {
+  const labelText = getAxisLabelText(props, Axis2D.Y)
+  if (labelText == null)
+    return null
+
+  applyTextOptionsToContext(drawer.getRenderingContext(), props.axesOptions?.[Axis2D.Y]?.labelOptions)
+  const labelTextHeight = measureTextLineHeight(drawer.getRenderingContext())
+  return {
+    id: GraphComponents.Y_AXIS_TITLE,
+    width: labelTextHeight,
+    widthUnits: SizeUnit.PX,
+    height: 100,
+    heightUnits: SizeUnit.PERCENT,
+    margin: { left: getAxisLabelExteriorMargin(props, Axis2D.Y) },
+  }
+}
+
+const getAxisMargin = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.axisMargin ?? DEFAULT_AXIS_MARGIN
+
+const createGraphColumn = (props: Options): InputColumn => ({
+  id: GraphComponents.CHART,
+  evenlyFillAvailableWidth: true,
+  height: 100,
+  heightUnits: SizeUnit.PERCENT,
+  margin: {
+    top: getAxisMargin(props, Axis2D.X),
+    bottom: getAxisMargin(props, Axis2D.X),
+    left: getAxisMargin(props, Axis2D.Y),
+    right: getAxisMargin(props, Axis2D.Y),
+  },
+})
+
+const createXAxisLabelRow = (drawer: CanvasDrawer, props: Options): InputRow => {
+  const labelText = getAxisLabelText(props, Axis2D.X)
+  if (labelText == null)
+    return null
+
+  applyTextOptionsToContext(drawer.getRenderingContext(), props.axesOptions?.[Axis2D.X]?.labelOptions)
+  const labelTextHeight = measureTextLineHeight(drawer.getRenderingContext())
+  const labelTextWidth = measureTextWidth(drawer.getRenderingContext(), labelText)
+
+  return {
+    height: labelTextHeight,
+    heightUnits: SizeUnit.PX,
+    width: 100,
+    widthUnits: SizeUnit.PERCENT,
+    columnJustification: ColumnJustification.CENTER,
+    margin: { bottom: getAxisLabelExteriorMargin(props, Axis2D.X) },
+    columns: [{
+      id: GraphComponents.X_AXIS_TITLE,
+      height: 100,
+      heightUnits: SizeUnit.PERCENT,
+      width: labelTextWidth,
+      widthUnits: SizeUnit.PERCENT,
+    }],
+  }
+}
+
+const createCanvasFlexColumn = (drawer: CanvasDrawer, props: Options): InputColumn => {
+  const titleRow = createTitleRow(drawer, props)
+  const yAxisLabelColumn = createYAxisLabelColumn(drawer, props)
+  const graphColumn = createGraphColumn(props)
+  const xAxisLabelRow = createXAxisLabelRow(drawer, props)
+
+  return {
+    height: props.heightPx,
+    width: props.widthPx,
+    widthUnits: SizeUnit.PX,
+    rows: [
+      // -- Title
+      titleRow,
+      {
+        evenlyFillAvailableHeight: true,
+        width: 100,
+        widthUnits: SizeUnit.PERCENT,
+        columns: [
+          // -- LHS y-axis label
+          yAxisLabelColumn,
+          // Graph
+          graphColumn,
+        ],
+      },
+      // Bottom x-axis label
+      xAxisLabelRow,
+    ],
+  }
+}
+
 /**
  * ### Introduction
  *
@@ -247,7 +369,15 @@ export const createGraphGeometry = (canvas: HTMLCanvasElement, props: Options): 
     },
   }
 
-  const axesGeometry = createAxesGeometry(drawer, props, axesValueBound, axesValueRangeForceOptions)
+  const inputColumn = createCanvasFlexColumn(drawer, props)
+  // TODO: ADAPT ALL THE HORRIBLE AXES GEOMETRY CODE TO USE THIS!
+  const graphComponentRects = renderInputColumn(inputColumn)
+  drawer.rect(graphComponentRects[GraphComponents.TITLE_BAR], { lineOptions: { color: 'red' } })
+  drawer.rect(graphComponentRects[GraphComponents.Y_AXIS_TITLE], { lineOptions: { color: 'green' } })
+  drawer.rect(graphComponentRects[GraphComponents.CHART], { lineOptions: { color: 'blue' } })
+  drawer.rect(graphComponentRects[GraphComponents.X_AXIS_TITLE], { lineOptions: { color: 'purple' } })
+
+  const axesGeometry = createAxesGeometry(drawer, props, axesValueBound, axesValueRangeForceOptions, graphComponentRects[GraphComponents.CHART])
 
   // Calculate positioned datums, adding screen position and a focus point to each datum.
   const positionedDatums = mapDict(normalizedSeries, (seriesKey, datums) => (

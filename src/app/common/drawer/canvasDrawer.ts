@@ -41,7 +41,7 @@ export const createLinePath = (_line: Line): Path2D => {
 }
 
 const line = (state: CanvasDrawerState, _line: Line, lineOptions: LineOptions): Path2D => {
-  if (_line.length !== 2)
+  if (_line == null || _line.length !== 2)
     return null
 
   applyLineAndFillOptions(state, lineOptions, null)
@@ -65,6 +65,9 @@ const arc = (
   sector: CircularSector,
   drawOptions: DrawOptions,
 ): Path2D => {
+  if (sector == null)
+    return null
+
   const _drawOptions = drawOptions ?? { }
 
   applyLineAndFillOptions(state, _drawOptions.lineOptions, _drawOptions.fillOptions)
@@ -89,6 +92,9 @@ const circle = (
   _circle: Circle,
   drawOptions: DrawOptions,
 ): Path2D => {
+  if (_circle == null)
+    return null
+
   const _drawOptions = drawOptions ?? { }
 
   applyLineAndFillOptions(state, _drawOptions.lineOptions, _drawOptions.fillOptions)
@@ -106,7 +112,7 @@ const path = (
   _path: Path,
   drawOptions: DrawOptions,
 ): Path2D => {
-  if (_path.length < 1)
+  if (_path == null || _path.length < 1)
     return null
 
   const _drawOptions = drawOptions ?? { }
@@ -132,6 +138,9 @@ const rect = (
   _rect: Rect,
   drawOptions: DrawOptions,
 ): Path2D => {
+  if (_rect == null)
+    return null
+
   const _drawOptions = drawOptions ?? { }
   applyLineAndFillOptions(state, _drawOptions.lineOptions, _drawOptions.fillOptions)
 
@@ -155,6 +164,9 @@ const isoscelesTriangle = (
   boundingRect: Rect,
   drawOptions: DrawOptions,
 ): Path2D => {
+  if (boundingRect == null)
+    return null
+
   applyLineAndFillOptions(state, drawOptions.lineOptions, drawOptions.fillOptions)
 
   if ((drawOptions.stroke ?? true) && state.ctx.lineWidth === 0)
