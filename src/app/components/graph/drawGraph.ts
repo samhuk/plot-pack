@@ -17,6 +17,8 @@ import drawDatumErrorBarsForDatums, { getShouldShowErrorBars } from './errorBars
 import AxesGeometry from './types/AxesGeometry'
 import drawTitle from './title'
 import { CanvasDrawer } from '../../common/drawer/types'
+import GraphComponents from './types/GraphComponents'
+import GraphComponentRects from './types/GraphComponentRects'
 
 const getShouldShowLineOfBestFit = (props: Options, seriesKey: string) => (
   // Series visibility options takes precedence
@@ -78,10 +80,9 @@ const drawDatumMarkers = (
 const drawGraph = (
   drawer: CanvasDrawer,
   axesGeometry: AxesGeometry,
+  graphComponentRects: GraphComponentRects,
   props: Options,
 ) => {
-  const ctx = drawer.getRenderingContext()
-
   // Show axis lines by default
   if (getShouldShowAxisLine(props, Axis2D.X))
     drawAxisLine(drawer, axesGeometry, props, Axis2D.X)
@@ -106,9 +107,9 @@ const drawGraph = (
   if (getShouldShowAxisMarkerLabels(props, Axis2D.Y))
     drawAxisMarkerLabels(drawer, axesGeometry, Axis2D.Y, props)
 
-  drawAxesLabels(ctx, axesGeometry, props)
+  drawAxesLabels(drawer, graphComponentRects[GraphComponents.X_AXIS_TITLE], graphComponentRects[GraphComponents.Y_AXIS_TITLE], props)
 
-  drawTitle(ctx, props)
+  drawTitle(drawer, graphComponentRects[GraphComponents.TITLE_BAR], props)
 }
 
 const drawSeriesData = (
@@ -141,7 +142,7 @@ export const draw = (drawer: CanvasDrawer, g: GraphGeometry, props: Options) => 
   drawBackground(drawer, props)
 
   // Draw the base graph, i.e. axes lines, grid lines, labels, title, etc., but no series data.
-  drawGraph(drawer, g.axesGeometry, props)
+  drawGraph(drawer, g.axesGeometry, g.graphComponentRects, props)
 
   // Draw series data for each series, i.e. markers, error bars, connecting line, etc.
   Object.entries(g.positionedDatums)

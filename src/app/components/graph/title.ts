@@ -1,5 +1,7 @@
 import Options from './types/Options'
-import { measureTextWidth, measureTextLineHeight, applyTextOptionsToContext } from '../../common/helpers/canvas'
+import { measureTextLineHeight, applyTextOptionsToContext } from '../../common/helpers/canvas'
+import { CanvasDrawer } from '../../common/drawer/types'
+import { Rect } from '../../common/types/geometry'
 
 const DEFAULT_FONT_SIZE = 22
 const DEFAULT_COLOR = 'black'
@@ -11,20 +13,18 @@ export const getTitle = (props: Options) => props.title
 
 export const getTitleOptions = (props: Options) => props.titleOptions
 
-export const drawTitle = (ctx:CanvasRenderingContext2D, props: Options) => {
+export const drawTitle = (drawer: CanvasDrawer, textRect: Rect, props: Options) => {
   const text = getTitle(props)
 
   if (text == null)
     return
 
+  const ctx = drawer.getRenderingContext()
   applyTextOptionsToContext(ctx, props.titleOptions, null, DEFAULT_FONT_SIZE, DEFAULT_COLOR)
 
-  const textWidth = measureTextWidth(ctx, text)
   const lineHeight = measureTextLineHeight(ctx)
-  const x = (props.widthPx / 2) - (textWidth / 2)
-  const y = getExteriorMargin(props) + lineHeight
 
-  ctx.fillText(text, x, y)
+  ctx.fillText(text, textRect.x, textRect.y + lineHeight)
 }
 
 export default drawTitle

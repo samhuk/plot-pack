@@ -23,6 +23,7 @@ import { getAxisLabelText, getExteriorMargin as getAxisLabelExteriorMargin } fro
 import { getTitle, getTitleOptions, getExteriorMargin as getTitleExteriorMargin } from './title'
 import { measureTextLineHeight, measureTextWidth, applyTextOptionsToContext } from '../../common/helpers/canvas'
 import { CanvasDrawer } from '../../common/drawer/types'
+import GraphComponentRects from './types/GraphComponentRects'
 
 const DEFAULT_AXIS_MARGIN = 15
 
@@ -380,7 +381,15 @@ export const createGraphGeometry = (canvas: HTMLCanvasElement, props: Options): 
 
   const inputColumn = createCanvasFlexColumn(drawer, props)
   // TODO: ADAPT ALL THE HORRIBLE AXES GEOMETRY CODE TO USE THIS!
-  const graphComponentRects = renderInputColumn(inputColumn)
+  const graphComponentRectsRaw = renderInputColumn(inputColumn)
+  const graphComponentRects: GraphComponentRects = {
+    [GraphComponents.TITLE_BAR]: graphComponentRectsRaw[GraphComponents.TITLE_BAR],
+    [GraphComponents.Y_AXIS_TITLE]: graphComponentRectsRaw[GraphComponents.Y_AXIS_TITLE],
+    [GraphComponents.CHART]: graphComponentRectsRaw[GraphComponents.CHART],
+    [GraphComponents.X_AXIS_TITLE]: graphComponentRectsRaw[GraphComponents.X_AXIS_TITLE],
+    [GraphComponents.NAVIGATOR]: graphComponentRectsRaw[GraphComponents.NAVIGATOR],
+  }
+
   setTimeout((): void => {
     drawer.rect(graphComponentRects[GraphComponents.TITLE_BAR], { lineOptions: { color: 'red' } })
     drawer.rect(graphComponentRects[GraphComponents.Y_AXIS_TITLE], { lineOptions: { color: 'green' } })
@@ -415,5 +424,6 @@ export const createGraphGeometry = (canvas: HTMLCanvasElement, props: Options): 
     bestFitStraightLineEquations,
     positionedDatums,
     datumKdTrees,
+    graphComponentRects,
   }
 }

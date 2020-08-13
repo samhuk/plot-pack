@@ -1,7 +1,7 @@
 import Options from './types/Options'
-import { Axis2D } from '../../common/types/geometry'
+import { Axis2D, Rect } from '../../common/types/geometry'
 import { measureTextLineHeight, applyTextOptionsToContext } from '../../common/helpers/canvas'
-import AxesGeometry from './types/AxesGeometry'
+import { CanvasDrawer } from '../../common/drawer/types'
 
 const DEFAULT_FONT_FAMILY = 'Helvetica'
 const DEFAULT_FONT_SIZE = 14
@@ -13,40 +13,34 @@ export const getAxisLabelText = (props: Options, axis: Axis2D) => props.axesOpti
 
 export const getExteriorMargin = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.labelOptions?.exteriorMargin ?? DEFAULT_EXTERIOR_MARGIN
 
-const drawAxisLabel = (ctx: CanvasRenderingContext2D, axis: Axis2D, axesGeometry: AxesGeometry, props: Options) => {
+const drawAxisLabel = (drawer: CanvasDrawer, textRect: Rect, axis: Axis2D, props: Options) => {
   const text = getAxisLabelText(props, axis)
 
   if (text == null || text.length === 0)
     return
 
+  const ctx = drawer.getRenderingContext()
+
   // Set font early to get accurate text measurement
   applyTextOptionsToContext(ctx, props.axesOptions?.[axis]?.labelOptions, DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE, DEFAULT_COLOR)
 
-  const textWidth = ctx.measureText(text).width
   const lineHeight = measureTextLineHeight(ctx)
 
-  const exteriorMargin = getExteriorMargin(props, axis)
-
-  const x = axis === Axis2D.X
-    ? axesGeometry[Axis2D.X].pl + ((axesGeometry[Axis2D.X].pu - axesGeometry[Axis2D.X].pl) / 2) - (textWidth / 2)
-    : exteriorMargin + lineHeight
-
-  const y = axis === Axis2D.X
-    ? props.heightPx - (exteriorMargin)
-    : axesGeometry[Axis2D.Y].pl + ((axesGeometry[Axis2D.Y].pu - axesGeometry[Axis2D.Y].pl) / 2) + (textWidth / 2)
+  const { x } = textRect
+  const y = textRect.y + (axis === Axis2D.Y ? textRect.height : 0)
 
   ctx.save()
   ctx.translate(x, y)
   if (axis === Axis2D.Y)
     ctx.rotate(-Math.PI / 2)
   ctx.translate(-x, -y)
-  ctx.fillText(text, x, y)
+  ctx.fillText(text, x, y + lineHeight)
   ctx.restore()
 }
 
-export const drawAxesLabels = (ctx: CanvasRenderingContext2D, axesGeometry: AxesGeometry, props: Options) => {
-  drawAxisLabel(ctx, Axis2D.X, axesGeometry, props)
-  drawAxisLabel(ctx, Axis2D.Y, axesGeometry, props)
+export const drawAxesLabels = (drawer: CanvasDrawer, xAxisLabelTextRect: Rect, yAxisLabelTextRect: Rect, props: Options) => {
+  drawAxisLabel(drawer, xAxisLabelTextRect, Axis2D.X, props)
+  drawAxisLabel(drawer, yAxisLabelTextRect, Axis2D.Y, props)
 }
 
 export default drawAxesLabels
