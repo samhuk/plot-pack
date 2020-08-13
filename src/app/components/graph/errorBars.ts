@@ -1,4 +1,4 @@
-import PositionedDatum from './types/PositionedDatum'
+import ProcessedDatum from './types/ProcessedDatum'
 import { Axis2D } from '../../common/types/geometry'
 import Datum from './types/Datum'
 import ErrorBarsMode from './types/ErrorBarsMode'
@@ -152,20 +152,20 @@ const createErrorBarsPathX = (y: number, x1: number, x2: number, capSize: number
   return path
 }
 
-const createDatumErrorBarsPathY = (datum: PositionedDatum, capSize: number) => (
+const createDatumErrorBarsPathY = (datum: ProcessedDatum, capSize: number) => (
   (datum.pY as number[])[1] != null && (datum.pY as number[])[2] != null
     ? createErrorBarsPathY(datum.fpX, (datum.pY as number[])[1], (datum.pY as number[])[2], capSize)
     : null
 )
 
-const createDatumErrorBarsPathX = (datum: PositionedDatum, capSize: number) => (
+const createDatumErrorBarsPathX = (datum: ProcessedDatum, capSize: number) => (
   (datum.pX as number[])[1] != null && (datum.pX as number[])[2] != null
     ? createErrorBarsPathX(datum.fpY, (datum.pX as number[])[1], (datum.pX as number[])[2], capSize)
     : null
 )
 
 const createDatumErrorBarsPath = (
-  datum: PositionedDatum,
+  datum: ProcessedDatum,
   capSize: number,
   axis: Axis2D,
 ) => {
@@ -187,7 +187,7 @@ const createDatumErrorBarsPath = (
  */
 export const drawDatumErrorBarsForDatums = (
   ctx: CanvasRenderingContext2D,
-  datums: PositionedDatum[],
+  datums: ProcessedDatum[],
   props: Options,
   seriesKey: string,
   axis: Axis2D,

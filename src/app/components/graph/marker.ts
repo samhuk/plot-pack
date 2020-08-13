@@ -1,5 +1,5 @@
 import MarkerType from './types/MarkerType'
-import PositionedDatum from './types/PositionedDatum'
+import ProcessedDatum from './types/ProcessedDatum'
 import Options from './types/Options'
 import { CanvasDrawer } from '../../common/drawer/types'
 import { Path, PathComponentType } from '../../common/drawer/path/types'
@@ -148,9 +148,9 @@ export const drawStandardMarker = (
 
 export const drawCustomMarker = (
   ctx: CanvasRenderingContext2D,
-  datum: PositionedDatum,
-  preceedingDatum: PositionedDatum,
-  proceedingDatum: PositionedDatum,
+  datum: ProcessedDatum,
+  preceedingDatum: ProcessedDatum,
+  proceedingDatum: ProcessedDatum,
   props: Options,
   seriesKey: string,
 ) => {

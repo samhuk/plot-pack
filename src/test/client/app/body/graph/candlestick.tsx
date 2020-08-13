@@ -2,9 +2,9 @@ import React from 'react'
 import Graph from '../../../../../app/components/graph/react'
 import DatumFocusPointDeterminationMode from '../../../../../app/components/graph/types/DatumFocusPointDeterminationMode'
 import { Axis2D } from '../../../../../app/common/types/geometry'
-import PositionedDatum from '../../../../../app/components/graph/types/PositionedDatum'
+import ProcessedDatum from '../../../../../app/components/graph/types/ProcessedDatum'
 
-const drawCandlestickMarker = (ctx: CanvasRenderingContext2D, datum: PositionedDatum) => {
+const drawCandlestickMarker = (ctx: CanvasRenderingContext2D, datum: ProcessedDatum) => {
   const sticksPath = new Path2D()
   sticksPath.moveTo(datum.fpX, datum.pY[0]) // open
   sticksPath.lineTo(datum.fpX, datum.pY[1]) // high
@@ -19,7 +19,7 @@ const drawCandlestickMarker = (ctx: CanvasRenderingContext2D, datum: PositionedD
   const boxRect = new Path2D()
   boxRect.rect(datum.fpX - halfBoxWith, Math.min(datum.pY[0], datum.pY[3]), boxWidth, Math.abs(datum.pY[0] - datum.pY[3]))
 
-  const isLoss = datum.vY[0] > datum.vY[3]
+  const isLoss = datum.y[0] > datum.y[3]
   ctx.strokeStyle = isLoss ? 'red' : 'green'
   ctx.fillStyle = isLoss ? 'red' : 'green'
 

@@ -5,17 +5,14 @@ import GraphGeometry from './types/GraphGeometry'
 import BestFitLineType from './types/BestFitLineType'
 import { calculateStraightLineOfBestFit, calculateMean } from '../../common/helpers/stat'
 import { isInRange } from '../../common/helpers/math'
-import PositionedDatum from './types/PositionedDatum'
+import PositionedDatum from './types/ProcessedDatum'
 import { Axis2D } from '../../common/types/geometry'
 import DatumSnapMode from './types/DatumSnapMode'
 import DatumDistanceFunction from './types/DatumDistanceFunction'
 import { mapDict } from '../../common/helpers/dict'
 import DatumFocusPointDeterminationMode from './types/DatumFocusPointDeterminationMode'
-import UnfocusedPositionedDatum from './types/UnfocusedPositionedDatum'
-import DatumFocusPoint from './types/DatumFocusPoint'
 import { normalizeDatumsErrorBarsValues } from './errorBars'
 import { createAxesGeometry } from './axesGeometry'
-import { createCanvasDrawer } from '../../common/drawer/canvasDrawer'
 import { InputColumn, SizeUnit, InputRow, ColumnJustification, RowJustification } from '../../common/canvasFlex/types'
 import GraphComponents from './types/GraphComponents'
 import { renderInputColumn } from '../../common/canvasFlex/rendering'
@@ -25,6 +22,7 @@ import { measureTextLineHeight, measureTextWidth } from '../../common/helpers/ca
 import { CanvasDrawer } from '../../common/drawer/types'
 import GraphComponentRects from './types/GraphComponentRects'
 import { DEFAULT_NAVIGATOR_HEIGHT_PX } from './navigator'
+import DatumValueFocusPoint from './types/DatumValueFocusPoint'
 
 const DEFAULT_AXIS_MARGIN = 15
 
@@ -79,7 +77,7 @@ const calculateValueRangesOfDatums = (datums: Datum[]): AxesBound => {
   return { [Axis2D.X]: { lower: xMin, upper: xMax }, [Axis2D.Y]: { lower: yMin, upper: yMax } }
 }
 
-const calculateValueRangesOfSeries = (series: { [seriesKey: string]: Datum[] }): AxesBound => (
+export const calculateValueRangesOfSeries = (series: { [seriesKey: string]: Datum[] }): AxesBound => (
   Object.values(mapDict(series, (_, datums) => calculateValueRangesOfDatums(datums)))
     .reduce((acc, axesRange) => (acc == null
       ? axesRange
@@ -95,35 +93,29 @@ const calculateValueRangesOfSeries = (series: { [seriesKey: string]: Datum[] }):
       }), null)
 )
 
-const determineDatumFocusPoint = (
-  unfocusedPositionedDatum: UnfocusedPositionedDatum,
+const determineDatumValueFocusPoint = (
+  datum: Datum,
   datumFocusPointDeterminationMode: DatumFocusPointDeterminationMode,
-): DatumFocusPoint => {
-  const { vX, vY, pX, pY } = unfocusedPositionedDatum
-  const isXNumber = typeof unfocusedPositionedDatum.vX === 'number'
-  const isYNumber = typeof unfocusedPositionedDatum.vY === 'number'
+): DatumValueFocusPoint => {
+  const { x, y } = datum
+  const isXNumber = typeof x === 'number'
+  const isYNumber = typeof y === 'number'
 
   switch (datumFocusPointDeterminationMode ?? DatumFocusPointDeterminationMode.FIRST) {
     case DatumFocusPointDeterminationMode.FIRST:
       return {
-        fvX: isXNumber ? (vX as number) : (vX as number[])[0],
-        fvY: isYNumber ? (vY as number) : (vY as number[])[0],
-        fpX: isXNumber ? (pX as number) : (pX as number[])[0],
-        fpY: isYNumber ? (pY as number) : (pY as number[])[0],
+        fvX: isXNumber ? (x as number) : (x as number[])[0],
+        fvY: isYNumber ? (y as number) : (y as number[])[0],
       }
     case DatumFocusPointDeterminationMode.SECOND:
       return {
-        fvX: isXNumber ? (vX as number) : (vX as number[])[1],
-        fvY: isYNumber ? (vY as number) : (vY as number[])[1],
-        fpX: isXNumber ? (pX as number) : (pX as number[])[1],
-        fpY: isYNumber ? (pY as number) : (pY as number[])[1],
+        fvX: isXNumber ? (x as number) : (x as number[])[1],
+        fvY: isYNumber ? (y as number) : (y as number[])[1],
       }
     case DatumFocusPointDeterminationMode.AVERAGE:
       return {
-        fvX: isXNumber ? (vX as number) : calculateMean(vX as number[]),
-        fvY: isYNumber ? (vY as number) : calculateMean(vY as number[]),
-        fpX: isXNumber ? (pX as number) : calculateMean(pX as number[]),
-        fpY: isYNumber ? (pY as number) : calculateMean(pY as number[]),
+        fvX: isXNumber ? (x as number) : calculateMean(x as number[]),
+        fvY: isYNumber ? (y as number) : calculateMean(y as number[]),
       }
     default:
       return null
@@ -136,12 +128,12 @@ const mapDatumValueCoordinateToScreenPositionValue = (value: number | number[], 
     : (value as number[]).map(subValue => (subValue != null ? transformationFunction(subValue) : null))
 )
 
-const calculatePositionedDatums = (
+const calculateprocessedDatums = (
   datums: Datum[],
   xAxisPFn: (v: number) => number,
   yAxisPFn: (v: number) => number,
   axesValueBound: AxesBound,
-  datumFocusPointDeterminationMode: DatumFocusPointDeterminationMode | ((datum: UnfocusedPositionedDatum) => DatumFocusPoint),
+  datumValueFocusPointDeterminationMode: DatumFocusPointDeterminationMode | ((datum: Datum) => DatumValueFocusPoint),
 ): PositionedDatum[] => datums
   .filter(({ x, y }) => {
     const vlX = axesValueBound[Axis2D.X].lower
@@ -154,22 +146,19 @@ const calculatePositionedDatums = (
       typeof y === 'number' ? isInRange(vlY, vuY, y) : (isInRange(vlY, vuY, Math.min(...y)) && isInRange(vlY, vuY, Math.max(...y)))
     )
   })
-  .map(({ x, y }) => {
-    const pX = mapDatumValueCoordinateToScreenPositionValue(x, xAxisPFn)
-    const pY = mapDatumValueCoordinateToScreenPositionValue(y, yAxisPFn)
-    const unfocusedPositioneDatum: UnfocusedPositionedDatum = { vX: x, vY: y, pX, pY }
-    const focusPoint = typeof datumFocusPointDeterminationMode === 'function'
-      ? datumFocusPointDeterminationMode(unfocusedPositioneDatum)
-      : determineDatumFocusPoint(unfocusedPositioneDatum, datumFocusPointDeterminationMode)
+  .map(datum => {
+    const datumValueFocusPoint = typeof datumValueFocusPointDeterminationMode === 'function'
+      ? datumValueFocusPointDeterminationMode(datum)
+      : determineDatumValueFocusPoint(datum, datumValueFocusPointDeterminationMode)
     return {
-      vX: x,
-      vY: y,
-      pX,
-      pY,
-      fvX: focusPoint.fvX,
-      fvY: focusPoint.fvY,
-      fpX: focusPoint.fpX,
-      fpY: focusPoint.fpY,
+      x: datum.x,
+      y: datum.y,
+      pX: mapDatumValueCoordinateToScreenPositionValue(datum.x, xAxisPFn),
+      pY: mapDatumValueCoordinateToScreenPositionValue(datum.y, yAxisPFn),
+      fvX: datumValueFocusPoint.fvX,
+      fvY: datumValueFocusPoint.fvY,
+      fpX: xAxisPFn(datumValueFocusPoint.fvX),
+      fpY: yAxisPFn(datumValueFocusPoint.fvY),
     }
   })
 
@@ -361,9 +350,7 @@ const createCanvasFlexColumn = (drawer: CanvasDrawer, props: Options): InputColu
  * then overrun again, however this is an exceptional case. One can manually define the margin and padding
  * in that case...
  */
-export const createGraphGeometry = (canvas: HTMLCanvasElement, props: Options): GraphGeometry => {
-  const drawer = createCanvasDrawer(canvas, props.heightPx, props.widthPx)
-
+export const createGraphGeometry = (drawer: CanvasDrawer, props: Options): GraphGeometry => {
   const normalizedSeries = mapDict(props.series, (seriesKey, datums) => normalizeDatumsErrorBarsValues(datums, props, seriesKey))
 
   const datumValueRange = calculateValueRangesOfSeries(normalizedSeries)
@@ -417,12 +404,12 @@ export const createGraphGeometry = (canvas: HTMLCanvasElement, props: Options): 
   const axesGeometry = createAxesGeometry(drawer, props, axesValueBound, axesValueRangeForceOptions, graphComponentRects[GraphComponents.CHART])
 
   // Calculate positioned datums, adding screen position and a focus point to each datum.
-  const positionedDatums = mapDict(normalizedSeries, (seriesKey, datums) => (
-    calculatePositionedDatums(datums, axesGeometry[Axis2D.X].p, axesGeometry[Axis2D.Y].p, axesValueBound, props.datumFocusPointDeterminationMode)
+  const processedDatums = mapDict(normalizedSeries, (seriesKey, datums) => (
+    calculateprocessedDatums(datums, axesGeometry[Axis2D.X].p, axesGeometry[Axis2D.Y].p, axesValueBound, props.datumFocusPointDeterminationMode)
   ))
 
   // Calculate best fit straight line for each series
-  const bestFitStraightLineEquations = mapDict(positionedDatums, (seriesKey, datums) => (
+  const bestFitStraightLineEquations = mapDict(processedDatums, (seriesKey, datums) => (
     getBestFitLineType(props, seriesKey) === BestFitLineType.STRAIGHT
       ? calculateStraightLineOfBestFit(datums.map(d => ({ x: d.fvX, y: d.fvY })))
       : null
@@ -431,7 +418,7 @@ export const createGraphGeometry = (canvas: HTMLCanvasElement, props: Options): 
   // Create a K-D tree for the datums to provide quicker (as in, O(log(n)) complexity) nearest neighboor searching
   // eslint-disable-next-line new-cap
   const datumKdTrees = mapDict(normalizedSeries, seriesKey => new kdTree.kdTree(
-    positionedDatums[seriesKey],
+    processedDatums[seriesKey],
     createDatumDistanceFunction(props.datumSnapOptions?.mode),
     createDatumDimensionStringList(props.datumSnapOptions?.mode),
   ))
@@ -439,7 +426,7 @@ export const createGraphGeometry = (canvas: HTMLCanvasElement, props: Options): 
   return {
     axesGeometry,
     bestFitStraightLineEquations,
-    positionedDatums,
+    processedDatums,
     datumKdTrees,
     graphComponentRects,
   }

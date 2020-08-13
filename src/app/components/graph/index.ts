@@ -33,11 +33,11 @@ const applyContainerBoundingRectToOptions = (container: HTMLElement, options: In
 }
 
 const renderIntoCanvasElements = (canvasElements: CanvasElements, options: Options) => {
-  const graphGeometry = createGraphGeometry(canvasElements.graph, options)
-
   const staticContentDrawer = createCanvasDrawer(canvasElements.graph, options.heightPx, options.widthPx)
+  const graphGeometry = createGraphGeometry(staticContentDrawer, options)
+
   drawGraph(staticContentDrawer, graphGeometry, options)
-  drawNavigator(staticContentDrawer, graphGeometry.graphComponentRects[GraphComponents.NAVIGATOR], options)
+  drawNavigator(staticContentDrawer, graphGeometry.processedDatums, graphGeometry.graphComponentRects[GraphComponents.NAVIGATOR], options)
 
   renderInteractivity(canvasElements.interactivity, options, graphGeometry)
 }

@@ -5,7 +5,7 @@ import GraphGeometry from './types/GraphGeometry'
 import XAxisOrientation from './types/xAxisOrientation'
 import YAxisOrientation from './types/yAxisOrientation'
 import { drawCustomMarker, drawStandardMarker, getShouldShowCustomMarkers, getShouldShowMarkers } from './marker'
-import PositionedDatum from './types/PositionedDatum'
+import ProcessedDatum from './types/ProcessedDatum'
 import drawDatumsConnectingLine, { getShouldShowConnectingLine } from './connectingLine'
 import { drawAxisGridLines, getShouldShowAxisGridLines } from './axisGridLines'
 import { drawAxisMarkerLabels, getShouldShowAxisMarkerLabels } from './axisMarkerLabels'
@@ -57,22 +57,22 @@ export const getYAxisXPosition = (orientation: YAxisOrientation, plX: number, pu
 
 const drawCustomDatumMarkers = (
   ctx: CanvasRenderingContext2D,
-  positionedDatums: PositionedDatum[],
+  processedDatums: ProcessedDatum[],
   props: Options,
   seriesKey: string,
 ) => {
-  for (let i = 0; i < positionedDatums.length; i += 1)
-    drawCustomMarker(ctx, positionedDatums[i], positionedDatums[i - 1], positionedDatums[i + 1], props, seriesKey)
+  for (let i = 0; i < processedDatums.length; i += 1)
+    drawCustomMarker(ctx, processedDatums[i], processedDatums[i - 1], processedDatums[i + 1], props, seriesKey)
 }
 
 const drawDatumMarkers = (
   drawer: CanvasDrawer,
-  positionedDatums: PositionedDatum[],
+  processedDatums: ProcessedDatum[],
   props: Options,
   seriesKey: string,
 ) => {
-  for (let i = 0; i < positionedDatums.length; i += 1) {
-    const { fpX, fpY } = positionedDatums[i]
+  for (let i = 0; i < processedDatums.length; i += 1) {
+    const { fpX, fpY } = processedDatums[i]
     drawStandardMarker(drawer, fpX, fpY, props, seriesKey)
   }
 }
@@ -114,21 +114,21 @@ const drawBaseChart = (
 
 const drawSeriesData = (
   drawer: CanvasDrawer,
-  positionedDatums: PositionedDatum[],
+  processedDatums: ProcessedDatum[],
   props: Options,
   seriesKey: string,
 ) => {
   const ctx = drawer.getRenderingContext()
   if (getShouldShowCustomMarkers(props, seriesKey))
-    drawCustomDatumMarkers(ctx, positionedDatums, props, seriesKey)
+    drawCustomDatumMarkers(ctx, processedDatums, props, seriesKey)
   if (getShouldShowMarkers(props, seriesKey))
-    drawDatumMarkers(drawer, positionedDatums, props, seriesKey)
+    drawDatumMarkers(drawer, processedDatums, props, seriesKey)
   if (getShouldShowErrorBars(props, seriesKey, Axis2D.X))
-    drawDatumErrorBarsForDatums(ctx, positionedDatums, props, seriesKey, Axis2D.X)
+    drawDatumErrorBarsForDatums(ctx, processedDatums, props, seriesKey, Axis2D.X)
   if (getShouldShowErrorBars(props, seriesKey, Axis2D.Y))
-    drawDatumErrorBarsForDatums(ctx, positionedDatums, props, seriesKey, Axis2D.Y)
+    drawDatumErrorBarsForDatums(ctx, processedDatums, props, seriesKey, Axis2D.Y)
   if (getShouldShowConnectingLine(props, seriesKey))
-    drawDatumsConnectingLine(ctx, positionedDatums, props, seriesKey)
+    drawDatumsConnectingLine(ctx, processedDatums, props, seriesKey)
 }
 
 const drawBackground = (drawer: CanvasDrawer, props: Options) => {
@@ -138,8 +138,8 @@ const drawBackground = (drawer: CanvasDrawer, props: Options) => {
 
 const drawAllSeriesData = (drawer: CanvasDrawer, g: GraphGeometry, props: Options) => {
   // Draw series data for each series, i.e. markers, error bars, connecting line, etc.
-  Object.entries(g.positionedDatums)
-    .forEach(([seriesKey, positionedDatums]) => drawSeriesData(drawer, positionedDatums, props, seriesKey))
+  Object.entries(g.processedDatums)
+    .forEach(([seriesKey, processedDatums]) => drawSeriesData(drawer, processedDatums, props, seriesKey))
 
   // Draw straight lines of best fit for each series
   Object.entries(g.bestFitStraightLineEquations)

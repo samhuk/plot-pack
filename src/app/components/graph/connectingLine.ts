@@ -1,6 +1,6 @@
 import Options from './types/Options'
-import PositionedDatum from './types/PositionedDatum'
 import { Point2D } from '../../common/types/geometry'
+import DatumScreenFocusPoint from './types/DatumScreenFocusPoint'
 
 const DEFAULT_LINE_WIDTH = 2
 const DEFAULT_COLOR = 'black'
@@ -49,15 +49,15 @@ export const drawConnectingLine = (
   ctx.stroke(path)
 }
 
-const createDatumsConnectingLinePath = (positionedDatums: PositionedDatum[]): Path2D => {
-  if (positionedDatums.length < 2)
+const createDatumsConnectingLinePath = (datumScreenFocusPoints: DatumScreenFocusPoint[]): Path2D => {
+  if (datumScreenFocusPoints.length < 2)
     return null
 
   const path = new Path2D()
 
-  for (let i = 1; i < positionedDatums.length; i += 1) {
-    const prevDatum = positionedDatums[i - 1]
-    const { fpX, fpY } = positionedDatums[i]
+  for (let i = 1; i < datumScreenFocusPoints.length; i += 1) {
+    const prevDatum = datumScreenFocusPoints[i - 1]
+    const { fpX, fpY } = datumScreenFocusPoints[i]
     path.moveTo(prevDatum.fpX, prevDatum.fpY)
     path.lineTo(fpX, fpY)
   }
@@ -67,7 +67,7 @@ const createDatumsConnectingLinePath = (positionedDatums: PositionedDatum[]): Pa
 
 export const drawDatumsConnectingLine = (
   ctx: CanvasRenderingContext2D,
-  positionedDatums: PositionedDatum[],
+  datumScreenFocusPoints: DatumScreenFocusPoint[],
   props: Options,
   seriesKey: string,
 ) => {
@@ -78,7 +78,7 @@ export const drawDatumsConnectingLine = (
   ctx.strokeStyle = getConnectingLineColor(props, seriesKey)
   ctx.lineWidth = lineWidth
 
-  const path = createDatumsConnectingLinePath(positionedDatums)
+  const path = createDatumsConnectingLinePath(datumScreenFocusPoints)
 
   if (path !== null)
     ctx.stroke(path)

@@ -1,4 +1,4 @@
-import PositionedDatum from './types/PositionedDatum'
+import ProcessedDatum from './types/ProcessedDatum'
 import Options from './types/Options'
 import { getSize as getMarkerSize } from './marker'
 import DatumHighlightAppearanceType from './types/DatumHighlightAppearanceType'
@@ -7,19 +7,19 @@ import { boundToRange } from '../../common/helpers/math'
 const DEFAULT_DATUM_HIGHLIGHT_LINE_WIDTH = 1
 const DEFAULT_DATUM_HIGHLIGHT_COLOR = 'black'
 
-const createCircleDatumHighlightPath = (highlightedDatum: PositionedDatum, markerSize: number) => {
+const createCircleDatumHighlightPath = (highlightedDatum: ProcessedDatum, markerSize: number) => {
   const path = new Path2D()
   path.arc(highlightedDatum.fpX, highlightedDatum.fpY, 0.75 * markerSize, 0, 2 * Math.PI)
   return path
 }
 
-const createDotDatumHighlightPath = (highlightedDatum: PositionedDatum, markerSize: number) => {
+const createDotDatumHighlightPath = (highlightedDatum: ProcessedDatum, markerSize: number) => {
   const path = new Path2D()
   path.arc(highlightedDatum.fpX, highlightedDatum.fpY, 0.75 * markerSize, 0, 2 * Math.PI)
   return path
 }
 
-const createCrosshairDatumHighlightPath = (highlightedDatum: PositionedDatum, markerSize: number) => {
+const createCrosshairDatumHighlightPath = (highlightedDatum: ProcessedDatum, markerSize: number) => {
   const path = new Path2D()
   const distanceFromPoint = 0.75 * markerSize
   const hairLength = boundToRange(markerSize, 3, 5)
@@ -39,7 +39,7 @@ const createCrosshairDatumHighlightPath = (highlightedDatum: PositionedDatum, ma
   return path
 }
 
-const createPlushairDatumHighlightPath = (highlightedDatum: PositionedDatum, markerSize: number) => {
+const createPlushairDatumHighlightPath = (highlightedDatum: ProcessedDatum, markerSize: number) => {
   const path = new Path2D()
   const length = markerSize
 
@@ -59,7 +59,7 @@ const createPlushairDatumHighlightPath = (highlightedDatum: PositionedDatum, mar
 }
 
 const createDatumHighlightPath = (
-  highlightedDatum: PositionedDatum,
+  highlightedDatum: ProcessedDatum,
   appearanceType: DatumHighlightAppearanceType,
   markerSize: number,
 ) => {
@@ -77,7 +77,7 @@ const createDatumHighlightPath = (
   }
 }
 
-export const drawDatumHighlight = (ctx: CanvasRenderingContext2D, highlightedDatum: PositionedDatum, props: Options, seriesKey: string) => {
+export const drawDatumHighlight = (ctx: CanvasRenderingContext2D, highlightedDatum: ProcessedDatum, props: Options, seriesKey: string) => {
   const markerSize = getMarkerSize(props, seriesKey)
   const appearanceType = props.datumHighlightOptions?.type ?? DatumHighlightAppearanceType.CIRCLE
 

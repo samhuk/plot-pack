@@ -1,5 +1,5 @@
 import DatumHighlightAppearanceType from './DatumHighlightAppearanceType'
-import PositionedDatum from './PositionedDatum'
+import ProcessedDatum from './ProcessedDatum'
 import Options from './Options'
 
 export type DatumHighlightOptions = {
@@ -10,7 +10,7 @@ export type DatumHighlightOptions = {
   customHighlightOptions?: {
     customHighlightFunction: (
       ctx: CanvasRenderingContext2D,
-      highlightedDatum: PositionedDatum,
+      highlightedDatum: ProcessedDatum,
       props: Options,
       seriesKey: string
     ) => void

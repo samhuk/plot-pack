@@ -7,7 +7,7 @@ import { measureTextWidth,
   createRoundedRect,
   applyTextOptionsToContext,
   applyLineOptionsToContext } from '../../common/helpers/canvas'
-import PositionedDatum from './types/PositionedDatum'
+import ProcessedDatum from './types/ProcessedDatum'
 import { getSize as getMarkerSize, drawStandardMarker, getShouldShowMarkers } from './marker'
 import { drawConnectingLine, getShouldShowConnectingLine } from './connectingLine'
 import { formatNumber } from './axisMarkerLabels'
@@ -229,8 +229,8 @@ const createSeriesLabelValueColumn = (
 export const draw = (
   drawer: CanvasDrawer,
   cursorPoint: Point2D,
-  highlightedDatums: { [seriesKey: string]: PositionedDatum },
-  nearestDatumOfAllSeries: PositionedDatum,
+  highlightedDatums: { [seriesKey: string]: ProcessedDatum },
+  nearestDatumOfAllSeries: ProcessedDatum,
   props: Options,
 ) => {
   const ctx = drawer.getRenderingContext()

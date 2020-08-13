@@ -1,5 +1,5 @@
-import PositionedDatum from './PositionedDatum'
+import ProcessedDatum from './ProcessedDatum'
 
-export type DatumDistanceFunction = (datum1: PositionedDatum, datum2: PositionedDatum) => number
+export type DatumDistanceFunction = (datum1: ProcessedDatum, datum2: ProcessedDatum) => number
 
 export default DatumDistanceFunction

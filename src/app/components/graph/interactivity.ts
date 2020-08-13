@@ -5,7 +5,7 @@ import { Point2D, Axis2D } from '../../common/types/geometry'
 import { getShouldDrawCursorPositionValueLabel, drawCursorPositionValueLabel } from './cursorPositionValueLabel'
 import { getShouldDrawCursorPositionLine, drawCursorPositionLine } from './cursorPositionLine'
 import { drawDatumHighlight } from './datumHighlight'
-import PositionedDatum from './types/PositionedDatum'
+import ProcessedDatum from './types/ProcessedDatum'
 import KdTree from './types/KdTree'
 import { mapDict, filterDict } from '../../common/helpers/dict'
 import { createDatumDistanceFunction } from './geometry'
@@ -14,24 +14,24 @@ import DatumSnapMode from './types/DatumSnapMode'
 import { CanvasDrawer } from '../../common/drawer/types'
 import { createCanvasDrawer } from '../../common/drawer/canvasDrawer'
 
-type NearestDatum = PositionedDatum & {
+type NearestDatum = ProcessedDatum & {
   dp: number
 }
 
 const determineNearestDatum = (
-  kdTree: KdTree<PositionedDatum>,
+  kdTree: KdTree<ProcessedDatum>,
   cursorPoint: Point2D,
   datumFocusDistanceThresholdPx: number,
 ): NearestDatum => {
   // The KD tree only relies on the focus position of the datum, i.e. the fpX and fpY values
-  const point: PositionedDatum = { fpX: cursorPoint.x, fpY: cursorPoint.y, fvX: null, fvY: null, pX: null, pY: null, vX: null, vY: null }
+  const point: ProcessedDatum = { fpX: cursorPoint.x, fpY: cursorPoint.y, fvX: null, fvY: null, pX: null, pY: null, x: null, y: null }
   const nearestDatumResult = kdTree.nearest(point, 1)
   if (datumFocusDistanceThresholdPx == null || nearestDatumResult[0][1] <= datumFocusDistanceThresholdPx) {
     return {
       pX: nearestDatumResult[0][0].pX,
       pY: nearestDatumResult[0][0].pY,
-      vX: nearestDatumResult[0][0].vX,
-      vY: nearestDatumResult[0][0].vY,
+      x: nearestDatumResult[0][0].x,
+      y: nearestDatumResult[0][0].y,
       fvX: nearestDatumResult[0][0].fvX,
       fvY: nearestDatumResult[0][0].fvY,
       fpX: nearestDatumResult[0][0].fpX,
@@ -44,7 +44,7 @@ const determineNearestDatum = (
 }
 
 const determineNearestDatums = (
-  kdTrees: { [seriesKey: string]: KdTree<PositionedDatum> },
+  kdTrees: { [seriesKey: string]: KdTree<ProcessedDatum> },
   cursorPoint: Point2D,
   datumFocusDistanceThresholdPx: number,
   seriesExcludedFromDatumHighlighting: string[],
@@ -56,7 +56,7 @@ const determineNearestDatums = (
   ))
 )
 
-const drawDatumHighlightInternal = (ctx: CanvasRenderingContext2D, nearestDatum: PositionedDatum, props: Options, seriesKey: string) => {
+const drawDatumHighlightInternal = (ctx: CanvasRenderingContext2D, nearestDatum: ProcessedDatum, props: Options, seriesKey: string) => {
   const shouldDraw = nearestDatum != null
 
   if (!shouldDraw)

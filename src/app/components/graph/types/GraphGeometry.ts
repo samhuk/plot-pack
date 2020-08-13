@@ -1,5 +1,5 @@
 import { StraightLineEquation } from '../../../common/types/geometry'
-import PositionedDatum from './PositionedDatum'
+import ProcessedDatum from './ProcessedDatum'
 import KdTree from './KdTree'
 import AxesGeometry from './AxesGeometry'
 import GraphComponentRects from './GraphComponentRects'
@@ -10,9 +10,9 @@ import GraphComponentRects from './GraphComponentRects'
  */
 export type GraphGeometry = {
   axesGeometry: AxesGeometry,
-  positionedDatums: { [seriesKey: string]: PositionedDatum[] }
+  processedDatums: { [seriesKey: string]: ProcessedDatum[] }
   bestFitStraightLineEquations: { [seriesKey: string]: StraightLineEquation }
-  datumKdTrees: { [seriesKey: string]: KdTree<PositionedDatum> }
+  datumKdTrees: { [seriesKey: string]: KdTree<ProcessedDatum> }
   graphComponentRects: GraphComponentRects
 }
 

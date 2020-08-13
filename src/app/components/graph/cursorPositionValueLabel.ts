@@ -1,7 +1,7 @@
 import { Options } from './types/Options'
 import { Axis2D, Point2D } from '../../common/types/geometry'
 import { createTextStyle, measureTextLineHeight, createRoundedRect } from '../../common/helpers/canvas'
-import PositionedDatum from './types/PositionedDatum'
+import ProcessedDatum from './types/ProcessedDatum'
 import AxesGeometry from './types/AxesGeometry'
 import { formatNumber } from './axisMarkerLabels'
 
@@ -69,7 +69,7 @@ const drawLabelBackgroundRect = (ctx: CanvasRenderingContext2D, rectPath: Path2D
 const drawXAxisCursorPositionValueLabel = (
   ctx: CanvasRenderingContext2D,
   cursorPoint: Point2D,
-  nearestDatum: PositionedDatum,
+  nearestDatum: ProcessedDatum,
   axesGeometry: AxesGeometry,
   props: Options,
 ) => {
@@ -98,7 +98,7 @@ const drawXAxisCursorPositionValueLabel = (
 const drawYAxisCursorPositionValueLabel = (
   ctx: CanvasRenderingContext2D,
   cursorPoint: Point2D,
-  nearestDatum: PositionedDatum,
+  nearestDatum: ProcessedDatum,
   axesGeometry: AxesGeometry,
   props: Options,
 ) => {
@@ -129,7 +129,7 @@ const drawYAxisCursorPositionValueLabel = (
 export const drawCursorPositionValueLabel = (
   ctx: CanvasRenderingContext2D,
   cursorPoint: Point2D,
-  nearestDatum: PositionedDatum,
+  nearestDatum: ProcessedDatum,
   axesGeometry: AxesGeometry,
   axis: Axis2D,
   props: Options,

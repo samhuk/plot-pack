@@ -1,5 +1,5 @@
 import MarkerType from './MarkerType'
-import PositionedDatum from './PositionedDatum'
+import ProcessedDatum from './ProcessedDatum'
 
 export type MarkerOptions = {
   type?: MarkerType
@@ -10,9 +10,9 @@ export type MarkerOptions = {
     doesCompliment?: boolean
     customRenderFunction: (
       ctx: CanvasRenderingContext2D,
-      datum: PositionedDatum,
-      preceedingDatum: PositionedDatum,
-      proceedingDatum: PositionedDatum,
+      datum: ProcessedDatum,
+      preceedingDatum: ProcessedDatum,
+      proceedingDatum: ProcessedDatum,
     ) => void
   }
 }

@@ -1,5 +1,5 @@
 import { Options } from './types/Options'
-import PositionedDatum from './types/PositionedDatum'
+import ProcessedDatum from './types/ProcessedDatum'
 import { Axis2D, Point2D } from '../../common/types/geometry'
 import AxesGeometry from './types/AxesGeometry'
 import { applyLineOptionsToContext } from '../../common/helpers/canvas'
@@ -22,7 +22,7 @@ const createCursorLinePath = (
   axis: Axis2D,
   cursorPoint: Point2D,
   axesGeometry: AxesGeometry,
-  nearestDatum: PositionedDatum,
+  nearestDatum: ProcessedDatum,
   props: Options,
 ) => {
   switch (axis) {
@@ -60,7 +60,7 @@ export const getShouldDrawCursorPositionLine = (props: Options, axis: Axis2D) =>
 export const drawCursorPositionLine = (
   ctx: CanvasRenderingContext2D,
   cursorPoint: Point2D,
-  nearestDatum: PositionedDatum,
+  nearestDatum: ProcessedDatum,
   axesGeometry: AxesGeometry,
   axis: Axis2D,
   props: Options,
