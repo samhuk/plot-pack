@@ -1,14 +1,20 @@
 import { Rect } from '../types/geometry'
 
+export enum RowJustification {
+  TOP,
+  BOTTOM,
+  CENTER,
+}
+
 export enum ColumnJustification {
   LEFT,
   RIGHT,
-  CENTER
+  CENTER,
 }
 
 export enum SizeUnit {
   PX,
-  PERCENT
+  PERCENT,
 }
 
 export type InputMargin = number | Margin
@@ -64,6 +70,7 @@ export type InputColumn = ElementOptions & {
 
   evenlyFillAvailableWidth?: boolean
 
+  rowJustification?: RowJustification
   render?: (rect: Rect, index: number) => void
 }
 
@@ -97,6 +104,7 @@ export type Column = ElementOptions & {
   evenlyFillAvailableWidth?: boolean
 
   numRows?: number
+  rowJustification?: RowJustification
   render?: (rect: Rect, index: number) => void
 
   boundingHeight: number

@@ -1,5 +1,5 @@
 /* eslint-disable no-use-before-define */
-import { Column, Row, ColumnJustification, SizeUnit, InputPadding, Margin, InputColumn, CalculatedRects } from './types'
+import { Column, Row, ColumnJustification, SizeUnit, InputPadding, Margin, InputColumn, CalculatedRects, RowJustification } from './types'
 import { Rect } from '../types/geometry'
 import { getNormalizedMargin } from './margin'
 import { getNormalizedPadding } from './padding'
@@ -69,6 +69,19 @@ const renderRowColumnTemplate = (rect: Rect, columnTemplate: Column, numColumns:
   return calculatedRects
 }
 
+const getStartingYOfRows = (totalRowHeight: number, columnY: number, columnHeight: number, rowJustification: RowJustification) => {
+  switch (rowJustification) {
+    case RowJustification.TOP:
+      return columnY
+    case RowJustification.BOTTOM:
+      return columnY + columnHeight - totalRowHeight
+    case RowJustification.CENTER:
+      return columnY + (columnHeight / 2) - (totalRowHeight / 2)
+    default:
+      return columnY
+  }
+}
+
 const getStartingXOfColumns = (totalColumnWidth: number, rowX: number, rowWidth: number, columnJustification: ColumnJustification) => {
   switch (columnJustification) {
     case ColumnJustification.LEFT:
@@ -104,19 +117,22 @@ const renderColumnRows = (rect: Rect, column: Column): CalculatedRects => {
   const totalImplicitHeight = Math.max(0, rect.height - totalExplicitHeight)
   const numRowsWithImplicitHeight = _rows.filter(row => (row.height == null && row.evenlyFillAvailableHeight)).length
 
-  const heightPerRowWithUndefinedHeight = numRowsWithImplicitHeight === 0
+  const heightPerRowWithImplicitHeight = numRowsWithImplicitHeight === 0
     ? 0
     : totalImplicitHeight / numRowsWithImplicitHeight
 
   const calculatedRects: CalculatedRects = {}
 
-  let { y } = rect
+  let y = column.rowJustification != null && heightPerRowWithImplicitHeight === 0
+    ? getStartingYOfRows(totalExplicitHeight, rect.y, rect.height, column.rowJustification)
+    : rect.y
+
   _rows
     .map((row): { row: Row, rect: Rect } => {
       const rowMargin = getNormalizedMargin(row.margin)
 
       const width = getRowWidth(rect, row, rowMargin)
-      const height = getRowHeight(rect, row, rowMargin, heightPerRowWithUndefinedHeight)
+      const height = getRowHeight(rect, row, rowMargin, heightPerRowWithImplicitHeight)
 
       const x = rect.x + rowMargin.left
       y += rowMargin.top
