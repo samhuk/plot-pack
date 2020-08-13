@@ -10,7 +10,7 @@ import { Path, PathComponentType } from './path/types'
 const applyLineOptions = (state: CanvasDrawerState, lineOptions: LineOptions, fallbackOptions: LineOptions) => {
   state.ctx.lineWidth = lineOptions?.lineWidth ?? fallbackOptions?.lineWidth ?? 1
   state.ctx.setLineDash(lineOptions?.dashPattern ?? fallbackOptions?.dashPattern ?? [])
-  state.ctx.strokeStyle = lineOptions?.color ?? fallbackOptions.color ?? 'black'
+  state.ctx.strokeStyle = lineOptions?.color ?? fallbackOptions?.color ?? 'black'
 }
 
 const applyFillOptions = (state: CanvasDrawerState, fillOptions: FillOptions, fallbackOptions: FillOptions) => {
@@ -27,7 +27,7 @@ const applyLineAndFillOptions = (state: CanvasDrawerState, lineOptions: LineOpti
 }
 
 const applyTextOptions = (state: CanvasDrawerState, textOptions: TextOptionsBase, fallbackOptions: TextOptionsBase) => {
-  applyTextOptionsToContext(state.ctx, textOptions, fallbackOptions.fontFamily, fallbackOptions.fontSize, fallbackOptions.color)
+  applyTextOptionsToContext(state.ctx, textOptions, fallbackOptions?.fontFamily, fallbackOptions?.fontSize, fallbackOptions?.color)
 }
 
 const drawPath2D = (state: CanvasDrawerState, _path: Path2D, stroke: boolean = true, fill: boolean = false) => {
@@ -191,6 +191,9 @@ const clearRenderingSpace = (state: CanvasDrawerState, rectToClear: Rect) => {
 }
 
 const text = (state: CanvasDrawerState, _text: string, position: Point2D, textOptions: TextOptions) => {
+  if (textOptions != null)
+    applyTextOptions(state, textOptions, null)
+
   const textLineHeightMetrics = getTextLineHeightMetrics(state.ctx)
 
   const textX = position.x

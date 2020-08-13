@@ -8,6 +8,7 @@ export type VisibilityOptions = {
   showStraightLineOfBestFit?: boolean
   showTooltip?: boolean
   showDatumHighlight?: boolean
+  showNavigator?: boolean
 }
 
 export default VisibilityOptions

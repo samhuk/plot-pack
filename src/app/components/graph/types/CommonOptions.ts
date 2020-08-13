@@ -13,6 +13,7 @@ import DatumFocusPointDeterminationMode from './DatumFocusPointDeterminationMode
 import UnfocusedPositionedDatum from './UnfocusedPositionedDatum'
 import DatumFocusPoint from './DatumFocusPoint'
 import ErrorBarsOptions from './ErrorBarsOptions'
+import NavigatorOptions from './NavigatorOptions'
 
 /**
  * Options for the Graph
@@ -36,6 +37,7 @@ export type CommonOptions = {
   bestFitLineOptions?: BestFitLineOptions
   datumHighlightOptions?: DatumHighlightOptions
   datumSnapOptions?: DatumSnapOptions
+  navigatorOptions?: NavigatorOptions
 }
 
 export default CommonOptions

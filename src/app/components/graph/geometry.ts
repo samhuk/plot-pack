@@ -24,6 +24,7 @@ import { getTitle, getExteriorMargin as getTitleExteriorMargin, applyTitleTextOp
 import { measureTextLineHeight, measureTextWidth } from '../../common/helpers/canvas'
 import { CanvasDrawer } from '../../common/drawer/types'
 import GraphComponentRects from './types/GraphComponentRects'
+import { DEFAULT_NAVIGATOR_HEIGHT_PX } from './navigator'
 
 const DEFAULT_AXIS_MARGIN = 15
 
@@ -292,11 +293,25 @@ const createXAxisLabelRow = (drawer: CanvasDrawer, props: Options): InputRow => 
   }
 }
 
+const createNavigatorRow = (props: Options): InputRow => {
+  if (props.visibilityOptions?.showNavigator ?? false)
+    return null
+
+  return {
+    height: props.navigatorOptions?.height ?? DEFAULT_NAVIGATOR_HEIGHT_PX,
+    heightUnits: props.navigatorOptions?.height != null ? (props.navigatorOptions?.heightUnit ?? SizeUnit.PX) : SizeUnit.PX,
+    width: 100,
+    widthUnits: SizeUnit.PERCENT,
+    id: GraphComponents.NAVIGATOR,
+  }
+}
+
 const createCanvasFlexColumn = (drawer: CanvasDrawer, props: Options): InputColumn => {
   const titleRow = createTitleRow(drawer, props)
   const yAxisLabelColumn = createYAxisLabelColumn(drawer, props)
   const graphColumn = createGraphColumn(props)
   const xAxisLabelRow = createXAxisLabelRow(drawer, props)
+  const navigatorRow = createNavigatorRow(props)
 
   return {
     height: props.heightPx,
@@ -318,6 +333,7 @@ const createCanvasFlexColumn = (drawer: CanvasDrawer, props: Options): InputColu
       },
       // Bottom x-axis label
       xAxisLabelRow,
+      navigatorRow,
     ],
   }
 }
@@ -395,6 +411,7 @@ export const createGraphGeometry = (canvas: HTMLCanvasElement, props: Options): 
     drawer.rect(graphComponentRects[GraphComponents.Y_AXIS_TITLE], { lineOptions: { color: 'green' } })
     drawer.rect(graphComponentRects[GraphComponents.CHART], { lineOptions: { color: 'blue' } })
     drawer.rect(graphComponentRects[GraphComponents.X_AXIS_TITLE], { lineOptions: { color: 'purple' } })
+    drawer.rect(graphComponentRects[GraphComponents.NAVIGATOR], { lineOptions: { color: 'orange' } })
   })
 
   const axesGeometry = createAxesGeometry(drawer, props, axesValueBound, axesValueRangeForceOptions, graphComponentRects[GraphComponents.CHART])

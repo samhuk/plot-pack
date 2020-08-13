@@ -1,12 +1,15 @@
 import ResizeObserver from 'resize-observer-polyfill'
 import Options from './types/Options'
-import renderGraph from './graph'
 import { createGraphGeometry } from './geometry'
 import renderInteractivity from './interactivity'
 import CanvasElements from './types/CanvasElements'
 import cloneInputOptions from './optionsHelper'
 import { RenderedGraph } from './types/RenderedGraph'
 import InputOptions from './types/InputOptions'
+import { createCanvasDrawer } from '../../common/drawer/canvasDrawer'
+import { drawNavigator } from './navigator'
+import GraphComponents from './types/GraphComponents'
+import { drawGraph } from './graph'
 
 const CONTAINER_CLASS = 'pp-graph'
 
@@ -31,7 +34,11 @@ const applyContainerBoundingRectToOptions = (container: HTMLElement, options: In
 
 const renderIntoCanvasElements = (canvasElements: CanvasElements, options: Options) => {
   const graphGeometry = createGraphGeometry(canvasElements.graph, options)
-  renderGraph(canvasElements.graph, options, graphGeometry)
+
+  const staticContentDrawer = createCanvasDrawer(canvasElements.graph, options.heightPx, options.widthPx)
+  drawGraph(staticContentDrawer, graphGeometry, options)
+  drawNavigator(staticContentDrawer, graphGeometry.graphComponentRects[GraphComponents.NAVIGATOR], options)
+
   renderInteractivity(canvasElements.interactivity, options, graphGeometry)
 }
 
@@ -108,6 +115,9 @@ const bindContainerResizeToResizeFunction = (
 }
 
 export const render = (container: HTMLElement, options: InputOptions): RenderedGraph => {
+  if (options.series == null || Object.keys(options.series).length === 0)
+    return null
+
   const inputOptions: InputOptions = cloneInputOptions(options)
   const canvasElements = createCanvasElements()
 
