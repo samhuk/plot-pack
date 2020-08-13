@@ -1,7 +1,7 @@
-import { CanvasDrawer, CanvasDrawerState, DrawOptions } from './types'
-import { get2DContext } from '../helpers/canvas'
-import { LineOptions, FillOptions } from '../types/canvas'
-import { Line, CircularSector, Rect, Circle } from '../types/geometry'
+import { CanvasDrawer, CanvasDrawerState, DrawOptions, TextOptions } from './types'
+import { get2DContext, measureTextLineHeight, applyTextOptionsToContext } from '../helpers/canvas'
+import { LineOptions, FillOptions, TextOptions as TextOptionsBase } from '../types/canvas'
+import { Line, CircularSector, Rect, Circle, Point2D } from '../types/geometry'
 import { createPath2DFromPath } from './path/path'
 import { Path, PathComponentType } from './path/types'
 
@@ -17,11 +17,17 @@ const applyFillOptions = (state: CanvasDrawerState, fillOptions: FillOptions, fa
   state.ctx.fillStyle = fillOptions?.color ?? fallbackOptions?.color ?? 'black'
 }
 
+/* eslint-enable no-param-reassign */
+
 const applyLineAndFillOptions = (state: CanvasDrawerState, lineOptions: LineOptions, fillOptions: FillOptions) => {
   if (lineOptions != null)
     applyLineOptions(state, lineOptions, null)
   if (fillOptions != null)
     applyFillOptions(state, fillOptions, null)
+}
+
+const applyTextOptions = (state: CanvasDrawerState, textOptions: TextOptionsBase, fallbackOptions: TextOptionsBase) => {
+  applyTextOptionsToContext(state.ctx, textOptions, fallbackOptions.fontFamily, fallbackOptions.fontSize, fallbackOptions.color)
 }
 
 const drawPath2D = (state: CanvasDrawerState, _path: Path2D, stroke: boolean = true, fill: boolean = false) => {
@@ -184,6 +190,24 @@ const clearRenderingSpace = (state: CanvasDrawerState, rectToClear: Rect) => {
     state.ctx.clearRect(0, 0, state.ctx.canvas.height, state.ctx.canvas.width)
 }
 
+const text = (state: CanvasDrawerState, _text: string, position: Point2D, textOptions: TextOptions) => {
+  const lineHeight = measureTextLineHeight(state.ctx)
+
+  const textX = position.x
+  const textY = position.y + lineHeight
+
+  const shouldRotate = textOptions?.angle != null
+  if (shouldRotate) {
+    state.ctx.save()
+    state.ctx.translate(position.x, position.y)
+    state.ctx.rotate(textOptions.angle)
+    state.ctx.translate(-position.x, -position.y)
+  }
+  state.ctx.fillText(_text, textX, textY)
+  if (shouldRotate)
+    state.ctx.restore()
+}
+
 export const createCanvasDrawer = (
   canvasElement: HTMLCanvasElement,
   height: number,
@@ -197,6 +221,7 @@ export const createCanvasDrawer = (
   return {
     applyLineOptions: (lineOptions, fallbackOptions) => applyLineOptions(state, lineOptions, fallbackOptions),
     applyFillOptions: (fillOptions, fallbackOptions) => applyFillOptions(state, fillOptions, fallbackOptions),
+    applyTextOptions: (textOptions, fallbackOptions) => applyTextOptions(state, textOptions, fallbackOptions),
     getRenderingContext: () => state.ctx,
     line: (_line, lineOptions) => line(state, _line, lineOptions),
     arc: (sector, drawOptions) => arc(state, sector, drawOptions),
@@ -207,5 +232,6 @@ export const createCanvasDrawer = (
       isoscelesTriangle(state, boundingRect, drawOptions)
     ),
     clearRenderingSpace: rectToClear => clearRenderingSpace(state, rectToClear),
+    text: (_text, position, textOptions) => text(state, _text, position, textOptions),
   }
 }

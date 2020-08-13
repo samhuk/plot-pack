@@ -1,11 +1,13 @@
 import Options from './types/Options'
 import { Axis2D, Rect } from '../../common/types/geometry'
-import { measureTextLineHeight, applyTextOptionsToContext } from '../../common/helpers/canvas'
 import { CanvasDrawer } from '../../common/drawer/types'
+import { TextOptions } from '../../common/types/canvas'
 
-const DEFAULT_FONT_FAMILY = 'Helvetica'
-const DEFAULT_FONT_SIZE = 14
-const DEFAULT_COLOR = 'black'
+const DEFAULT_LABEL_TEXT_OPTIONS: TextOptions = {
+  color: 'black',
+  fontFamily: 'Helvetica',
+  fontSize: 14,
+}
 
 const DEFAULT_EXTERIOR_MARGIN = 15
 
@@ -19,23 +21,12 @@ const drawAxisLabel = (drawer: CanvasDrawer, textRect: Rect, axis: Axis2D, props
   if (text == null || text.length === 0)
     return
 
-  const ctx = drawer.getRenderingContext()
+  drawer.applyTextOptions(props.axesOptions?.[axis]?.labelOptions, DEFAULT_LABEL_TEXT_OPTIONS)
 
-  // Set font early to get accurate text measurement
-  applyTextOptionsToContext(ctx, props.axesOptions?.[axis]?.labelOptions, DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE, DEFAULT_COLOR)
-
-  const lineHeight = measureTextLineHeight(ctx)
-
-  const { x } = textRect
-  const y = textRect.y + (axis === Axis2D.Y ? textRect.height : 0)
-
-  ctx.save()
-  ctx.translate(x, y)
-  if (axis === Axis2D.Y)
-    ctx.rotate(-Math.PI / 2)
-  ctx.translate(-x, -y)
-  ctx.fillText(text, x, y + lineHeight)
-  ctx.restore()
+  if (axis === Axis2D.X)
+    drawer.text(text, textRect)
+  else
+    drawer.text(text, { x: textRect.x, y: textRect.y + textRect.height }, { angle: -Math.PI / 2 })
 }
 
 export const drawAxesLabels = (drawer: CanvasDrawer, xAxisLabelTextRect: Rect, yAxisLabelTextRect: Rect, props: Options) => {
