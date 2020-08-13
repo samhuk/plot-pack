@@ -64,6 +64,11 @@ export const measureTextLineHeight = (ctx: CanvasRenderingContext2D, text?: stri
   return (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent)
 }
 
+export const getTextLineHeightMetrics = (ctx: CanvasRenderingContext2D, text?: string) => {
+  const metrics = ctx.measureText(text ?? 'gQ')
+  return { ascent: metrics.actualBoundingBoxAscent, descent: metrics.actualBoundingBoxDescent }
+}
+
 export const measureTextWidth = (ctx: CanvasRenderingContext2D, text: string) => ctx.measureText(text).width
 
 export const getDprCorrectedEventPosition = (e: MouseEvent): Point2D => ({

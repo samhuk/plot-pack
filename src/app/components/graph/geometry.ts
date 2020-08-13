@@ -19,9 +19,9 @@ import { createCanvasDrawer } from '../../common/drawer/canvasDrawer'
 import { InputColumn, SizeUnit, InputRow, ColumnJustification, RowJustification } from '../../common/canvasFlex/types'
 import GraphComponents from './types/GraphComponents'
 import { renderInputColumn } from '../../common/canvasFlex/rendering'
-import { getAxisLabelText, getExteriorMargin as getAxisLabelExteriorMargin } from './axisLabels'
-import { getTitle, getTitleOptions, getExteriorMargin as getTitleExteriorMargin } from './title'
-import { measureTextLineHeight, measureTextWidth, applyTextOptionsToContext } from '../../common/helpers/canvas'
+import { getAxisLabelText, getExteriorMargin as getAxisLabelExteriorMargin, applyAxisLabelTextOptionsToDrawer } from './axisLabels'
+import { getTitle, getExteriorMargin as getTitleExteriorMargin, applyTitleTextOptionsToDrawer } from './title'
+import { measureTextLineHeight, measureTextWidth } from '../../common/helpers/canvas'
 import { CanvasDrawer } from '../../common/drawer/types'
 import GraphComponentRects from './types/GraphComponentRects'
 
@@ -205,7 +205,7 @@ const createTitleRow = (drawer: CanvasDrawer, props: Options): InputRow => {
   if (titleText == null)
     return null
 
-  applyTextOptionsToContext(drawer.getRenderingContext(), getTitleOptions(props))
+  applyTitleTextOptionsToDrawer(drawer, props)
   const titleTextHeight = measureTextLineHeight(drawer.getRenderingContext())
   const titleTextWidth = measureTextWidth(drawer.getRenderingContext(), titleText)
   return {
@@ -230,7 +230,7 @@ const createYAxisLabelColumn = (drawer: CanvasDrawer, props: Options): InputColu
   if (labelText == null)
     return null
 
-  applyTextOptionsToContext(drawer.getRenderingContext(), props.axesOptions?.[Axis2D.Y]?.labelOptions)
+  applyAxisLabelTextOptionsToDrawer(drawer, Axis2D.Y, props)
   const labelTextHeight = measureTextLineHeight(drawer.getRenderingContext())
   const labelTextWidth = measureTextWidth(drawer.getRenderingContext(), labelText)
 
@@ -271,7 +271,7 @@ const createXAxisLabelRow = (drawer: CanvasDrawer, props: Options): InputRow => 
   if (labelText == null)
     return null
 
-  applyTextOptionsToContext(drawer.getRenderingContext(), props.axesOptions?.[Axis2D.X]?.labelOptions)
+  applyAxisLabelTextOptionsToDrawer(drawer, Axis2D.X, props)
   const labelTextHeight = measureTextLineHeight(drawer.getRenderingContext())
   const labelTextWidth = measureTextWidth(drawer.getRenderingContext(), labelText)
 

@@ -15,13 +15,18 @@ export const getAxisLabelText = (props: Options, axis: Axis2D) => props.axesOpti
 
 export const getExteriorMargin = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.labelOptions?.exteriorMargin ?? DEFAULT_EXTERIOR_MARGIN
 
+export const applyAxisLabelTextOptionsToDrawer = (drawer: CanvasDrawer, axis: Axis2D, props: Options) => drawer.applyTextOptions(
+  props.axesOptions?.[axis]?.labelOptions,
+  DEFAULT_LABEL_TEXT_OPTIONS,
+)
+
 const drawAxisLabel = (drawer: CanvasDrawer, textRect: Rect, axis: Axis2D, props: Options) => {
   const text = getAxisLabelText(props, axis)
 
   if (text == null || text.length === 0)
     return
 
-  drawer.applyTextOptions(props.axesOptions?.[axis]?.labelOptions, DEFAULT_LABEL_TEXT_OPTIONS)
+  applyAxisLabelTextOptionsToDrawer(drawer, axis, props)
 
   if (axis === Axis2D.X)
     drawer.text(text, textRect)

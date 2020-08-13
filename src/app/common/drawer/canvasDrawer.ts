@@ -1,5 +1,5 @@
 import { CanvasDrawer, CanvasDrawerState, DrawOptions, TextOptions } from './types'
-import { get2DContext, measureTextLineHeight, applyTextOptionsToContext } from '../helpers/canvas'
+import { get2DContext, applyTextOptionsToContext, getTextLineHeightMetrics } from '../helpers/canvas'
 import { LineOptions, FillOptions, TextOptions as TextOptionsBase } from '../types/canvas'
 import { Line, CircularSector, Rect, Circle, Point2D } from '../types/geometry'
 import { createPath2DFromPath } from './path/path'
@@ -191,10 +191,11 @@ const clearRenderingSpace = (state: CanvasDrawerState, rectToClear: Rect) => {
 }
 
 const text = (state: CanvasDrawerState, _text: string, position: Point2D, textOptions: TextOptions) => {
-  const lineHeight = measureTextLineHeight(state.ctx)
+  const textLineHeightMetrics = getTextLineHeightMetrics(state.ctx)
 
   const textX = position.x
-  const textY = position.y + lineHeight
+  // Adding the ascent here makes the text sit snugly into the top-left corner of the text rect
+  const textY = position.y + textLineHeightMetrics.ascent
 
   const shouldRotate = textOptions?.angle != null
   if (shouldRotate) {
