@@ -53,6 +53,7 @@ export const drawNavigator = (
       forceUpper: forcedVuY != null,
     },
   }
+
   // Determine value bounds
   const axesValueBound: AxesBound = {
     [Axis2D.X]: {
@@ -65,32 +66,36 @@ export const drawNavigator = (
     },
   }
 
+  // Calculate axes geometry
   const navigatorAxesGeometry = createAxesGeometry(drawer, props, axesValueBound, axesValueRangeForceOptions, rect)
 
-  const positionedDatumValuePoints = mapDict(datumValueFocusPoints, (seriesKey, datumValueFocusPoint) => (
+  // Position the datum value focus points using axes geometry
+  const positionedDatumValueFocusPoints = mapDict(datumValueFocusPoints, (seriesKey, datumValueFocusPoint) => (
     positionDatumValueFocusPoints(datumValueFocusPoint, navigatorAxesGeometry[Axis2D.X].p, navigatorAxesGeometry[Axis2D.Y].p)
   ))
 
-  // Draw series data for each series, i.e. markers, error bars, connecting line, etc.
-  Object.entries(positionedDatumValuePoints)
-    .forEach(([, _positionedDatumValuePoints]) => {
+  // Draw connecting line for each series
+  Object.entries(positionedDatumValueFocusPoints)
+    .forEach(([, _positionedDatumValueFocusPoints]) => {
       const path: Path = []
 
-      for (let i = 1; i < _positionedDatumValuePoints.length; i += 1) {
-        const prevDatum = _positionedDatumValuePoints[i - 1]
-        const { fpX, fpY } = _positionedDatumValuePoints[i]
+      for (let i = 1; i < _positionedDatumValueFocusPoints.length; i += 1) {
+        const prevDatum = _positionedDatumValueFocusPoints[i - 1]
+        const { fpX, fpY } = _positionedDatumValueFocusPoints[i]
         path.push({ type: PathComponentType.MOVE_TO, x: prevDatum.fpX, y: prevDatum.fpY })
         path.push({ type: PathComponentType.LINE_TO, x: fpX, y: fpY })
       }
       drawer.path(path, { lineOptions: { color: 'blue', lineWidth: 1 } })
     })
 
+  // Draw top border
+  drawer.line([rect, { x: rect.x + rect.width, y: rect.y }], { color: 'black', lineWidth: 1 })
+
+  // Draw graph components
   drawAxisLine(drawer, navigatorAxesGeometry, props, Axis2D.X)
   drawAxisLine(drawer, navigatorAxesGeometry, props, Axis2D.Y)
   drawAxisMarkerLabels(drawer, navigatorAxesGeometry, Axis2D.X, props)
   drawAxisMarkerLabels(drawer, navigatorAxesGeometry, Axis2D.Y, props)
   drawAxisAxisMarkerLines(drawer, navigatorAxesGeometry, props, Axis2D.X)
   drawAxisAxisMarkerLines(drawer, navigatorAxesGeometry, props, Axis2D.Y)
-
-  drawer.text('NAVIGATOR', rect, { fontFamily: 'Comic Sans MS', fontSize: 14, color: 'black' })
 }

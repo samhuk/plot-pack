@@ -393,13 +393,14 @@ export const createGraphGeometry = (drawer: CanvasDrawer, props: Options): Graph
     [GraphComponents.NAVIGATOR]: graphComponentRectsRaw[GraphComponents.NAVIGATOR],
   }
 
-  setTimeout((): void => {
-    drawer.rect(graphComponentRects[GraphComponents.TITLE_BAR], { lineOptions: { color: 'red' } })
-    drawer.rect(graphComponentRects[GraphComponents.Y_AXIS_TITLE], { lineOptions: { color: 'green' } })
-    drawer.rect(graphComponentRects[GraphComponents.CHART], { lineOptions: { color: 'blue' } })
-    drawer.rect(graphComponentRects[GraphComponents.X_AXIS_TITLE], { lineOptions: { color: 'purple' } })
-    drawer.rect(graphComponentRects[GraphComponents.NAVIGATOR], { lineOptions: { color: 'orange' } })
-  })
+  // TODO: Remove this when we are comfortable with the use of canvasflex
+  // setTimeout((): void => {
+  //   drawer.rect(graphComponentRects[GraphComponents.TITLE_BAR], { lineOptions: { color: 'red' } })
+  //   drawer.rect(graphComponentRects[GraphComponents.Y_AXIS_TITLE], { lineOptions: { color: 'green' } })
+  //   drawer.rect(graphComponentRects[GraphComponents.CHART], { lineOptions: { color: 'blue' } })
+  //   drawer.rect(graphComponentRects[GraphComponents.X_AXIS_TITLE], { lineOptions: { color: 'purple' } })
+  //   drawer.rect(graphComponentRects[GraphComponents.NAVIGATOR], { lineOptions: { color: 'orange' } })
+  // })
 
   const axesGeometry = createAxesGeometry(drawer, props, axesValueBound, axesValueRangeForceOptions, graphComponentRects[GraphComponents.CHART])
 
