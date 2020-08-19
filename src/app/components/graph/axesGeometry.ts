@@ -252,7 +252,7 @@ export const createAxesGeometry = (
     axesDvGrid,
   )
   // Adjust screen bounds to account for any overruns
-  const adjustedAxesScreenBound: AxesBound = createAdjustedAxesScreenBoundDueToLabelOverrun(drawer, tentativeAxesGeometry, tentativeAxesScreenBound, props)
+  const adjustedAxesScreenBound = createAdjustedAxesScreenBoundDueToLabelOverrun(drawer, tentativeAxesGeometry, tentativeAxesScreenBound, props)
   // Calculate new axes geometry, accounting for any overruns
   return calculateAxesGeometry(
     props.axesOptions?.[Axis2D.X]?.orientation as XAxisOrientation,
