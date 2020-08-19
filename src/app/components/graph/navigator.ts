@@ -2,8 +2,7 @@ import Options from './types/Options'
 import { CanvasDrawer } from '../../common/drawer/types'
 import { Rect, Axis2D } from '../../common/types/geometry'
 import { createAxesGeometry } from './axesGeometry'
-import { AxesValueRangeForceOptions, calculateValueRangesOfSeries } from './geometry'
-import AxesBound from './types/AxesBound'
+import { getAxesValueRangeOptions } from './geometry'
 import { mapDict } from '../../common/helpers/dict'
 import { normalizeDatumsErrorBarsValues } from './errorBars'
 import { drawAxisLine } from './axisLines'
@@ -12,8 +11,15 @@ import { drawAxisAxisMarkerLines } from './axisMarkerLines'
 import DatumValueFocusPoint from './types/DatumValueFocusPoint'
 import DatumScreenFocusPoint from './types/DatumScreenFocusPoint'
 import { Path, PathComponentType } from '../../common/drawer/path/types'
+import { LineOptions } from '../../common/types/canvas'
 
 export const DEFAULT_NAVIGATOR_HEIGHT_PX = 100
+
+const DEFAULT_CONNECTING_LINE_LINE_OPTIONS: LineOptions = {
+  lineWidth: 1,
+  color: 'black',
+  dashPattern: [],
+}
 
 type PositionedDatumValuePoint = DatumValueFocusPoint & DatumScreenFocusPoint
 
@@ -28,6 +34,21 @@ const positionDatumValueFocusPoints = (
   fpY: yAxisPFn(valueFocusPoint.fvY),
 }))
 
+const getConnectingLineDashPattern = (props: Options, seriesKey: string) => (
+  props.navigatorOptions?.seriesOptions?.[seriesKey]?.connectingLineOptions?.dashPattern
+    ?? props.navigatorOptions?.connectingLineOptions?.dashPattern
+)
+
+const getConnectingLineLineWidth = (props: Options, seriesKey: string) => (
+  props.navigatorOptions?.seriesOptions?.[seriesKey]?.connectingLineOptions?.lineWidth
+    ?? props.navigatorOptions?.connectingLineOptions?.lineWidth
+)
+
+const getConnectingLineColor = (props: Options, seriesKey: string) => (
+  props.navigatorOptions?.seriesOptions?.[seriesKey]?.connectingLineOptions?.color
+    ?? props.navigatorOptions?.connectingLineOptions?.color
+)
+
 export const drawNavigator = (
   drawer: CanvasDrawer,
   datumValueFocusPoints: { [seriesKey: string]: DatumValueFocusPoint[] },
@@ -36,38 +57,10 @@ export const drawNavigator = (
 ) => {
   const normalizedSeries = mapDict(props.series, (seriesKey, datums) => normalizeDatumsErrorBarsValues(datums, props, seriesKey))
 
-  const datumValueRange = calculateValueRangesOfSeries(normalizedSeries)
-
-  const forcedVlX = props.axesOptions?.[Axis2D.X]?.valueBound?.lower
-  const forcedVlY = props.axesOptions?.[Axis2D.Y]?.valueBound?.lower
-  const forcedVuX = props.axesOptions?.[Axis2D.X]?.valueBound?.upper
-  const forcedVuY = props.axesOptions?.[Axis2D.Y]?.valueBound?.upper
-
-  const axesValueRangeForceOptions: AxesValueRangeForceOptions = {
-    [Axis2D.X]: {
-      forceLower: forcedVlX != null,
-      forceUpper: forcedVuX != null,
-    },
-    [Axis2D.Y]: {
-      forceLower: forcedVlY != null,
-      forceUpper: forcedVuY != null,
-    },
-  }
-
-  // Determine value bounds
-  const axesValueBound: AxesBound = {
-    [Axis2D.X]: {
-      lower: forcedVlX ?? datumValueRange[Axis2D.X].lower,
-      upper: forcedVuX ?? datumValueRange[Axis2D.X].upper,
-    },
-    [Axis2D.Y]: {
-      lower: forcedVlY ?? datumValueRange[Axis2D.Y].lower,
-      upper: forcedVuY ?? datumValueRange[Axis2D.Y].upper,
-    },
-  }
+  const axesValueRangeOptions = getAxesValueRangeOptions(props, normalizedSeries)
 
   // Calculate axes geometry
-  const navigatorAxesGeometry = createAxesGeometry(drawer, props, axesValueBound, axesValueRangeForceOptions, rect)
+  const navigatorAxesGeometry = createAxesGeometry(drawer, props, axesValueRangeOptions, rect)
 
   // Position the datum value focus points using axes geometry
   const positionedDatumValueFocusPoints = mapDict(datumValueFocusPoints, (seriesKey, datumValueFocusPoint) => (
@@ -76,7 +69,7 @@ export const drawNavigator = (
 
   // Draw connecting line for each series
   Object.entries(positionedDatumValueFocusPoints)
-    .forEach(([, _positionedDatumValueFocusPoints]) => {
+    .forEach(([seriesKey, _positionedDatumValueFocusPoints]) => {
       const path: Path = []
 
       for (let i = 1; i < _positionedDatumValueFocusPoints.length; i += 1) {
@@ -85,7 +78,12 @@ export const drawNavigator = (
         path.push({ type: PathComponentType.MOVE_TO, x: prevDatum.fpX, y: prevDatum.fpY })
         path.push({ type: PathComponentType.LINE_TO, x: fpX, y: fpY })
       }
-      drawer.path(path, { lineOptions: { color: 'blue', lineWidth: 1 } })
+
+      const color = getConnectingLineColor(props, seriesKey)
+      const lineWidth = getConnectingLineLineWidth(props, seriesKey)
+      const dashPattern = getConnectingLineDashPattern(props, seriesKey)
+      drawer.applyLineOptions({ color, lineWidth, dashPattern }, DEFAULT_CONNECTING_LINE_LINE_OPTIONS)
+      drawer.path(path)
     })
 
   // Draw top border

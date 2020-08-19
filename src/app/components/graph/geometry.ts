@@ -23,6 +23,7 @@ import { CanvasDrawer } from '../../common/drawer/types'
 import GraphComponentRects from './types/GraphComponentRects'
 import { DEFAULT_NAVIGATOR_HEIGHT_PX } from './navigator'
 import DatumValueFocusPoint from './types/DatumValueFocusPoint'
+import AxesValueRangeOptions from './types/AxesValueRangeOptions'
 
 const DEFAULT_GRAPH_MARGIN = 10
 
@@ -322,6 +323,53 @@ const createCanvasFlexColumn = (drawer: CanvasDrawer, props: Options): InputColu
   }
 }
 
+export const getAxesValueRangeOptions = (props: Options, normalizedSeries: { [seriesKey: string]: Datum[] }): AxesValueRangeOptions => {
+  const datumValueRange = calculateValueRangesOfSeries(normalizedSeries)
+
+  const forcedVlX = props.axesOptions?.[Axis2D.X]?.valueBound?.lower
+  const forcedVlY = props.axesOptions?.[Axis2D.Y]?.valueBound?.lower
+  const forcedVuX = props.axesOptions?.[Axis2D.X]?.valueBound?.upper
+  const forcedVuY = props.axesOptions?.[Axis2D.Y]?.valueBound?.upper
+
+  const axesValueRangeForceOptions: AxesValueRangeForceOptions = {
+    [Axis2D.X]: {
+      forceLower: forcedVlX != null,
+      forceUpper: forcedVuX != null,
+    },
+    [Axis2D.Y]: {
+      forceLower: forcedVlY != null,
+      forceUpper: forcedVuY != null,
+    },
+  }
+
+  // Determine value bounds
+  const axesValueBound: AxesBound = {
+    [Axis2D.X]: {
+      lower: forcedVlX ?? datumValueRange[Axis2D.X].lower,
+      upper: forcedVuX ?? datumValueRange[Axis2D.X].upper,
+    },
+    [Axis2D.Y]: {
+      lower: forcedVlY ?? datumValueRange[Axis2D.Y].lower,
+      upper: forcedVuY ?? datumValueRange[Axis2D.Y].upper,
+    },
+  }
+
+  return {
+    [Axis2D.X]: {
+      isLowerForced: axesValueRangeForceOptions[Axis2D.X].forceLower,
+      isUpperForced: axesValueRangeForceOptions[Axis2D.X].forceUpper,
+      lower: axesValueBound[Axis2D.X].lower,
+      upper: axesValueBound[Axis2D.X].upper,
+    },
+    [Axis2D.Y]: {
+      isLowerForced: axesValueRangeForceOptions[Axis2D.Y].forceLower,
+      isUpperForced: axesValueRangeForceOptions[Axis2D.Y].forceUpper,
+      lower: axesValueBound[Axis2D.Y].lower,
+      upper: axesValueBound[Axis2D.Y].upper,
+    },
+  }
+}
+
 /**
  * ### Introduction
  *
@@ -348,34 +396,7 @@ const createCanvasFlexColumn = (drawer: CanvasDrawer, props: Options): InputColu
 export const createGraphGeometry = (drawer: CanvasDrawer, props: Options): GraphGeometry => {
   const normalizedSeries = mapDict(props.series, (seriesKey, datums) => normalizeDatumsErrorBarsValues(datums, props, seriesKey))
 
-  const datumValueRange = calculateValueRangesOfSeries(normalizedSeries)
-
-  const forcedVlX = props.axesOptions?.[Axis2D.X]?.valueBound?.lower
-  const forcedVlY = props.axesOptions?.[Axis2D.Y]?.valueBound?.lower
-  const forcedVuX = props.axesOptions?.[Axis2D.X]?.valueBound?.upper
-  const forcedVuY = props.axesOptions?.[Axis2D.Y]?.valueBound?.upper
-
-  const axesValueRangeForceOptions: AxesValueRangeForceOptions = {
-    [Axis2D.X]: {
-      forceLower: forcedVlX != null,
-      forceUpper: forcedVuX != null,
-    },
-    [Axis2D.Y]: {
-      forceLower: forcedVlY != null,
-      forceUpper: forcedVuY != null,
-    },
-  }
-  // Determine value bounds
-  const axesValueBound: AxesBound = {
-    [Axis2D.X]: {
-      lower: forcedVlX ?? datumValueRange[Axis2D.X].lower,
-      upper: forcedVuX ?? datumValueRange[Axis2D.X].upper,
-    },
-    [Axis2D.Y]: {
-      lower: forcedVlY ?? datumValueRange[Axis2D.Y].lower,
-      upper: forcedVuY ?? datumValueRange[Axis2D.Y].upper,
-    },
-  }
+  const axesValueRangeOptions = getAxesValueRangeOptions(props, normalizedSeries)
 
   const graphComponentRectsRaw = renderInputColumn(createCanvasFlexColumn(drawer, props))
   const graphComponentRects: GraphComponentRects = {
@@ -395,11 +416,11 @@ export const createGraphGeometry = (drawer: CanvasDrawer, props: Options): Graph
   //   drawer.rect(graphComponentRects[GraphComponents.NAVIGATOR], { lineOptions: { color: 'orange' } })
   // })
 
-  const axesGeometry = createAxesGeometry(drawer, props, axesValueBound, axesValueRangeForceOptions, graphComponentRects[GraphComponents.CHART])
+  const axesGeometry = createAxesGeometry(drawer, props, axesValueRangeOptions, graphComponentRects[GraphComponents.CHART])
 
   // Calculate positioned datums, adding screen position and a focus point to each datum.
   const processedDatums = mapDict(normalizedSeries, (seriesKey, datums) => (
-    calculateprocessedDatums(datums, axesGeometry[Axis2D.X].p, axesGeometry[Axis2D.Y].p, axesValueBound, props.datumFocusPointDeterminationMode)
+    calculateprocessedDatums(datums, axesGeometry[Axis2D.X].p, axesGeometry[Axis2D.Y].p, axesValueRangeOptions, props.datumFocusPointDeterminationMode)
   ))
 
   // Calculate best fit straight line for each series

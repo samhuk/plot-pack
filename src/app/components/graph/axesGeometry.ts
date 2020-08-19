@@ -9,9 +9,10 @@ import YAxisOrientation from './types/yAxisOrientation'
 import { mod, boundToRange } from '../../common/helpers/math'
 import Bound from './types/Bound'
 import UnpositionedAxisGeometry from './types/UnpositionedAxisGeometry'
-import { AxesValueRangeForceOptions, AxisValueRangeForceOptions } from './geometry'
 import { getBoundingRectOfRects } from '../../common/helpers/geometry'
 import { CanvasDrawer } from '../../common/drawer/types'
+import AxesValueRangeOptions from './types/AxesValueRangeOptions'
+import AxesValueRangeOption from './types/AxesValueRangeOption'
 
 const DEFAULT_DP_GRID_MIN = 30
 
@@ -79,22 +80,21 @@ const getYAxisXPosition = (orientation: YAxisOrientation, plX: number, puX: numb
  * @param forceVu True to force the lower axis bound to be exactly the given `vu` value.
  */
 const calculateUnpositionedAxisGeometry = (
-  valueBound: Bound,
+  valueRangeOption: AxesValueRangeOption,
   pixelScreenBound: Bound,
   dpMin: number,
   dvGrid?: number,
-  valueRangeForceOptions?: AxisValueRangeForceOptions,
 ): UnpositionedAxisGeometry => {
   const pl = pixelScreenBound.lower
   const pu = pixelScreenBound.upper
-  const vl = valueBound.lower
-  const vu = valueBound.upper
+  const vl = valueRangeOption.lower
+  const vu = valueRangeOption.upper
 
   const dp = pu - pl
 
   const _dvGrid = dvGrid ?? calculateAutoDvGrid(vl, vu, dp, dpMin)
-  const vlPrime = valueRangeForceOptions.forceLower ? vl : calculateVlPrime(vl, _dvGrid)
-  const vuPrime = valueRangeForceOptions.forceUpper ? vu : calculateVuPrime(vu, _dvGrid)
+  const vlPrime = valueRangeOption.isLowerForced ? vl : calculateVlPrime(vl, _dvGrid)
+  const vuPrime = valueRangeOption.isUpperForced ? vu : calculateVuPrime(vu, _dvGrid)
 
   const dpdv = dp / (vuPrime - vlPrime)
 
@@ -129,25 +129,22 @@ const calculateUnpositionedAxisGeometry = (
 const calculateAxesGeometry = (
   xAxisOrientation: XAxisOrientation,
   yAxisOrientation: YAxisOrientation,
-  axesValueBound: AxesBound,
+  axesValueRangeOptions: AxesValueRangeOptions,
   axesScreenBound: AxesBound,
   axesDpMin: { [axis in Axis2D]: number },
   axesDvGrid: { [axis in Axis2D]: number },
-  axesValueRangeForceOptions?: AxesValueRangeForceOptions,
 ): AxesGeometry => {
   const unpositionedXAxisGeometry = calculateUnpositionedAxisGeometry(
-    axesValueBound[Axis2D.X],
+    axesValueRangeOptions[Axis2D.X],
     axesScreenBound[Axis2D.X],
     axesDpMin[Axis2D.X],
     axesDvGrid[Axis2D.X],
-    axesValueRangeForceOptions[Axis2D.X],
   )
   const unpositionedYAxisGeometry = calculateUnpositionedAxisGeometry(
-    axesValueBound[Axis2D.Y],
+    axesValueRangeOptions[Axis2D.Y],
     axesScreenBound[Axis2D.Y],
     axesDpMin[Axis2D.Y],
     axesDvGrid[Axis2D.Y],
-    axesValueRangeForceOptions[Axis2D.Y],
   )
 
   const boundedXAxisOrigin = boundToRange(unpositionedXAxisGeometry.p(0), unpositionedXAxisGeometry.pl, unpositionedXAxisGeometry.pu)
@@ -200,33 +197,15 @@ const calculateAxisMarkerLabelOverrun = (
   }
 }
 
-export const createAxesGeometry = (
+const createAdjustedAxesScreenBoundDueToLabelOverrun = (
   drawer: CanvasDrawer,
+  tentativeAxesGeometry: AxesGeometry,
+  tentativeAxesScreenBound: AxesBound,
   props: Options,
-  axesValueBound: AxesBound,
-  axesValueRangeForceOptions: AxesValueRangeForceOptions,
-  axesAvailableScreenRect: Rect,
-): AxesGeometry => {
-  // Calculate the tentative screen bounds of axes, not taking into account the effect of axis marker labels
-  const tentativeAxesScreenBound: AxesBound = {
-    [Axis2D.X]: { lower: axesAvailableScreenRect.x, upper: axesAvailableScreenRect.x + axesAvailableScreenRect.width },
-    [Axis2D.Y]: { upper: axesAvailableScreenRect.y, lower: axesAvailableScreenRect.y + axesAvailableScreenRect.height },
-  }
-  const axesDpMin = { [Axis2D.X]: DEFAULT_DP_GRID_MIN, [Axis2D.Y]: DEFAULT_DP_GRID_MIN }
-  const axesDvGrid = { [Axis2D.X]: props.axesOptions?.[Axis2D.X]?.dvGrid, [Axis2D.Y]: props.axesOptions?.[Axis2D.Y]?.dvGrid }
-  // Calculate the tentative geometry of the axes, not taking into account the effect of axis marker labels
-  const tentativeAxesGeometry = calculateAxesGeometry(
-    props.axesOptions?.[Axis2D.X]?.orientation as XAxisOrientation,
-    props.axesOptions?.[Axis2D.Y]?.orientation as YAxisOrientation,
-    axesValueBound,
-    tentativeAxesScreenBound,
-    axesDpMin,
-    axesDvGrid,
-    axesValueRangeForceOptions,
-  )
+): AxesBound => {
   const axisMarkerLabelOverruns = calculateAxisMarkerLabelOverrun(drawer, tentativeAxesGeometry, tentativeAxesScreenBound, props)
   // Adjust screen bounds to account for any overruns
-  const adjustedAxesScreenBound: AxesBound = {
+  return {
     [Axis2D.X]: {
       lower: tentativeAxesScreenBound[Axis2D.X].lower + axisMarkerLabelOverruns.left,
       upper: tentativeAxesScreenBound[Axis2D.X].upper - axisMarkerLabelOverruns.right,
@@ -236,14 +215,51 @@ export const createAxesGeometry = (
       upper: tentativeAxesScreenBound[Axis2D.Y].upper + axisMarkerLabelOverruns.top,
     },
   }
+}
+
+const createAxesScreenBoundFromRect = (rect: Rect): AxesBound => ({
+  [Axis2D.X]: { lower: rect.x, upper: rect.x + rect.width },
+  [Axis2D.Y]: { upper: rect.y, lower: rect.y + rect.height },
+})
+
+const createAxesDvGrid = (props: Options): { [axis in Axis2D]: number } => ({
+  [Axis2D.X]: props.axesOptions?.[Axis2D.X]?.dvGrid,
+  [Axis2D.Y]: props.axesOptions?.[Axis2D.Y]?.dvGrid,
+})
+
+const createAxesDpMin = (): { [axis in Axis2D]: number } => ({
+  [Axis2D.X]: DEFAULT_DP_GRID_MIN,
+  [Axis2D.Y]: DEFAULT_DP_GRID_MIN,
+})
+
+export const createAxesGeometry = (
+  drawer: CanvasDrawer,
+  props: Options,
+  axesValueRangeOptions: AxesValueRangeOptions,
+  axesAvailableScreenRect: Rect,
+): AxesGeometry => {
+  // Calculate the tentative screen bounds of axes, not taking into account the effect of axis marker labels
+  const tentativeAxesScreenBound = createAxesScreenBoundFromRect(axesAvailableScreenRect)
+  const axesDpMin = createAxesDpMin()
+  const axesDvGrid = createAxesDvGrid(props)
+  // Calculate the tentative geometry of the axes, not taking into account the effect of axis marker labels
+  const tentativeAxesGeometry = calculateAxesGeometry(
+    props.axesOptions?.[Axis2D.X]?.orientation as XAxisOrientation,
+    props.axesOptions?.[Axis2D.Y]?.orientation as YAxisOrientation,
+    axesValueRangeOptions,
+    tentativeAxesScreenBound,
+    axesDpMin,
+    axesDvGrid,
+  )
+  // Adjust screen bounds to account for any overruns
+  const adjustedAxesScreenBound: AxesBound = createAdjustedAxesScreenBoundDueToLabelOverrun(drawer, tentativeAxesGeometry, tentativeAxesScreenBound, props)
   // Calculate new axes geometry, accounting for any overruns
   return calculateAxesGeometry(
     props.axesOptions?.[Axis2D.X]?.orientation as XAxisOrientation,
     props.axesOptions?.[Axis2D.Y]?.orientation as YAxisOrientation,
-    axesValueBound,
+    axesValueRangeOptions,
     adjustedAxesScreenBound,
     axesDpMin,
     axesDvGrid,
-    axesValueRangeForceOptions,
   )
 }
