@@ -2,6 +2,7 @@ import Options from './types/Options'
 import { CanvasDrawer } from '../../common/drawer/types'
 import { Rect } from '../../common/types/geometry'
 import { TextOptions } from '../../common/types/canvas'
+import { InputMargin } from '../../common/canvasFlex/types'
 
 const DEFAULT_TEXT_OPTIONS: TextOptions = {
   color: 'black',
@@ -9,9 +10,9 @@ const DEFAULT_TEXT_OPTIONS: TextOptions = {
   fontFamily: 'Helvetica',
 }
 
-const DEFAULT_EXTERIOR_MARGIN = 15
+const DEFAULT_MARGIN: InputMargin = 10
 
-export const getExteriorMargin = (props: Options) => props.titleOptions?.exteriorMargin ?? DEFAULT_EXTERIOR_MARGIN
+export const getTitleMargin = (props: Options) => props.titleOptions?.margin ?? DEFAULT_MARGIN
 
 export const getTitle = (props: Options) => props.title
 

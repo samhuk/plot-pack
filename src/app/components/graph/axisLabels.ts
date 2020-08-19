@@ -2,6 +2,7 @@ import Options from './types/Options'
 import { Axis2D, Rect } from '../../common/types/geometry'
 import { CanvasDrawer } from '../../common/drawer/types'
 import { TextOptions } from '../../common/types/canvas'
+import { InputMargin } from '../../common/canvasFlex/types'
 
 const DEFAULT_LABEL_TEXT_OPTIONS: TextOptions = {
   color: 'black',
@@ -9,11 +10,11 @@ const DEFAULT_LABEL_TEXT_OPTIONS: TextOptions = {
   fontSize: 14,
 }
 
-const DEFAULT_EXTERIOR_MARGIN = 15
+const DEFAULT_MARGIN: InputMargin = 15
 
 export const getAxisLabelText = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.labelText
 
-export const getExteriorMargin = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.labelOptions?.exteriorMargin ?? DEFAULT_EXTERIOR_MARGIN
+export const getAxisLabelMargin = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.labelOptions?.margin ?? DEFAULT_MARGIN
 
 export const applyAxisLabelTextOptionsToDrawer = (drawer: CanvasDrawer, axis: Axis2D, props: Options) => drawer.applyTextOptions(
   props.axesOptions?.[axis]?.labelOptions,

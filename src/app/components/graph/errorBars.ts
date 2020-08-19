@@ -3,10 +3,17 @@ import { Axis2D } from '../../common/types/geometry'
 import Datum from './types/Datum'
 import ErrorBarsMode from './types/ErrorBarsMode'
 import Options from './types/Options'
+import { CanvasDrawer } from '../../common/drawer/types'
+import { LineOptions } from '../../common/types/canvas'
+import { Path, PathComponentType } from '../../common/drawer/path/types'
+
+const DEFAULT_LINE_OPTIONS: LineOptions = {
+  lineWidth: 1.5,
+  color: 'black',
+  dashPattern: [],
+}
 
 const DEFAULT_CAP_SIZE = 8
-const DEFAULT_LINE_WIDTH = 1.5
-const DEFAULT_LINE_COLOR = 'black'
 
 export const getShouldShowErrorBars = (props: Options, seriesKey: string, axis: Axis2D) => (
   props.seriesOptions?.[seriesKey]?.errorBarsOptions?.[axis]?.mode
@@ -22,13 +29,11 @@ const getCapSize = (props: Options, seriesKey: string, axis: Axis2D) => (
 const getLineWidth = (props: Options, seriesKey: string, axis: Axis2D) => (
   props?.seriesOptions?.[seriesKey]?.errorBarsOptions?.[axis]?.lineWidth
     ?? props?.errorBarsOptions?.[axis]?.lineWidth
-    ?? DEFAULT_LINE_WIDTH
 )
 
 const getColor = (props: Options, seriesKey: string, axis: Axis2D) => (
   props?.seriesOptions?.[seriesKey]?.errorBarsOptions?.[axis]?.color
     ?? props?.errorBarsOptions?.[axis]?.color
-    ?? DEFAULT_LINE_COLOR
 )
 
 export const getErrorBarsMode = (props: Options, seriesKey: string, axis: Axis2D) => (
@@ -124,56 +129,60 @@ export const normalizeDatumsErrorBarsValues = (datums: Datum[], props: Options, 
   )
 )
 
-const createErrorBarsPathY = (x: number, y1: number, y2: number, capSize: number) => {
-  const path = new Path2D()
+const createErrorBarsPathY = (x: number, y1: number, y2: number, capSize: number): Path => {
+  const path: Path = []
   const halfCapSize = capSize / 2
   if (halfCapSize > 0) {
-    path.moveTo(x - halfCapSize, y1)
-    path.lineTo(x + halfCapSize, y1)
-    path.moveTo(x - halfCapSize, y2)
-    path.lineTo(x + halfCapSize, y2)
+    path.push(
+      { type: PathComponentType.MOVE_TO, x: x - halfCapSize, y: y1 },
+      { type: PathComponentType.LINE_TO, x: x + halfCapSize, y: y1 },
+      { type: PathComponentType.MOVE_TO, x: x - halfCapSize, y: y2 },
+      { type: PathComponentType.LINE_TO, x: x + halfCapSize, y: y2 },
+    )
   }
-  path.moveTo(x, y1)
-  path.lineTo(x, y2)
+  path.push(
+    { type: PathComponentType.MOVE_TO, x, y: y1 },
+    { type: PathComponentType.LINE_TO, x, y: y2 },
+  )
   return path
 }
 
-const createErrorBarsPathX = (y: number, x1: number, x2: number, capSize: number) => {
-  const path = new Path2D()
+const createErrorBarsPathX = (y: number, x1: number, x2: number, capSize: number): Path => {
+  const path: Path = []
   const halfCapSize = capSize / 2
   if (halfCapSize > 0) {
-    path.moveTo(x1, y - halfCapSize)
-    path.lineTo(x1, y + halfCapSize)
-    path.moveTo(x2, y - halfCapSize)
-    path.lineTo(x2, y + halfCapSize)
+    path.push(
+      { type: PathComponentType.MOVE_TO, x: x1, y: y - halfCapSize },
+      { type: PathComponentType.LINE_TO, x: x1, y: y + halfCapSize },
+      { type: PathComponentType.MOVE_TO, x: x2, y: y - halfCapSize },
+      { type: PathComponentType.LINE_TO, x: x2, y: y + halfCapSize },
+    )
   }
-  path.moveTo(x1, y)
-  path.lineTo(x2, y)
+  path.push(
+    { type: PathComponentType.MOVE_TO, x: x1, y },
+    { type: PathComponentType.LINE_TO, x: x2, y },
+  )
   return path
 }
 
 const createDatumErrorBarsPathY = (datum: ProcessedDatum, capSize: number) => (
-  (datum.pY as number[])[1] != null && (datum.pY as number[])[2] != null
+  Array.isArray(datum.pY) && datum.pY[1] != null && datum.pY[2] != null
     ? createErrorBarsPathY(datum.fpX, (datum.pY as number[])[1], (datum.pY as number[])[2], capSize)
     : null
 )
 
 const createDatumErrorBarsPathX = (datum: ProcessedDatum, capSize: number) => (
-  (datum.pX as number[])[1] != null && (datum.pX as number[])[2] != null
+  Array.isArray(datum.pX) && datum.pX[1] != null && datum.pX[2] != null
     ? createErrorBarsPathX(datum.fpY, (datum.pX as number[])[1], (datum.pX as number[])[2], capSize)
     : null
 )
 
-const createDatumErrorBarsPath = (
-  datum: ProcessedDatum,
-  capSize: number,
-  axis: Axis2D,
-) => {
+const createDatumErrorBarsPathCreator = (axis: Axis2D) => {
   switch (axis) {
     case Axis2D.X:
-      return createDatumErrorBarsPathX(datum, capSize)
+      return (datum: ProcessedDatum, capSize: number) => createDatumErrorBarsPathX(datum, capSize)
     case Axis2D.Y:
-      return createDatumErrorBarsPathY(datum, capSize)
+      return (datum: ProcessedDatum, capSize: number) => createDatumErrorBarsPathY(datum, capSize)
     default:
       return null
   }
@@ -186,7 +195,7 @@ const createDatumErrorBarsPath = (
  * pY[1] and pY[2]
  */
 export const drawDatumErrorBarsForDatums = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   datums: ProcessedDatum[],
   props: Options,
   seriesKey: string,
@@ -197,21 +206,13 @@ export const drawDatumErrorBarsForDatums = (
   if (lineWidth <= 0)
     return
 
-  ctx.lineWidth = lineWidth
-  ctx.strokeStyle = getColor(props, seriesKey, axis)
+  drawer.applyLineOptions({ color: getColor(props, seriesKey, axis), lineWidth }, DEFAULT_LINE_OPTIONS)
+
   const capSize = getCapSize(props, seriesKey, axis)
 
-  datums.forEach(d => {
-    const path = createDatumErrorBarsPath(
-      d,
-      capSize,
-      axis,
-    )
-    // The path can be null if the datum was malformed,
-    // I.e. it did not contain sufficient info for error bars
-    if (path != null)
-      ctx.stroke(path)
-  })
+  const pathCreator = createDatumErrorBarsPathCreator(axis)
+
+  datums.forEach(d => drawer.path(pathCreator(d, capSize)))
 }
 
 export default drawDatumErrorBarsForDatums

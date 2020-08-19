@@ -7,16 +7,14 @@ import Bound from './Bound'
 import XAxisMarkerOrientation from './XAxixMarkerOrientation'
 import YAxisMarkerOrientation from './YAxisMarkerOrientation'
 import AxisMarkerLineOptions from './AxisMarkerLineOptions'
+import AxesLabelOptions from './AxesLabelOptions'
 
 /**
  * Options to customize the rendering and behavior of an axis.
  */
 export type AxisOptions = {
   labelText?: string
-  axisMargin?: number
-  labelOptions?: TextOptions & {
-    exteriorMargin?: number
-  }
+  labelOptions?: AxesLabelOptions
   dvGrid?: number
   valueBound?: Bound
   notation?: NumberFormatNotation

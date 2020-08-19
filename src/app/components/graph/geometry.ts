@@ -16,15 +16,15 @@ import { createAxesGeometry } from './axesGeometry'
 import { InputColumn, SizeUnit, InputRow, ColumnJustification, RowJustification } from '../../common/canvasFlex/types'
 import GraphComponents from './types/GraphComponents'
 import { renderInputColumn } from '../../common/canvasFlex/rendering'
-import { getAxisLabelText, getExteriorMargin as getAxisLabelExteriorMargin, applyAxisLabelTextOptionsToDrawer } from './axisLabels'
-import { getTitle, getExteriorMargin as getTitleExteriorMargin, applyTitleTextOptionsToDrawer } from './title'
+import { getAxisLabelText, getAxisLabelMargin, applyAxisLabelTextOptionsToDrawer } from './axisLabels'
+import { getTitle, getTitleMargin, applyTitleTextOptionsToDrawer } from './title'
 import { measureTextLineHeight, measureTextWidth } from '../../common/helpers/canvas'
 import { CanvasDrawer } from '../../common/drawer/types'
 import GraphComponentRects from './types/GraphComponentRects'
 import { DEFAULT_NAVIGATOR_HEIGHT_PX } from './navigator'
 import DatumValueFocusPoint from './types/DatumValueFocusPoint'
 
-const DEFAULT_AXIS_MARGIN = 15
+const DEFAULT_GRAPH_MARGIN = 10
 
 const kdTree: any = require('kd-tree-javascript')
 
@@ -203,7 +203,7 @@ const createTitleRow = (drawer: CanvasDrawer, props: Options): InputRow => {
     heightUnits: SizeUnit.PX,
     width: 100,
     widthUnits: SizeUnit.PERCENT,
-    margin: { top: getTitleExteriorMargin(props) },
+    margin: getTitleMargin(props),
     columnJustification: ColumnJustification.CENTER,
     columns: [{
       id: GraphComponents.TITLE_BAR,
@@ -229,7 +229,7 @@ const createYAxisLabelColumn = (drawer: CanvasDrawer, props: Options): InputColu
     widthUnits: SizeUnit.PX,
     height: 100,
     heightUnits: SizeUnit.PERCENT,
-    margin: { left: getAxisLabelExteriorMargin(props, Axis2D.Y) },
+    margin: getAxisLabelMargin(props, Axis2D.Y),
     rowJustification: RowJustification.CENTER,
     rows: [{
       id: GraphComponents.Y_AXIS_TITLE,
@@ -241,19 +241,14 @@ const createYAxisLabelColumn = (drawer: CanvasDrawer, props: Options): InputColu
   }
 }
 
-const getAxisMargin = (props: Options, axis: Axis2D) => props.axesOptions?.[axis]?.axisMargin ?? DEFAULT_AXIS_MARGIN
+const getGraphMargin = (props: Options) => props.graphMargin ?? DEFAULT_GRAPH_MARGIN
 
 const createGraphColumn = (props: Options): InputColumn => ({
   id: GraphComponents.CHART,
   evenlyFillAvailableWidth: true,
   height: 100,
   heightUnits: SizeUnit.PERCENT,
-  margin: {
-    top: getAxisMargin(props, Axis2D.X),
-    bottom: getAxisMargin(props, Axis2D.X),
-    left: getAxisMargin(props, Axis2D.Y),
-    right: getAxisMargin(props, Axis2D.Y),
-  },
+  margin: getGraphMargin(props),
 })
 
 const createXAxisLabelRow = (drawer: CanvasDrawer, props: Options): InputRow => {
@@ -271,7 +266,7 @@ const createXAxisLabelRow = (drawer: CanvasDrawer, props: Options): InputRow => 
     width: 100,
     widthUnits: SizeUnit.PERCENT,
     columnJustification: ColumnJustification.CENTER,
-    margin: { bottom: getAxisLabelExteriorMargin(props, Axis2D.X) },
+    margin: getAxisLabelMargin(props, Axis2D.X),
     columns: [{
       id: GraphComponents.X_AXIS_TITLE,
       height: 100,
@@ -382,9 +377,7 @@ export const createGraphGeometry = (drawer: CanvasDrawer, props: Options): Graph
     },
   }
 
-  const inputColumn = createCanvasFlexColumn(drawer, props)
-  // TODO: ADAPT ALL THE HORRIBLE AXES GEOMETRY CODE TO USE THIS!
-  const graphComponentRectsRaw = renderInputColumn(inputColumn)
+  const graphComponentRectsRaw = renderInputColumn(createCanvasFlexColumn(drawer, props))
   const graphComponentRects: GraphComponentRects = {
     [GraphComponents.TITLE_BAR]: graphComponentRectsRaw[GraphComponents.TITLE_BAR],
     [GraphComponents.Y_AXIS_TITLE]: graphComponentRectsRaw[GraphComponents.Y_AXIS_TITLE],

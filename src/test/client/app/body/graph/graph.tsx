@@ -63,7 +63,7 @@ export const render = () => {
           titleOptions={{
             color: 'blue',
             fontSize: 22,
-            exteriorMargin: 20,
+            margin: { top: 20 },
             fontFamily: 'Times New Roman',
           }}
           series={{

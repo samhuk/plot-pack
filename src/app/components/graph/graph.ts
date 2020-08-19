@@ -20,6 +20,8 @@ import { CanvasDrawer } from '../../common/drawer/types'
 import GraphComponents from './types/GraphComponents'
 import GraphComponentRects from './types/GraphComponentRects'
 
+const DEFAULT_BACKGROUND_COLOR = 'white'
+
 const getShouldShowLineOfBestFit = (props: Options, seriesKey: string) => (
   // Series visibility options takes precedence
   props.seriesOptions?.[seriesKey]?.visibilityOptions?.showStraightLineOfBestFit
@@ -118,22 +120,21 @@ const drawSeriesData = (
   props: Options,
   seriesKey: string,
 ) => {
-  const ctx = drawer.getRenderingContext()
   if (getShouldShowCustomMarkers(props, seriesKey))
-    drawCustomDatumMarkers(ctx, processedDatums, props, seriesKey)
+    drawCustomDatumMarkers(drawer.getRenderingContext(), processedDatums, props, seriesKey)
   if (getShouldShowMarkers(props, seriesKey))
     drawDatumMarkers(drawer, processedDatums, props, seriesKey)
   if (getShouldShowErrorBars(props, seriesKey, Axis2D.X))
-    drawDatumErrorBarsForDatums(ctx, processedDatums, props, seriesKey, Axis2D.X)
+    drawDatumErrorBarsForDatums(drawer, processedDatums, props, seriesKey, Axis2D.X)
   if (getShouldShowErrorBars(props, seriesKey, Axis2D.Y))
-    drawDatumErrorBarsForDatums(ctx, processedDatums, props, seriesKey, Axis2D.Y)
+    drawDatumErrorBarsForDatums(drawer, processedDatums, props, seriesKey, Axis2D.Y)
   if (getShouldShowConnectingLine(props, seriesKey))
-    drawDatumsConnectingLine(ctx, processedDatums, props, seriesKey)
+    drawDatumsConnectingLine(drawer, processedDatums, props, seriesKey)
 }
 
 const drawBackground = (drawer: CanvasDrawer, props: Options) => {
   const rect: Rect = { x: 0, y: 0, width: props.widthPx, height: props.heightPx }
-  drawer.rect(rect, { stroke: false, fill: true, fillOptions: { color: props.backgroundColor ?? 'white' } })
+  drawer.rect(rect, { stroke: false, fill: true, fillOptions: { color: props.backgroundColor ?? DEFAULT_BACKGROUND_COLOR } })
 }
 
 const drawAllSeriesData = (drawer: CanvasDrawer, g: GraphGeometry, props: Options) => {

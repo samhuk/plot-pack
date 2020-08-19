@@ -1,9 +1,15 @@
 import Options from './types/Options'
 import { Point2D } from '../../common/types/geometry'
 import DatumScreenFocusPoint from './types/DatumScreenFocusPoint'
+import { Path, PathComponentType } from '../../common/drawer/path/types'
+import { CanvasDrawer } from '../../common/drawer/types'
+import { LineOptions } from '../../common/types/canvas'
 
-const DEFAULT_LINE_WIDTH = 2
-const DEFAULT_COLOR = 'black'
+const DEFAULT_CONNECTING_LINE_LINE_OPTIONS: LineOptions = {
+  color: 'black',
+  lineWidth: 2,
+  dashPattern: [],
+}
 
 /**
  * Determines whether a connecting line should be shown for the given series.
@@ -20,13 +26,13 @@ export const getShouldShowConnectingLine = (props: Options, seriesKey: string) =
 const getConnectingLineLineWidth = (props: Options, seriesKey: string) => (
   props.seriesOptions?.[seriesKey]?.connectingLineOptions?.lineWidth
     ?? props.connectingLineOptions?.lineWidth
-    ?? DEFAULT_LINE_WIDTH
+    ?? DEFAULT_CONNECTING_LINE_LINE_OPTIONS.lineWidth
 )
 
 const getConnectingLineColor = (props: Options, seriesKey: string) => (
   props.seriesOptions?.[seriesKey]?.connectingLineOptions?.color
     ?? props.connectingLineOptions?.color
-    ?? DEFAULT_COLOR
+    ?? DEFAULT_CONNECTING_LINE_LINE_OPTIONS.color
 )
 
 export const drawConnectingLine = (
@@ -49,39 +55,39 @@ export const drawConnectingLine = (
   ctx.stroke(path)
 }
 
-const createDatumsConnectingLinePath = (datumScreenFocusPoints: DatumScreenFocusPoint[]): Path2D => {
+const createDatumsConnectingLinePath = (datumScreenFocusPoints: DatumScreenFocusPoint[]): Path => {
   if (datumScreenFocusPoints.length < 2)
     return null
 
-  const path = new Path2D()
+  const path: Path = []
 
   for (let i = 1; i < datumScreenFocusPoints.length; i += 1) {
     const prevDatum = datumScreenFocusPoints[i - 1]
     const { fpX, fpY } = datumScreenFocusPoints[i]
-    path.moveTo(prevDatum.fpX, prevDatum.fpY)
-    path.lineTo(fpX, fpY)
+    path.push({ type: PathComponentType.MOVE_TO, x: prevDatum.fpX, y: prevDatum.fpY })
+    path.push({ type: PathComponentType.LINE_TO, x: fpX, y: fpY })
   }
 
   return path
 }
 
 export const drawDatumsConnectingLine = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   datumScreenFocusPoints: DatumScreenFocusPoint[],
   props: Options,
   seriesKey: string,
 ) => {
   const lineWidth = getConnectingLineLineWidth(props, seriesKey)
-  if (lineWidth < 0)
+  if (lineWidth != null && lineWidth < 0)
     return
 
-  ctx.strokeStyle = getConnectingLineColor(props, seriesKey)
-  ctx.lineWidth = lineWidth
+  drawer.applyLineOptions({
+    color: getConnectingLineColor(props, seriesKey),
+    lineWidth,
+  }, DEFAULT_CONNECTING_LINE_LINE_OPTIONS)
 
   const path = createDatumsConnectingLinePath(datumScreenFocusPoints)
-
-  if (path !== null)
-    ctx.stroke(path)
+  drawer.path(path)
 }
 
 export default drawDatumsConnectingLine

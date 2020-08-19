@@ -10,21 +10,21 @@ import TooltipOptions from './TooltipOptions'
 import DatumHighlightOptions from './DatumHighlightOptions'
 import DatumSnapOptions from './DatumSnapOptions'
 import DatumFocusPointDeterminationMode from './DatumFocusPointDeterminationMode'
-import UnfocusedPositionedDatum from './UnfocusedPositionedDatum'
-import DatumFocusPoint from './DatumFocusPoint'
+import DatumValueFocusPoint from './DatumValueFocusPoint'
 import ErrorBarsOptions from './ErrorBarsOptions'
 import NavigatorOptions from './NavigatorOptions'
+import TitleOptions from './TitleOptions'
+import { InputMargin } from '../../../common/canvasFlex/types'
 
 /**
  * Options for the Graph
  */
 export type CommonOptions = {
   title?: string
-  titleOptions?: TextOptions & {
-    exteriorMargin?: number
-  }
+  titleOptions?: TitleOptions
+  graphMargin?: InputMargin
   series: { [seriesKey: string]: Datum[] }
-  datumFocusPointDeterminationMode?: DatumFocusPointDeterminationMode | ((datum: UnfocusedPositionedDatum) => DatumFocusPoint)
+  datumFocusPointDeterminationMode?: DatumFocusPointDeterminationMode | ((datum: Datum) => DatumValueFocusPoint)
   backgroundColor?: string
   seriesOptions?: { [seriesKey: string]: SeriesOptions }
   axesOptions?: { [axis in Axis2D]?: AxisOptions }
