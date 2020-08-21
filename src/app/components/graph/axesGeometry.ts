@@ -242,6 +242,26 @@ const createAppliedCalculateAxesGeometryFunction = (
   calculateAxesGeometry(xAxisOrientation, yAxisOrientation, axesValueRangeOptions, axesScreenBound, axesDpMin, axesDvGrid)
 )
 
+/**
+ * ### Introduction
+ * This is a function that calculates the axes geometry given some basic information.
+ *
+ * ### Approach
+ *
+ * The approach taken here is highly involved. This is mainly due to the cyclical dependence of
+ * the axes geometry on their marker labels and vice versa. To expand, the axes marker labels
+ * depend on the axes geometry (i.e. number of grid lines, grid spacing, etc.), however the
+ * axes geometry depends on the bounding rect of the marker labels, (i.e. the larger the marker labels,
+ * the less space is available for the axes).
+ *
+ * To attack this challenge, a "tentative" axes geometry is created, under the assumption
+ * that no axes marker labels exist. The axis marker labels for these axes will likely overrun the allowed
+ * space of the axes in at least 2 directions. This overrun is calculated for each direction, then
+ * accounted for when next calculating the "adjusted" axes geometry. There is no guarantee that second time
+ * around there is also no overrun, since recalculation of the axes could change the axes marker labels to
+ * then overrun again, however this is an exceptional case. One can manually define the margin and padding
+ * in that case...
+ */
 export const createAxesGeometry = (
   drawer: CanvasDrawer,
   props: Options,
