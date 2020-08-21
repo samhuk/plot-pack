@@ -8,11 +8,11 @@ import { drawDatumHighlight } from './datumHighlight'
 import ProcessedDatum from './types/ProcessedDatum'
 import KdTree from './types/KdTree'
 import { mapDict, filterDict } from '../../common/helpers/dict'
-import { createDatumDistanceFunction } from './geometry'
 import drawTooltip, { getShouldDrawTooltip } from './tooltip'
 import DatumSnapMode from './types/DatumSnapMode'
 import { CanvasDrawer } from '../../common/drawer/types'
 import { createCanvasDrawer } from '../../common/drawer/canvasDrawer'
+import { createDatumDistanceFunction } from './DatumDistance'
 
 type NearestDatum = ProcessedDatum & {
   dp: number

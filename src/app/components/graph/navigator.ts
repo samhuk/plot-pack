@@ -2,7 +2,6 @@ import Options from './types/Options'
 import { CanvasDrawer } from '../../common/drawer/types'
 import { Rect, Axis2D } from '../../common/types/geometry'
 import { createAxesGeometry } from './axesGeometry'
-import { getAxesValueRangeOptions } from './geometry'
 import { mapDict } from '../../common/helpers/dict'
 import { normalizeDatumsErrorBarsValues } from './errorBars'
 import { drawAxisLine } from './axisLines'
@@ -10,8 +9,10 @@ import { drawAxisMarkerLabels } from './axisMarkerLabels'
 import { drawAxisAxisMarkerLines } from './axisMarkerLines'
 import DatumValueFocusPoint from './types/DatumValueFocusPoint'
 import DatumScreenFocusPoint from './types/DatumScreenFocusPoint'
-import { Path, PathComponentType } from '../../common/drawer/path/types'
+import { Path } from '../../common/drawer/path/types'
 import { LineOptions } from '../../common/types/canvas'
+import { createDatumsConnectingLinePath } from './connectingLine'
+import { getAxesValueRangeOptions } from './datumsValueRange'
 
 export const DEFAULT_NAVIGATOR_HEIGHT_PX = 100
 
@@ -49,6 +50,31 @@ const getConnectingLineColor = (props: Options, seriesKey: string) => (
     ?? props.navigatorOptions?.connectingLineOptions?.color
 )
 
+const drawConnectingLineForSeries = (
+  drawer: CanvasDrawer,
+  positionedDatumValueFocusPoints: PositionedDatumValuePoint[],
+  seriesKey: string,
+  props: Options,
+) => {
+  const path: Path = createDatumsConnectingLinePath(positionedDatumValueFocusPoints)
+  const color = getConnectingLineColor(props, seriesKey)
+  const lineWidth = getConnectingLineLineWidth(props, seriesKey)
+  const dashPattern = getConnectingLineDashPattern(props, seriesKey)
+  drawer.applyLineOptions({ color, lineWidth, dashPattern }, DEFAULT_CONNECTING_LINE_LINE_OPTIONS)
+  drawer.path(path)
+}
+
+const drawConnectingLineForAllSeries = (
+  drawer: CanvasDrawer,
+  positionedDatumValueFocusPoints: { [seriesKey: string]: PositionedDatumValuePoint[] },
+  props: Options,
+) => {
+  Object.entries(positionedDatumValueFocusPoints)
+    .forEach(([seriesKey, _positionedDatumValueFocusPoints]) => {
+      drawConnectingLineForSeries(drawer, _positionedDatumValueFocusPoints, seriesKey, props)
+    })
+}
+
 export const drawNavigator = (
   drawer: CanvasDrawer,
   datumValueFocusPoints: { [seriesKey: string]: DatumValueFocusPoint[] },
@@ -68,23 +94,7 @@ export const drawNavigator = (
   ))
 
   // Draw connecting line for each series
-  Object.entries(positionedDatumValueFocusPoints)
-    .forEach(([seriesKey, _positionedDatumValueFocusPoints]) => {
-      const path: Path = []
-
-      for (let i = 1; i < _positionedDatumValueFocusPoints.length; i += 1) {
-        const prevDatum = _positionedDatumValueFocusPoints[i - 1]
-        const { fpX, fpY } = _positionedDatumValueFocusPoints[i]
-        path.push({ type: PathComponentType.MOVE_TO, x: prevDatum.fpX, y: prevDatum.fpY })
-        path.push({ type: PathComponentType.LINE_TO, x: fpX, y: fpY })
-      }
-
-      const color = getConnectingLineColor(props, seriesKey)
-      const lineWidth = getConnectingLineLineWidth(props, seriesKey)
-      const dashPattern = getConnectingLineDashPattern(props, seriesKey)
-      drawer.applyLineOptions({ color, lineWidth, dashPattern }, DEFAULT_CONNECTING_LINE_LINE_OPTIONS)
-      drawer.path(path)
-    })
+  drawConnectingLineForAllSeries(drawer, positionedDatumValueFocusPoints, props)
 
   // Draw top border
   drawer.line([rect, { x: rect.x + rect.width, y: rect.y }], { color: 'black', lineWidth: 1 })

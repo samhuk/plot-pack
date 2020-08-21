@@ -55,7 +55,7 @@ export const drawConnectingLine = (
   ctx.stroke(path)
 }
 
-const createDatumsConnectingLinePath = (datumScreenFocusPoints: DatumScreenFocusPoint[]): Path => {
+export const createDatumsConnectingLinePath = (datumScreenFocusPoints: DatumScreenFocusPoint[]): Path => {
   if (datumScreenFocusPoints.length < 2)
     return null
 

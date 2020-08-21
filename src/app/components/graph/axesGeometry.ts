@@ -232,6 +232,16 @@ const createAxesDpMin = (): { [axis in Axis2D]: number } => ({
   [Axis2D.Y]: DEFAULT_DP_GRID_MIN,
 })
 
+const createAppliedCalculateAxesGeometryFunction = (
+  xAxisOrientation: XAxisOrientation,
+  yAxisOrientation: YAxisOrientation,
+  axesValueRangeOptions: AxesValueRangeOptions,
+  axesDpMin: { [axis in Axis2D]: number },
+  axesDvGrid: { [axis in Axis2D]: number },
+) => (axesScreenBound: AxesBound) => (
+  calculateAxesGeometry(xAxisOrientation, yAxisOrientation, axesValueRangeOptions, axesScreenBound, axesDpMin, axesDvGrid)
+)
+
 export const createAxesGeometry = (
   drawer: CanvasDrawer,
   props: Options,
@@ -240,26 +250,18 @@ export const createAxesGeometry = (
 ): AxesGeometry => {
   // Calculate the tentative screen bounds of axes, not taking into account the effect of axis marker labels
   const tentativeAxesScreenBound = createAxesScreenBoundFromRect(axesAvailableScreenRect)
-  const axesDpMin = createAxesDpMin()
-  const axesDvGrid = createAxesDvGrid(props)
-  // Calculate the tentative geometry of the axes, not taking into account the effect of axis marker labels
-  const tentativeAxesGeometry = calculateAxesGeometry(
+
+  const _calculateAxesGeometry = createAppliedCalculateAxesGeometryFunction(
     props.axesOptions?.[Axis2D.X]?.orientation as XAxisOrientation,
     props.axesOptions?.[Axis2D.Y]?.orientation as YAxisOrientation,
     axesValueRangeOptions,
-    tentativeAxesScreenBound,
-    axesDpMin,
-    axesDvGrid,
+    createAxesDpMin(),
+    createAxesDvGrid(props),
   )
+  // Calculate the tentative geometry of the axes, not taking into account the effect of axis marker labels
+  const tentativeAxesGeometry = _calculateAxesGeometry(tentativeAxesScreenBound)
   // Adjust screen bounds to account for any overruns
   const adjustedAxesScreenBound = createAdjustedAxesScreenBoundDueToLabelOverrun(drawer, tentativeAxesGeometry, tentativeAxesScreenBound, props)
   // Calculate new axes geometry, accounting for any overruns
-  return calculateAxesGeometry(
-    props.axesOptions?.[Axis2D.X]?.orientation as XAxisOrientation,
-    props.axesOptions?.[Axis2D.Y]?.orientation as YAxisOrientation,
-    axesValueRangeOptions,
-    adjustedAxesScreenBound,
-    axesDpMin,
-    axesDvGrid,
-  )
+  return _calculateAxesGeometry(adjustedAxesScreenBound)
 }
