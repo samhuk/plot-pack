@@ -1,8 +1,8 @@
-import Options from './types/Options'
-import { StraightLineEquation, Axis2D } from '../../common/types/geometry'
-import { isInRange } from '../../common/helpers/math'
-import AxesGeometry from './types/AxesGeometry'
-import { CanvasDrawer } from '../../common/drawer/types'
+import Options from '../types/Options'
+import { StraightLineEquation, Axis2D } from '../../../common/types/geometry'
+import { isInRange } from '../../../common/helpers/math'
+import AxesGeometry from '../types/AxesGeometry'
+import { CanvasDrawer } from '../../../common/drawer/types'
 
 const DEFAULT_BEST_FIT_LINE_WIDTH = 2
 const DEFAULT_LINE_DASH_PATTERN = [5, 5]

@@ -1,10 +1,10 @@
-import Datum from './types/Datum'
-import AxesBound from './types/AxesBound'
-import { Axis2D } from '../../common/types/geometry'
-import { mapDict } from '../../common/helpers/dict'
-import Options from './types/Options'
-import AxesValueRangeOptions from './types/AxesValueRangeOptions'
-import { AxesValueRangeForceOptions } from './geometry'
+import Datum from '../types/Datum'
+import AxesBound from '../types/AxesBound'
+import { Axis2D } from '../../../common/types/geometry'
+import { mapDict } from '../../../common/helpers/dict'
+import Options from '../types/Options'
+import AxesValueRangeOptions from '../types/AxesValueRangeOptions'
+import AxesValueRangeForceOptions from '../types/AxesValueRangeForceOptions'
 
 const getValueRangeOfDatum = (datum: Datum) => ({
   x: {

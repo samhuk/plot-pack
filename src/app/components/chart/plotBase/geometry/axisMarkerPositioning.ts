@@ -1,7 +1,7 @@
-import AxesGeometry from './types/AxesGeometry'
-import XAxisMarkerOrientation from './types/XAxixMarkerOrientation'
-import YAxisMarkerOrientation from './types/YAxisMarkerOrientation'
-import { Axis2D } from '../../common/types/geometry'
+import AxesGeometry from '../../types/AxesGeometry'
+import XAxisMarkerOrientation from '../../types/XAxixMarkerOrientation'
+import YAxisMarkerOrientation from '../../types/YAxisMarkerOrientation'
+import { Axis2D } from '../../../../common/types/geometry'
 
 export const determineXAxisMarkerPositioning = (
   axesGeometry: AxesGeometry,

@@ -1,21 +1,21 @@
-import { Point2D, Rect, Axis2D } from '../../common/types/geometry'
-import Options from './types/Options'
-import { mapDict, findEntryOfMaxValue, combineDicts, anyDict } from '../../common/helpers/dict'
+import { Point2D, Rect, Axis2D } from '../../../common/types/geometry'
+import Options from '../types/Options'
+import { mapDict, findEntryOfMaxValue, combineDicts, anyDict } from '../../../common/helpers/dict'
 import { measureTextWidth,
   measureTextLineHeight,
   createTextStyle,
   createRoundedRect,
   applyTextOptionsToContext,
-  applyLineOptionsToContext } from '../../common/helpers/canvas'
-import ProcessedDatum from './types/ProcessedDatum'
-import { getSize as getMarkerSize, drawStandardMarker, getShouldShowMarkers } from './marker'
-import { drawConnectingLine, getShouldShowConnectingLine } from './connectingLine'
-import { formatNumber } from './axisMarkerLabels'
-import { TextOptions, LineOptions } from '../../common/types/canvas'
-import { sizeInputColumn } from '../../common/canvasFlex/boundingDimensions'
-import { renderColumn } from '../../common/canvasFlex/rendering'
-import { ColumnJustification, InputColumn, InputRow, SizeUnit } from '../../common/canvasFlex/types'
-import { CanvasDrawer } from '../../common/drawer/types'
+  applyLineOptionsToContext } from '../../../common/helpers/canvas'
+import ProcessedDatum from '../types/ProcessedDatum'
+import { getSize as getMarkerSize, drawStandardMarker, getShouldShowMarkers } from '../data/marker'
+import { drawConnectingLine, getShouldShowConnectingLine } from '../data/connectingLine'
+import { formatNumber } from '../plotBase/components/axisMarkerLabels'
+import { TextOptions, LineOptions } from '../../../common/types/canvas'
+import { sizeInputColumn } from '../../../common/canvasFlex/boundingDimensions'
+import { renderColumn } from '../../../common/canvasFlex/rendering'
+import { ColumnJustification, InputColumn, InputRow, SizeUnit } from '../../../common/canvasFlex/types'
+import { CanvasDrawer } from '../../../common/drawer/types'
 
 const PREVIEW_RIGHT_MARGIN = 10
 const DEFAULT_BOX_PADDING_X = 6

@@ -1,11 +1,11 @@
-import ProcessedDatum from './types/ProcessedDatum'
-import { Axis2D } from '../../common/types/geometry'
-import Datum from './types/Datum'
-import ErrorBarsMode from './types/ErrorBarsMode'
-import Options from './types/Options'
-import { CanvasDrawer } from '../../common/drawer/types'
-import { LineOptions } from '../../common/types/canvas'
-import { Path, PathComponentType } from '../../common/drawer/path/types'
+import ProcessedDatum from '../types/ProcessedDatum'
+import { Axis2D } from '../../../common/types/geometry'
+import Datum from '../types/Datum'
+import ErrorBarsMode from '../types/ErrorBarsMode'
+import Options from '../types/Options'
+import { CanvasDrawer } from '../../../common/drawer/types'
+import { LineOptions } from '../../../common/types/canvas'
+import { Path, PathComponentType } from '../../../common/drawer/path/types'
 
 const DEFAULT_LINE_OPTIONS: LineOptions = {
   lineWidth: 1.5,

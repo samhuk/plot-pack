@@ -1,8 +1,8 @@
-import MarkerType from './types/MarkerType'
-import ProcessedDatum from './types/ProcessedDatum'
-import Options from './types/Options'
-import { CanvasDrawer } from '../../common/drawer/types'
-import { Path, PathComponentType } from '../../common/drawer/path/types'
+import MarkerType from '../types/MarkerType'
+import ProcessedDatum from '../types/ProcessedDatum'
+import Options from '../types/Options'
+import { CanvasDrawer } from '../../../common/drawer/types'
+import { Path, PathComponentType } from '../../../common/drawer/path/types'
 
 export const DEFAULT_MARKER_SIZE = 8
 const DEFAULT_MARKER_LINE_WIDTH = 2

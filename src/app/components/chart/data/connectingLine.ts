@@ -1,9 +1,9 @@
-import Options from './types/Options'
-import { Point2D } from '../../common/types/geometry'
-import DatumScreenFocusPoint from './types/DatumScreenFocusPoint'
-import { Path, PathComponentType } from '../../common/drawer/path/types'
-import { CanvasDrawer } from '../../common/drawer/types'
-import { LineOptions } from '../../common/types/canvas'
+import Options from '../types/Options'
+import { Point2D } from '../../../common/types/geometry'
+import DatumScreenFocusPoint from '../types/DatumScreenFocusPoint'
+import { Path, PathComponentType } from '../../../common/drawer/path/types'
+import { CanvasDrawer } from '../../../common/drawer/types'
+import { LineOptions } from '../../../common/types/canvas'
 
 const DEFAULT_CONNECTING_LINE_LINE_OPTIONS: LineOptions = {
   color: 'black',

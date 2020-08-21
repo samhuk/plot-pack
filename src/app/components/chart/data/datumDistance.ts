@@ -1,6 +1,6 @@
-import DatumSnapMode from './types/DatumSnapMode'
-import ProcessedDatum from './types/ProcessedDatum'
-import DatumDistanceFunction from './types/DatumDistanceFunction'
+import DatumSnapMode from '../types/DatumSnapMode'
+import ProcessedDatum from '../types/ProcessedDatum'
+import DatumDistanceFunction from '../types/DatumDistanceFunction'
 
 export const createDatumDistanceFunction = (datumSnapMode: DatumSnapMode): DatumDistanceFunction => {
   const xDistanceFunction = (datum1: ProcessedDatum, datum2: ProcessedDatum) => Math.abs(datum1.fpX - datum2.fpX)

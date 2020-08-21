@@ -1,8 +1,8 @@
-import { Options } from './types/Options'
-import ProcessedDatum from './types/ProcessedDatum'
-import { Axis2D, Point2D } from '../../common/types/geometry'
-import AxesGeometry from './types/AxesGeometry'
-import { applyLineOptionsToContext } from '../../common/helpers/canvas'
+import { Options } from '../types/Options'
+import ProcessedDatum from '../types/ProcessedDatum'
+import { Axis2D, Point2D } from '../../../common/types/geometry'
+import AxesGeometry from '../types/AxesGeometry'
+import { applyLineOptionsToContext } from '../../../common/helpers/canvas'
 
 const DEFAULT_LINE_WIDTH_X = 2
 const DEFAULT_LINE_WIDTH_Y = 1

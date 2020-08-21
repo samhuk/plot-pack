@@ -1,12 +1,12 @@
-import Options from './types/Options'
-import { Axis2D } from '../../common/types/geometry'
-import AxesGeometry from './types/AxesGeometry'
-import { determineXAxisMarkerPositioning, determineYAxisMarkerPositioning } from './axisMarkerPositioning'
-import XAxisMarkerOrientation from './types/XAxixMarkerOrientation'
-import YAxisMarkerOrientation from './types/YAxisMarkerOrientation'
-import { LineOptions } from '../../common/types/canvas'
-import { CanvasDrawer } from '../../common/drawer/types'
-import { Path, PathComponentType } from '../../common/drawer/path/types'
+import Options from '../../types/Options'
+import { Axis2D } from '../../../../common/types/geometry'
+import AxesGeometry from '../../types/AxesGeometry'
+import { determineXAxisMarkerPositioning, determineYAxisMarkerPositioning } from '../geometry/axisMarkerPositioning'
+import XAxisMarkerOrientation from '../../types/XAxixMarkerOrientation'
+import YAxisMarkerOrientation from '../../types/YAxisMarkerOrientation'
+import { LineOptions } from '../../../../common/types/canvas'
+import { CanvasDrawer } from '../../../../common/drawer/types'
+import { Path, PathComponentType } from '../../../../common/drawer/path/types'
 
 const DEFAULT_MARKER_LINE_LENGTH = 5
 

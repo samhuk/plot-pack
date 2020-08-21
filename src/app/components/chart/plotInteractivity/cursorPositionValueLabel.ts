@@ -1,9 +1,9 @@
-import { Options } from './types/Options'
-import { Axis2D, Point2D } from '../../common/types/geometry'
-import { createTextStyle, measureTextLineHeight, createRoundedRect } from '../../common/helpers/canvas'
-import ProcessedDatum from './types/ProcessedDatum'
-import AxesGeometry from './types/AxesGeometry'
-import { formatNumber } from './axisMarkerLabels'
+import { Options } from '../types/Options'
+import { Axis2D, Point2D } from '../../../common/types/geometry'
+import { createTextStyle, measureTextLineHeight, createRoundedRect } from '../../../common/helpers/canvas'
+import ProcessedDatum from '../types/ProcessedDatum'
+import AxesGeometry from '../types/AxesGeometry'
+import { formatNumber } from '../plotBase/components/axisMarkerLabels'
 
 const DEFAULT_FONT_FAMILY = 'Helvetica'
 const DEFAULT_FONT_SIZE = 12

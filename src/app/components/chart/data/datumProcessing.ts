@@ -1,11 +1,11 @@
-import Datum from './types/Datum'
-import DatumFocusPointDeterminationMode from './types/DatumFocusPointDeterminationMode'
-import DatumValueFocusPoint from './types/DatumValueFocusPoint'
-import { calculateMean } from '../../common/helpers/stat'
-import AxesBound from './types/AxesBound'
-import { Axis2D } from '../../common/types/geometry'
-import { isInRange } from '../../common/helpers/math'
-import ProcessedDatum from './types/ProcessedDatum'
+import Datum from '../types/Datum'
+import DatumFocusPointDeterminationMode from '../types/DatumFocusPointDeterminationMode'
+import DatumValueFocusPoint from '../types/DatumValueFocusPoint'
+import { calculateMean } from '../../../common/helpers/stat'
+import AxesBound from '../types/AxesBound'
+import { Axis2D } from '../../../common/types/geometry'
+import { isInRange } from '../../../common/helpers/math'
+import ProcessedDatum from '../types/ProcessedDatum'
 
 const determineDatumValueFocusPoint = (
   datum: Datum,

@@ -1,8 +1,8 @@
-import Options from './types/Options'
-import { Axis2D, Rect } from '../../common/types/geometry'
-import { CanvasDrawer } from '../../common/drawer/types'
-import { TextOptions } from '../../common/types/canvas'
-import { InputMargin } from '../../common/canvasFlex/types'
+import Options from '../../types/Options'
+import { Axis2D, Rect } from '../../../../common/types/geometry'
+import { CanvasDrawer } from '../../../../common/drawer/types'
+import { TextOptions } from '../../../../common/types/canvas'
+import { InputMargin } from '../../../../common/canvasFlex/types'
 
 const DEFAULT_LABEL_TEXT_OPTIONS: TextOptions = {
   color: 'black',

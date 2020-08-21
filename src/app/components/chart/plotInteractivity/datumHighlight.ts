@@ -1,8 +1,8 @@
-import ProcessedDatum from './types/ProcessedDatum'
-import Options from './types/Options'
-import { getSize as getMarkerSize } from './marker'
-import DatumHighlightAppearanceType from './types/DatumHighlightAppearanceType'
-import { boundToRange } from '../../common/helpers/math'
+import ProcessedDatum from '../types/ProcessedDatum'
+import Options from '../types/Options'
+import { getSize as getMarkerSize } from '../data/marker'
+import DatumHighlightAppearanceType from '../types/DatumHighlightAppearanceType'
+import { boundToRange } from '../../../common/helpers/math'
 
 const DEFAULT_DATUM_HIGHLIGHT_LINE_WIDTH = 1
 const DEFAULT_DATUM_HIGHLIGHT_COLOR = 'black'

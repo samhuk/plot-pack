@@ -1,8 +1,8 @@
-import Options from './types/Options'
-import { Axis2D, Line } from '../../common/types/geometry'
-import AxesGeometry from './types/AxesGeometry'
-import { CanvasDrawer } from '../../common/drawer/types'
-import { LineOptions } from '../../common/types/canvas'
+import Options from '../../types/Options'
+import AxesGeometry from '../../types/AxesGeometry'
+import { Axis2D, Line } from '../../../../common/types/geometry'
+import { CanvasDrawer } from '../../../../common/drawer/types'
+import { LineOptions } from '../../../../common/types/canvas'
 
 const DEFAULT_LINE_OPTIONS: LineOptions = {
   color: 'black',
