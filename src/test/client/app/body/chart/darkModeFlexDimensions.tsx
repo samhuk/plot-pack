@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
-import Graph from '../../../../../app/components/graph/react'
+import Chart from '../../../../../app/components/chart/react'
 import { Axis2D } from '../../../../../app/common/types/geometry'
-import ErrorBarsMode from '../../../../../app/components/graph/types/ErrorBarsMode'
-import MarkerType from '../../../../../app/components/graph/types/MarkerType'
-import DatumSnapMode from '../../../../../app/components/graph/types/DatumSnapMode'
-import DatumHighlightAppearanceType from '../../../../../app/components/graph/types/DatumHighlightAppearanceType'
+import ErrorBarsMode from '../../../../../app/components/chart/types/ErrorBarsMode'
+import MarkerType from '../../../../../app/components/chart/types/MarkerType'
+import DatumSnapMode from '../../../../../app/components/chart/types/DatumSnapMode'
+import DatumHighlightAppearanceType from '../../../../../app/components/chart/types/DatumHighlightAppearanceType'
 
 export const DarkModeFlexDimensions = () => {
   const [height, setHeight] = useState(500)
@@ -32,7 +32,7 @@ export const DarkModeFlexDimensions = () => {
     data2.push({ x: i, y: i })
 
   return (
-    <div className="graph dark-mode-flex-dimensions">
+    <div className="chart dark-mode-flex-dimensions">
       <div className="sandbox" style={{ }}>
         <div style={{ height: '50%' }}>
           <h3>DARK MODE (with error bars and auto height and width)!</h3>
@@ -46,7 +46,7 @@ export const DarkModeFlexDimensions = () => {
           <input type="number" min="0" value={height} onChange={e => setHeight(parseInt(e.target.value))} />
         </div>
         <div style={{ height: '50%' }}>
-          <Graph
+          <Chart
             series={{
               1: data1WithErrorBars,
               2: data2,

@@ -99,7 +99,7 @@ export const drawNavigator = (
   // Draw top border
   drawer.line([rect, { x: rect.x + rect.width, y: rect.y }], { color: 'black', lineWidth: 1 })
 
-  // Draw graph components
+  // Draw chart components
   drawAxisLine(drawer, navigatorAxesGeometry, props, Axis2D.X)
   drawAxisLine(drawer, navigatorAxesGeometry, props, Axis2D.Y)
   drawAxisMarkerLabels(drawer, navigatorAxesGeometry, Axis2D.X, props)

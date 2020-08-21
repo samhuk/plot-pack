@@ -6,9 +6,9 @@ import {
   Link,
 } from 'react-router-dom'
 import PieChart from './pieChart'
-import Graph from './graph/graph'
-import Candlestick from './graph/candlestick'
-import DarkModeFlexDimensions from './graph/darkModeFlexDimensions'
+import Chart from './chart/chart'
+import Candlestick from './chart/candlestick'
+import DarkModeFlexDimensions from './chart/darkModeFlexDimensions'
 
 export const render = () => (
   <Router>
@@ -22,13 +22,13 @@ export const render = () => (
             <Link to="/pie-chart">Pie Chart</Link>
           </li>
           <li>
-            <Link to="/graph">Graph</Link>
+            <Link to="/chart">Chart</Link>
           </li>
           <li>
-            <Link to="/graph-candlestick">Graph - Candlestick</Link>
+            <Link to="/chart-candlestick">Chart - Candlestick</Link>
           </li>
           <li>
-            <Link to="/graph-dark-flex">Graph - Dark Mode w/ Flexible Dimensions</Link>
+            <Link to="/chart-dark-flex">Chart - Dark Mode w/ Flexible Dimensions</Link>
           </li>
         </ul>
         <Switch>
@@ -38,13 +38,13 @@ export const render = () => (
           <Route path="/pie-chart">
             <PieChart />
           </Route>
-          <Route path="/graph">
-            <Graph />
+          <Route path="/chart">
+            <Chart />
           </Route>
-          <Route path="/graph-dark-flex">
+          <Route path="/chart-dark-flex">
             <DarkModeFlexDimensions />
           </Route>
-          <Route path="/graph-candlestick">
+          <Route path="/chart-candlestick">
             <Candlestick />
           </Route>
         </Switch>

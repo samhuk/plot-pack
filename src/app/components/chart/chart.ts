@@ -1,7 +1,7 @@
 import { Axis2D, Rect } from '../../common/types/geometry'
 
 import Options from './types/Options'
-import GraphGeometry from './types/GraphGeometry'
+import ChartGeometry from './types/ChartGeometry'
 import XAxisOrientation from './types/xAxisOrientation'
 import YAxisOrientation from './types/yAxisOrientation'
 import { drawCustomMarker, drawStandardMarker, getShouldShowCustomMarkers, getShouldShowMarkers } from './marker'
@@ -17,8 +17,8 @@ import drawDatumErrorBarsForDatums, { getShouldShowErrorBars } from './errorBars
 import AxesGeometry from './types/AxesGeometry'
 import drawTitle from './title'
 import { CanvasDrawer } from '../../common/drawer/types'
-import GraphComponents from './types/GraphComponents'
-import GraphComponentRects from './types/GraphComponentRects'
+import ChartComponents from './types/ChartComponents'
+import ChartComponentRects from './types/ChartComponentRects'
 
 const DEFAULT_BACKGROUND_COLOR = 'white'
 
@@ -82,7 +82,7 @@ const drawDatumMarkers = (
 const drawBaseChart = (
   drawer: CanvasDrawer,
   axesGeometry: AxesGeometry,
-  graphComponentRects: GraphComponentRects,
+  chartComponentRects: ChartComponentRects,
   props: Options,
 ) => {
   // Show axis lines by default
@@ -109,9 +109,9 @@ const drawBaseChart = (
   if (getShouldShowAxisMarkerLabels(props, Axis2D.Y))
     drawAxisMarkerLabels(drawer, axesGeometry, Axis2D.Y, props)
 
-  drawAxesLabels(drawer, graphComponentRects[GraphComponents.X_AXIS_TITLE], graphComponentRects[GraphComponents.Y_AXIS_TITLE], props)
+  drawAxesLabels(drawer, chartComponentRects[ChartComponents.X_AXIS_TITLE], chartComponentRects[ChartComponents.Y_AXIS_TITLE], props)
 
-  drawTitle(drawer, graphComponentRects[GraphComponents.TITLE_BAR], props)
+  drawTitle(drawer, chartComponentRects[ChartComponents.TITLE_BAR], props)
 }
 
 const drawSeriesData = (
@@ -137,7 +137,7 @@ const drawBackground = (drawer: CanvasDrawer, props: Options) => {
   drawer.rect(rect, { stroke: false, fill: true, fillOptions: { color: props.backgroundColor ?? DEFAULT_BACKGROUND_COLOR } })
 }
 
-const drawAllSeriesData = (drawer: CanvasDrawer, g: GraphGeometry, props: Options) => {
+const drawAllSeriesData = (drawer: CanvasDrawer, g: ChartGeometry, props: Options) => {
   // Draw series data for each series, i.e. markers, error bars, connecting line, etc.
   Object.entries(g.processedDatums)
     .forEach(([seriesKey, processedDatums]) => drawSeriesData(drawer, processedDatums, props, seriesKey))
@@ -148,13 +148,13 @@ const drawAllSeriesData = (drawer: CanvasDrawer, g: GraphGeometry, props: Option
     .forEach(([seriesKey, eq]) => drawStraightLineOfBestFit(drawer, eq, g.axesGeometry, props, seriesKey))
 }
 
-export const drawGraph = (drawer: CanvasDrawer, g: GraphGeometry, props: Options) => {
+export const drawChart = (drawer: CanvasDrawer, g: ChartGeometry, props: Options) => {
   drawer.clearRenderingSpace()
 
   drawBackground(drawer, props)
 
-  // Draw the base graph, i.e. axes lines, grid lines, labels, title, etc., but no series data.
-  drawBaseChart(drawer, g.axesGeometry, g.graphComponentRects, props)
+  // Draw the base chart, i.e. axes lines, grid lines, labels, title, etc., but no series data.
+  drawBaseChart(drawer, g.axesGeometry, g.chartComponentRects, props)
 
   // Draw data and best fit line for each series, i.e. markers, error bars, connecting line, best fit line, etc.
   drawAllSeriesData(drawer, g, props)

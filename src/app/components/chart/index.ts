@@ -1,17 +1,17 @@
 import ResizeObserver from 'resize-observer-polyfill'
 import Options from './types/Options'
-import { createGraphGeometry } from './geometry'
+import { createChartGeometry } from './geometry'
 import renderInteractivity from './interactivity'
 import CanvasElements from './types/CanvasElements'
 import cloneInputOptions from './optionsHelper'
-import { RenderedGraph } from './types/RenderedGraph'
+import { RenderedChart } from './types/RenderedChart'
 import InputOptions from './types/InputOptions'
 import { createCanvasDrawer } from '../../common/drawer/canvasDrawer'
 import { drawNavigator } from './navigator'
-import GraphComponents from './types/GraphComponents'
-import { drawGraph } from './graph'
+import ChartComponents from './types/ChartComponents'
+import { drawChart } from './chart'
 
-const CONTAINER_CLASS = 'pp-graph'
+const CONTAINER_CLASS = 'pp-chart'
 
 const areClientRectsEqualSize = (r1: DOMRect, r2: DOMRect): boolean => (
   r1.width === r2.width
@@ -33,17 +33,17 @@ const applyContainerBoundingRectToOptions = (container: HTMLElement, options: In
 }
 
 const renderIntoCanvasElements = (canvasElements: CanvasElements, options: Options) => {
-  const staticContentDrawer = createCanvasDrawer(canvasElements.graph, options.heightPx, options.widthPx)
-  const graphGeometry = createGraphGeometry(staticContentDrawer, options)
+  const staticContentDrawer = createCanvasDrawer(canvasElements.chart, options.heightPx, options.widthPx)
+  const chartGeometry = createChartGeometry(staticContentDrawer, options)
 
-  drawGraph(staticContentDrawer, graphGeometry, options)
-  drawNavigator(staticContentDrawer, graphGeometry.processedDatums, graphGeometry.graphComponentRects[GraphComponents.NAVIGATOR], options)
+  drawChart(staticContentDrawer, chartGeometry, options)
+  drawNavigator(staticContentDrawer, chartGeometry.processedDatums, chartGeometry.chartComponentRects[ChartComponents.NAVIGATOR], options)
 
-  renderInteractivity(canvasElements.interactivity, options, graphGeometry)
+  renderInteractivity(canvasElements.interactivity, options, chartGeometry)
 }
 
 const addCanvasElementsToContainer = (container: HTMLElement, canvasElements: CanvasElements) => {
-  container.appendChild(canvasElements.graph)
+  container.appendChild(canvasElements.chart)
   container.appendChild(canvasElements.interactivity)
 }
 
@@ -67,18 +67,18 @@ const createHandleResizeEventFunction = (
 ) => () => handleResizeEvent(options, container, canvasElements, bindHeight, bindWidth)
 
 const createCanvasElements = (): CanvasElements => {
-  const graphCanvasElement = document.createElement('canvas')
+  const chartCanvasElement = document.createElement('canvas')
   const interactivityCanvasElement = document.createElement('canvas')
 
-  graphCanvasElement.style.border = '1px solid black' // DEBUG LINE
-  graphCanvasElement.style.position = 'absolute'
-  graphCanvasElement.style.display = 'inline'
+  chartCanvasElement.style.border = '1px solid black' // DEBUG LINE
+  chartCanvasElement.style.position = 'absolute'
+  chartCanvasElement.style.display = 'inline'
   interactivityCanvasElement.style.border = '1px solid black' // DEBUG LINE
   interactivityCanvasElement.style.position = 'absolute'
   interactivityCanvasElement.style.display = 'inline'
 
   return {
-    graph: graphCanvasElement,
+    chart: chartCanvasElement,
     interactivity: interactivityCanvasElement,
   }
 }
@@ -114,7 +114,7 @@ const bindContainerResizeToResizeFunction = (
   return resizeObserver
 }
 
-export const render = (container: HTMLElement, options: InputOptions): RenderedGraph => {
+export const render = (container: HTMLElement, options: InputOptions): RenderedChart => {
   if (options.series == null || Object.keys(options.series).length === 0)
     return null
 

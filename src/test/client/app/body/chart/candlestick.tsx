@@ -1,8 +1,8 @@
 import React from 'react'
-import Graph from '../../../../../app/components/graph/react'
-import DatumFocusPointDeterminationMode from '../../../../../app/components/graph/types/DatumFocusPointDeterminationMode'
+import Chart from '../../../../../app/components/chart/react'
+import DatumFocusPointDeterminationMode from '../../../../../app/components/chart/types/DatumFocusPointDeterminationMode'
 import { Axis2D } from '../../../../../app/common/types/geometry'
-import ProcessedDatum from '../../../../../app/components/graph/types/ProcessedDatum'
+import ProcessedDatum from '../../../../../app/components/chart/types/ProcessedDatum'
 
 const drawCandlestickMarker = (ctx: CanvasRenderingContext2D, datum: ProcessedDatum) => {
   const sticksPath = new Path2D()
@@ -29,12 +29,12 @@ const drawCandlestickMarker = (ctx: CanvasRenderingContext2D, datum: ProcessedDa
 }
 
 export const Candlestick = () => (
-  <div className="graph">
-    <h2>Candlestick graphs</h2>
+  <div className="chart">
+    <h2>Candlestick charts</h2>
 
     <div className="sandbox">
       <h3>Standard</h3>
-      <Graph
+      <Chart
         heightPx={700}
         widthPx={700}
         title="APPL Price (FTSE)"

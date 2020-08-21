@@ -1,4 +1,4 @@
-export enum GraphComponents {
+export enum ChartComponents {
   TITLE_BAR = 'TITLE_BAR',
   Y_AXIS_TITLE = 'Y_AXIS_TITLE',
   X_AXIS_TITLE = 'X_AXIS_TITLE',
@@ -6,4 +6,4 @@ export enum GraphComponents {
   NAVIGATOR = 'NAVIGATOR'
 }
 
-export default GraphComponents
+export default ChartComponents

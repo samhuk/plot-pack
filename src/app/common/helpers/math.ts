@@ -1,4 +1,4 @@
-import Bound from '../../components/graph/types/Bound'
+import Bound from '../../components/chart/types/Bound'
 import { Point2D } from '../types/geometry'
 import { NumberFormatNotation } from '../types/math'
 

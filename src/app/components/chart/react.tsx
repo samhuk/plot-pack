@@ -2,7 +2,7 @@ import React from 'react'
 import render from '.'
 import InputOptions from './types/InputOptions'
 
-export const Graph = (props: InputOptions) => {
+export const Chart = (props: InputOptions) => {
   const onElementReady = (element: HTMLElement): void => {
     if (element != null) {
       if (element.firstElementChild != null)
@@ -16,4 +16,4 @@ export const Graph = (props: InputOptions) => {
   )
 }
 
-export default Graph
+export default Chart

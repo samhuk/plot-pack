@@ -17,12 +17,12 @@ import TitleOptions from './TitleOptions'
 import { InputMargin } from '../../../common/canvasFlex/types'
 
 /**
- * Options for the Graph
+ * Options for the Chart
  */
 export type CommonOptions = {
   title?: string
   titleOptions?: TitleOptions
-  graphMargin?: InputMargin
+  chartMargin?: InputMargin
   series: { [seriesKey: string]: Datum[] }
   datumFocusPointDeterminationMode?: DatumFocusPointDeterminationMode | ((datum: Datum) => DatumValueFocusPoint)
   backgroundColor?: string

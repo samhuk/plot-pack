@@ -1,7 +1,7 @@
 import CommonOptions from './CommonOptions'
 
 /**
- * Options for the Graph
+ * Options for the Chart
  */
 export type Options = CommonOptions & {
   heightPx: number

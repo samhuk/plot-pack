@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
 
-import Graph from '../../../../../app/components/graph/react'
+import Chart from '../../../../../app/components/chart/react'
 import { Axis2D, Point2D } from '../../../../../app/common/types/geometry'
 import { NumberFormatNotation } from '../../../../../app/common/types/math'
-import BestFitLine from '../../../../../app/components/graph/types/BestFitLineType'
-import MarkerType from '../../../../../app/components/graph/types/MarkerType'
-import XAxisOrientation from '../../../../../app/components/graph/types/xAxisOrientation'
-import YAxisOrientation from '../../../../../app/components/graph/types/yAxisOrientation'
-import DatumSnapMode from '../../../../../app/components/graph/types/DatumSnapMode'
-import { DatumHighlightAppearanceType } from '../../../../../app/components/graph/types/DatumHighlightAppearanceType'
+import BestFitLine from '../../../../../app/components/chart/types/BestFitLineType'
+import MarkerType from '../../../../../app/components/chart/types/MarkerType'
+import XAxisOrientation from '../../../../../app/components/chart/types/xAxisOrientation'
+import YAxisOrientation from '../../../../../app/components/chart/types/yAxisOrientation'
+import DatumSnapMode from '../../../../../app/components/chart/types/DatumSnapMode'
+import { DatumHighlightAppearanceType } from '../../../../../app/components/chart/types/DatumHighlightAppearanceType'
 
 export const render = () => {
   const [height, setHeight] = useState(500)
@@ -43,8 +43,8 @@ export const render = () => {
     randomData1.push({ x: Math.random(), y: Math.random() })
 
   return (
-    <div className="graph">
-      <h2>Graph</h2>
+    <div className="chart">
+      <h2>Chart</h2>
 
       <div className="sandbox">
         <h3>Highly customized, with changable options</h3>
@@ -56,10 +56,10 @@ export const render = () => {
         <input type="number" min="0" value={width} onChange={e => setWidth(parseInt(e.target.value))} />
         Height:
         <input type="number" min="0" value={height} onChange={e => setHeight(parseInt(e.target.value))} />
-        <Graph
+        <Chart
           heightPx={height}
           widthPx={width}
-          title="This is the title for the graph"
+          title="This is the title for the chart"
           titleOptions={{
             color: 'blue',
             fontSize: 22,
@@ -192,7 +192,7 @@ export const render = () => {
 
       <div className="sandbox">
         <h3>Mostly default options (realistic use case example)</h3>
-        <Graph
+        <Chart
           heightPx={height}
           widthPx={width}
           series={{
@@ -224,7 +224,7 @@ export const render = () => {
 
       <div className="sandbox">
         <h3>All default options</h3>
-        <Graph
+        <Chart
           heightPx={height}
           widthPx={width}
           series={{
@@ -236,7 +236,7 @@ export const render = () => {
 
       <div className="sandbox">
         <h3>Some random data</h3>
-        <Graph
+        <Chart
           heightPx={height}
           widthPx={width}
           series={{

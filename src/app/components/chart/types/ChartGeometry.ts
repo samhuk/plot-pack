@@ -2,18 +2,18 @@ import { StraightLineEquation } from '../../../common/types/geometry'
 import ProcessedDatum from './ProcessedDatum'
 import KdTree from './KdTree'
 import AxesGeometry from './AxesGeometry'
-import GraphComponentRects from './GraphComponentRects'
+import ChartComponentRects from './ChartComponentRects'
 
 /**
- * Geometry of a graph. This is all the information that one would need
- * to draw a graph.
+ * Geometry of a chart. This is all the information that one would need
+ * to draw a chart.
  */
-export type GraphGeometry = {
+export type ChartGeometry = {
   axesGeometry: AxesGeometry,
   processedDatums: { [seriesKey: string]: ProcessedDatum[] }
   bestFitStraightLineEquations: { [seriesKey: string]: StraightLineEquation }
   datumKdTrees: { [seriesKey: string]: KdTree<ProcessedDatum> }
-  graphComponentRects: GraphComponentRects
+  chartComponentRects: ChartComponentRects
 }
 
-export default GraphGeometry
+export default ChartGeometry
