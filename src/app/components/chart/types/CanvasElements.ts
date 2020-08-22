@@ -6,6 +6,8 @@
 export type CanvasElements = {
   chart: HTMLCanvasElement
   interactivity: HTMLCanvasElement
+  navigatorPlotBase: HTMLCanvasElement
+  navigatorInteractivity: HTMLCanvasElement
 }
 
 export default CanvasElements

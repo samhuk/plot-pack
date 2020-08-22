@@ -19,6 +19,8 @@ export const cloneInputOptions = (options: InputOptions): InputOptions => ({
   titleOptions: options.titleOptions,
   tooltipOptions: options.tooltipOptions,
   visibilityOptions: options.visibilityOptions,
+  chartMargin: options.chartMargin,
+  navigatorOptions: options.navigatorOptions,
 })
 
 export default cloneInputOptions

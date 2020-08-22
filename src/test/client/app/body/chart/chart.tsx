@@ -15,6 +15,7 @@ export const render = () => {
   const [width, setWidth] = useState(500)
   const [xMax, setXMax] = useState(20)
   const [numPoints, setNumPoints] = useState(20)
+  const [axesMargin, setAxesMargin] = useState(10)
 
   const fn = (x: number) => 10 * Math.cos(x) + 0.5 * x
   const data1 = []
@@ -56,6 +57,8 @@ export const render = () => {
         <input type="number" min="0" value={width} onChange={e => setWidth(parseInt(e.target.value))} />
         Height:
         <input type="number" min="0" value={height} onChange={e => setHeight(parseInt(e.target.value))} />
+        Axes Margin:
+        <input type="number" min="0" value={axesMargin} onChange={e => setAxesMargin(parseInt(e.target.value))} />
         <Chart
           heightPx={height}
           widthPx={width}
@@ -70,6 +73,7 @@ export const render = () => {
             1: data1,
             2: data2,
           }}
+          chartMargin={axesMargin}
           seriesOptions={{
             1: {
               visibilityOptions: {

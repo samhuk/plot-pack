@@ -1,4 +1,4 @@
-import ChartGeometry from '../types/ChartGeometry'
+import Geometry from '../types/Geometry'
 import { Options } from '../types/Options'
 import { isInRange } from '../../../common/helpers/math'
 import { Point2D, Axis2D } from '../../../common/types/geometry'
@@ -11,8 +11,8 @@ import { mapDict, filterDict } from '../../../common/helpers/dict'
 import drawTooltip, { getShouldDrawTooltip } from './tooltip'
 import DatumSnapMode from '../types/DatumSnapMode'
 import { CanvasDrawer } from '../../../common/drawer/types'
-import { createCanvasDrawer } from '../../../common/drawer/canvasDrawer'
 import { createDatumDistanceFunction } from '../geometry/datumDistance'
+import AxesGeometry from '../types/AxesGeometry'
 
 type NearestDatum = ProcessedDatum & {
   dp: number
@@ -97,18 +97,27 @@ const drawDatumHighlights = (
   })
 }
 
+const isPositionInAxes = (axesGeometry: AxesGeometry, position: Point2D) => (
+  isInRange(axesGeometry[Axis2D.X].pl, axesGeometry[Axis2D.X].pu, position.x)
+    && isInRange(axesGeometry[Axis2D.Y].pl, axesGeometry[Axis2D.Y].pu, position.y)
+)
+
+export const isMouseEventInAxes = (axesGeometry: AxesGeometry, cursorPositionFromEvent: { offsetX: number, offsetY: number }) => (
+  isInRange(axesGeometry[Axis2D.X].pl, axesGeometry[Axis2D.X].pu, cursorPositionFromEvent.offsetX)
+    && isInRange(axesGeometry[Axis2D.Y].pl, axesGeometry[Axis2D.Y].pu, cursorPositionFromEvent.offsetY)
+)
+
 const draw = (
   drawer: CanvasDrawer,
   props: Options,
-  chartGeometry: ChartGeometry,
+  geometry: Geometry,
   cursorPoint: Point2D,
 ) => {
   drawer.clearRenderingSpace()
   const ctx = drawer.getRenderingContext()
 
   // Determine if the cursor is within the chart area
-  const isCursorWithinChartArea = isInRange(chartGeometry.axesGeometry[Axis2D.X].pl, chartGeometry.axesGeometry[Axis2D.X].pu, cursorPoint.x)
-    && isInRange(chartGeometry.axesGeometry[Axis2D.Y].pl, chartGeometry.axesGeometry[Axis2D.Y].pu, cursorPoint.y)
+  const isCursorWithinChartArea = isPositionInAxes(geometry.axesGeometry, cursorPoint)
 
   // Don't draw anything if cursor isn't within the chart area (this excludes the padding area too)
   if (!isCursorWithinChartArea)
@@ -120,7 +129,7 @@ const draw = (
   if (props.datumSnapOptions?.mode !== DatumSnapMode.NONE) {
     // Determine the nearest datum to the cursor of each series
     const nearestDatums = determineNearestDatums(
-      chartGeometry.datumKdTrees,
+      geometry.datumKdTrees,
       cursorPoint,
       props.datumSnapOptions?.distanceThresholdPx,
       props.datumSnapOptions?.excludedSeriesKeys,
@@ -141,15 +150,15 @@ const draw = (
 
   // Draw the vertical and horizontal lines, intersecting at where the cursor is
   if (getShouldDrawCursorPositionLine(props, Axis2D.X))
-    drawCursorPositionLine(ctx, cursorPoint, nearestDatumOfAllSeries, chartGeometry.axesGeometry, Axis2D.X, props)
+    drawCursorPositionLine(ctx, cursorPoint, nearestDatumOfAllSeries, geometry.axesGeometry, Axis2D.X, props)
   if (getShouldDrawCursorPositionLine(props, Axis2D.Y))
-    drawCursorPositionLine(ctx, cursorPoint, nearestDatumOfAllSeries, chartGeometry.axesGeometry, Axis2D.Y, props)
+    drawCursorPositionLine(ctx, cursorPoint, nearestDatumOfAllSeries, geometry.axesGeometry, Axis2D.Y, props)
 
   // Draw the axis value labels at the cursor co-ordinates (next to the axes)
   if (getShouldDrawCursorPositionValueLabel(props, Axis2D.X))
-    drawCursorPositionValueLabel(ctx, cursorPoint, nearestDatumOfAllSeries, chartGeometry.axesGeometry, Axis2D.X, props)
+    drawCursorPositionValueLabel(ctx, cursorPoint, nearestDatumOfAllSeries, geometry.axesGeometry, Axis2D.X, props)
   if (getShouldDrawCursorPositionValueLabel(props, Axis2D.Y))
-    drawCursorPositionValueLabel(ctx, cursorPoint, nearestDatumOfAllSeries, chartGeometry.axesGeometry, Axis2D.Y, props)
+    drawCursorPositionValueLabel(ctx, cursorPoint, nearestDatumOfAllSeries, geometry.axesGeometry, Axis2D.Y, props)
 
   // Tooltip is drawn last, since that has to be on top over everything else
   if (highlightedDatums != null) {
@@ -158,19 +167,13 @@ const draw = (
   }
 }
 
-export const render = (canvas: HTMLCanvasElement, props: Options, chartGeometry: ChartGeometry) => {
-  // eslint-disable-next-line no-param-reassign
-  canvas.style.cursor = 'crosshair'
-
-  const drawer = createCanvasDrawer(canvas, props.heightPx, props.widthPx)
-
-  // eslint-disable-next-line no-param-reassign
-  canvas.onmousemove = e => {
-    draw(drawer, props, chartGeometry, { x: e.offsetX, y: e.offsetY })
+export const drawPlotInteractivity = (drawer: CanvasDrawer, props: Options, geometry: Geometry) => {
+  return {
+    eventHandlers: {
+      onMouseMouse: (e: MouseEvent) => draw(drawer, props, geometry, { x: e.offsetX, y: e.offsetY }),
+      onMouseLeave: () => drawer.clearRenderingSpace(),
+    },
   }
-
-  // eslint-disable-next-line no-param-reassign
-  canvas.onmouseleave = () => drawer.clearRenderingSpace()
 }
 
-export default render
+export default drawPlotInteractivity

@@ -1,6 +1,6 @@
 import { Axis2D, Rect } from '../../common/types/geometry'
 import Options from './types/Options'
-import ChartGeometry from './types/ChartGeometry'
+import Geometry from './types/Geometry'
 import XAxisOrientation from './types/xAxisOrientation'
 import YAxisOrientation from './types/yAxisOrientation'
 import { drawCustomMarker, drawStandardMarker, getShouldShowCustomMarkers, getShouldShowMarkers } from './data/marker'
@@ -136,7 +136,7 @@ const drawBackground = (drawer: CanvasDrawer, props: Options) => {
   drawer.rect(rect, { stroke: false, fill: true, fillOptions: { color: props.backgroundColor ?? DEFAULT_BACKGROUND_COLOR } })
 }
 
-const drawAllSeriesData = (drawer: CanvasDrawer, g: ChartGeometry, props: Options) => {
+const drawAllSeriesData = (drawer: CanvasDrawer, g: Geometry, props: Options) => {
   // Draw series data for each series, i.e. markers, error bars, connecting line, etc.
   Object.entries(g.processedDatums)
     .forEach(([seriesKey, processedDatums]) => drawSeriesData(drawer, processedDatums, props, seriesKey))
@@ -147,7 +147,7 @@ const drawAllSeriesData = (drawer: CanvasDrawer, g: ChartGeometry, props: Option
     .forEach(([seriesKey, eq]) => drawStraightLineOfBestFit(drawer, eq, g.axesGeometry, props, seriesKey))
 }
 
-export const drawChart = (drawer: CanvasDrawer, g: ChartGeometry, props: Options) => {
+export const drawChart = (drawer: CanvasDrawer, g: Geometry, props: Options) => {
   drawer.clearRenderingSpace()
 
   drawBackground(drawer, props)

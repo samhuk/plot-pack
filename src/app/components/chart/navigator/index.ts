@@ -1,6 +1,6 @@
 import Options from '../types/Options'
 import { CanvasDrawer } from '../../../common/drawer/types'
-import { Rect, Axis2D } from '../../../common/types/geometry'
+import { Rect, Axis2D, Point2D } from '../../../common/types/geometry'
 import { createAxesGeometry } from '../plotBase/geometry/axesGeometry'
 import { mapDict } from '../../../common/helpers/dict'
 import { normalizeDatumsErrorBarsValues } from '../data/errorBars'
@@ -13,6 +13,7 @@ import { Path } from '../../../common/drawer/path/types'
 import { LineOptions } from '../../../common/types/canvas'
 import { createDatumsConnectingLinePath } from '../data/connectingLine'
 import { getAxesValueRangeOptions } from '../data/datumsValueRange'
+import { isMouseEventInAxes } from '../plotInteractivity'
 
 export const DEFAULT_NAVIGATOR_HEIGHT_PX = 100
 
@@ -76,21 +77,23 @@ const drawConnectingLineForAllSeries = (
 }
 
 export const drawNavigator = (
-  drawer: CanvasDrawer,
+  drawers: { plotBase: CanvasDrawer, interactivity: CanvasDrawer },
   datumValueFocusPoints: { [seriesKey: string]: DatumValueFocusPoint[] },
   rect: Rect,
   props: Options,
 ) => {
+  const drawer = drawers.plotBase
+
   const normalizedSeries = mapDict(props.series, (seriesKey, datums) => normalizeDatumsErrorBarsValues(datums, props, seriesKey))
 
   const axesValueRangeOptions = getAxesValueRangeOptions(props, normalizedSeries)
 
   // Calculate axes geometry
-  const navigatorAxesGeometry = createAxesGeometry(drawer, props, axesValueRangeOptions, rect)
+  const axesGeometry = createAxesGeometry(drawer, props, axesValueRangeOptions, rect)
 
   // Position the datum value focus points using axes geometry
   const positionedDatumValueFocusPoints = mapDict(datumValueFocusPoints, (seriesKey, datumValueFocusPoint) => (
-    positionDatumValueFocusPoints(datumValueFocusPoint, navigatorAxesGeometry[Axis2D.X].p, navigatorAxesGeometry[Axis2D.Y].p)
+    positionDatumValueFocusPoints(datumValueFocusPoint, axesGeometry[Axis2D.X].p, axesGeometry[Axis2D.Y].p)
   ))
 
   // Draw connecting line for each series
@@ -100,10 +103,26 @@ export const drawNavigator = (
   drawer.line([rect, { x: rect.x + rect.width, y: rect.y }], { color: 'black', lineWidth: 1 })
 
   // Draw chart components
-  drawAxisLine(drawer, navigatorAxesGeometry, props, Axis2D.X)
-  drawAxisLine(drawer, navigatorAxesGeometry, props, Axis2D.Y)
-  drawAxisMarkerLabels(drawer, navigatorAxesGeometry, Axis2D.X, props)
-  drawAxisMarkerLabels(drawer, navigatorAxesGeometry, Axis2D.Y, props)
-  drawAxisAxisMarkerLines(drawer, navigatorAxesGeometry, props, Axis2D.X)
-  drawAxisAxisMarkerLines(drawer, navigatorAxesGeometry, props, Axis2D.Y)
+  drawAxisLine(drawer, axesGeometry, props, Axis2D.X)
+  drawAxisLine(drawer, axesGeometry, props, Axis2D.Y)
+  drawAxisMarkerLabels(drawer, axesGeometry, Axis2D.X, props)
+  drawAxisMarkerLabels(drawer, axesGeometry, Axis2D.Y, props)
+  drawAxisAxisMarkerLines(drawer, axesGeometry, props, Axis2D.X)
+  drawAxisAxisMarkerLines(drawer, axesGeometry, props, Axis2D.Y)
+
+  return {
+    eventHandlers: {
+      onMouseMove: (e: MouseEvent) => {
+        drawers.interactivity.clearRenderingSpace()
+
+        if (!isMouseEventInAxes(axesGeometry, e))
+          return
+
+        const fromPoint: Point2D = { x: e.offsetX, y: rect.y }
+        const toPoint: Point2D = { x: e.offsetX, y: rect.y + rect.height }
+        drawers.interactivity.line([fromPoint, toPoint], { color: 'black', lineWidth: 1, dashPattern: [5, 5] })
+      },
+      onMouseLeave: () => drawers.interactivity.clearRenderingSpace(),
+    },
+  }
 }

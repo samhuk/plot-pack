@@ -1,5 +1,5 @@
 import Options from '../types/Options'
-import ChartGeometry from '../types/ChartGeometry'
+import Geometry from '../types/Geometry'
 import BestFitLineType from '../types/BestFitLineType'
 import { calculateStraightLineOfBestFit } from '../../../common/helpers/stat'
 import { Axis2D } from '../../../common/types/geometry'
@@ -25,7 +25,7 @@ const kdTree: any = require('kd-tree-javascript')
  * grid spacing, number of grid lines, a K-D tree of the datums, bounding rects for the various parts of
  * the chart, and so on.
  */
-export const createChartGeometry = (drawer: CanvasDrawer, props: Options): ChartGeometry => {
+export const createGeometry = (drawer: CanvasDrawer, props: Options): Geometry => {
   const normalizedSeries = mapDict(props.series, (seriesKey, datums) => normalizeDatumsErrorBarsValues(datums, props, seriesKey))
 
   const axesValueRangeOptions = getAxesValueRangeOptions(props, normalizedSeries)

@@ -5,10 +5,10 @@ import AxesGeometry from './AxesGeometry'
 import ChartComponentRects from './ChartComponentRects'
 
 /**
- * Geometry of a chart. This is all the information that one would need
- * to draw a chart.
+ * Geometry of a component. This is all the information that one would need
+ * to draw the component
  */
-export type ChartGeometry = {
+export type Geometry = {
   axesGeometry: AxesGeometry,
   processedDatums: { [seriesKey: string]: ProcessedDatum[] }
   bestFitStraightLineEquations: { [seriesKey: string]: StraightLineEquation }
@@ -16,4 +16,4 @@ export type ChartGeometry = {
   chartComponentRects: ChartComponentRects
 }
 
-export default ChartGeometry
+export default Geometry

@@ -1,7 +1,7 @@
 import ResizeObserver from 'resize-observer-polyfill'
 import Options from './types/Options'
-import { createChartGeometry } from './geometry/geometry'
-import renderInteractivity from './plotInteractivity'
+import { createGeometry } from './geometry/geometry'
+import drawPlotInteractivity from './plotInteractivity'
 import CanvasElements from './types/CanvasElements'
 import cloneInputOptions from './optionsHelper'
 import { RenderedChart } from './types/RenderedChart'
@@ -10,6 +10,18 @@ import { createCanvasDrawer } from '../../common/drawer/canvasDrawer'
 import { drawNavigator } from './navigator'
 import ChartComponents from './types/ChartComponents'
 import { drawChart } from './chart'
+import { merge } from '../../common/helpers/function'
+
+type RenderedComponents = {
+  eventHandlers: {
+    onMouseMove: (e: MouseEvent) => void,
+    onMouseLeave: (e: MouseEvent) => void,
+  }
+}
+
+type State = {
+  renderedComponents: RenderedComponents
+}
 
 const CONTAINER_CLASS = 'pp-chart'
 
@@ -32,22 +44,42 @@ const applyContainerBoundingRectToOptions = (container: HTMLElement, options: In
   return options as Options
 }
 
-const renderIntoCanvasElements = (canvasElements: CanvasElements, options: Options) => {
-  const staticContentDrawer = createCanvasDrawer(canvasElements.chart, options.heightPx, options.widthPx)
-  const chartGeometry = createChartGeometry(staticContentDrawer, options)
+const renderIntoCanvasElements = (canvasElements: CanvasElements, options: Options): RenderedComponents => {
+  const plotDrawer = createCanvasDrawer(canvasElements.chart, options.heightPx, options.widthPx)
+  const plotInteractivityDrawer = createCanvasDrawer(canvasElements.interactivity, options.heightPx, options.widthPx)
+  const navigatorPlotDrawer = createCanvasDrawer(canvasElements.navigatorPlotBase, options.heightPx, options.widthPx)
+  const navigatorInteractivityDrawer = createCanvasDrawer(canvasElements.navigatorInteractivity, options.heightPx, options.widthPx)
 
-  drawChart(staticContentDrawer, chartGeometry, options)
-  drawNavigator(staticContentDrawer, chartGeometry.processedDatums, chartGeometry.chartComponentRects[ChartComponents.NAVIGATOR], options)
+  const geometry = createGeometry(plotDrawer, options)
 
-  renderInteractivity(canvasElements.interactivity, options, chartGeometry)
+  drawChart(plotDrawer, geometry, options)
+
+  const drawnPlotInteractivity = drawPlotInteractivity(plotInteractivityDrawer, options, geometry)
+
+  const drawnNavigator = drawNavigator(
+    { interactivity: navigatorInteractivityDrawer, plotBase: navigatorPlotDrawer },
+    geometry.processedDatums,
+    geometry.chartComponentRects[ChartComponents.NAVIGATOR],
+    options,
+  )
+
+  return {
+    eventHandlers: {
+      onMouseMove: merge(drawnNavigator.eventHandlers.onMouseMove, drawnPlotInteractivity.eventHandlers.onMouseMouse),
+      onMouseLeave: merge(drawnNavigator.eventHandlers.onMouseLeave, drawnPlotInteractivity.eventHandlers.onMouseLeave),
+    },
+  }
 }
 
 const addCanvasElementsToContainer = (container: HTMLElement, canvasElements: CanvasElements) => {
   container.appendChild(canvasElements.chart)
   container.appendChild(canvasElements.interactivity)
+  container.appendChild(canvasElements.navigatorInteractivity)
+  container.appendChild(canvasElements.navigatorPlotBase)
 }
 
 const handleResizeEvent = (
+  state: State,
   options: InputOptions,
   container: HTMLElement,
   canvasElements: CanvasElements,
@@ -55,33 +87,33 @@ const handleResizeEvent = (
   bindWidth: boolean,
 ) => {
   const _options = applyContainerBoundingRectToOptions(container, options, bindHeight, bindWidth)
-  renderIntoCanvasElements(canvasElements, _options)
+  // eslint-disable-next-line no-param-reassign
+  state.renderedComponents = renderIntoCanvasElements(canvasElements, _options)
 }
 
 const createHandleResizeEventFunction = (
+  state: State,
   options: InputOptions,
   container: HTMLElement,
   canvasElements: CanvasElements,
   bindHeight: boolean,
   bindWidth: boolean,
-) => () => handleResizeEvent(options, container, canvasElements, bindHeight, bindWidth)
+) => () => handleResizeEvent(state, options, container, canvasElements, bindHeight, bindWidth)
 
-const createCanvasElements = (): CanvasElements => {
-  const chartCanvasElement = document.createElement('canvas')
-  const interactivityCanvasElement = document.createElement('canvas')
-
-  chartCanvasElement.style.border = '1px solid black' // DEBUG LINE
-  chartCanvasElement.style.position = 'absolute'
-  chartCanvasElement.style.display = 'inline'
-  interactivityCanvasElement.style.border = '1px solid black' // DEBUG LINE
-  interactivityCanvasElement.style.position = 'absolute'
-  interactivityCanvasElement.style.display = 'inline'
-
-  return {
-    chart: chartCanvasElement,
-    interactivity: interactivityCanvasElement,
-  }
+const createCanvasElement = () => {
+  const el = document.createElement('canvas')
+  el.style.border = '1px solid black' // DEBUG LINE
+  el.style.position = 'absolute'
+  el.style.display = 'inline'
+  return el
 }
+
+const createCanvasElements = (): CanvasElements => ({
+  chart: createCanvasElement(),
+  interactivity: createCanvasElement(),
+  navigatorInteractivity: createCanvasElement(),
+  navigatorPlotBase: createCanvasElement(),
+})
 
 const createContainer = (options: InputOptions) => {
   // Create element
@@ -94,19 +126,20 @@ const createContainer = (options: InputOptions) => {
 }
 
 const bindContainerResizeToResizeFunction = (
+  state: State,
   container: HTMLElement,
   canvasElements: CanvasElements,
   inputOptions: InputOptions,
   bindHeight: boolean,
   bindWidth: boolean,
 ): ResizeObserver => {
-  const _onResize = createHandleResizeEventFunction(inputOptions, container, canvasElements, bindHeight, bindWidth)
-  let _currentContainerRect = container.getBoundingClientRect()
+  const onResize = createHandleResizeEventFunction(state, inputOptions, container, canvasElements, bindHeight, bindWidth)
+  let currentContainerRect = container.getBoundingClientRect()
   const resizeObserver = new ResizeObserver(() => {
-    const _newContainerRect = container.getBoundingClientRect()
-    if (!areClientRectsEqualSize(_currentContainerRect, _newContainerRect))
-      _onResize()
-    _currentContainerRect = _newContainerRect
+    const newContainerRect = container.getBoundingClientRect()
+    if (!areClientRectsEqualSize(currentContainerRect, newContainerRect))
+      onResize()
+    currentContainerRect = newContainerRect
   })
 
   resizeObserver.observe(container)
@@ -114,15 +147,35 @@ const bindContainerResizeToResizeFunction = (
   return resizeObserver
 }
 
+const createEventContainer = (state: State): HTMLElement => {
+  const eventElement = document.createElement('div')
+  eventElement.classList.add('event-container')
+  eventElement.style.width = '100%'
+  eventElement.style.height = '100%'
+  eventElement.style.position = 'absolute'
+  eventElement.style.zIndex = '1'
+
+  eventElement.onmousemove = (e: MouseEvent) => state.renderedComponents.eventHandlers.onMouseMove(e)
+  eventElement.onmouseleave = (e: MouseEvent) => state.renderedComponents.eventHandlers.onMouseLeave(e)
+
+  return eventElement
+}
+
 export const render = (container: HTMLElement, options: InputOptions): RenderedChart => {
   if (options.series == null || Object.keys(options.series).length === 0)
     return null
+
+  const state: State = { renderedComponents: null }
 
   const inputOptions: InputOptions = cloneInputOptions(options)
   const canvasElements = createCanvasElements()
 
   const innerContainer = createContainer(options)
   container.appendChild(innerContainer)
+
+  // Create event container and add to inner container
+  const eventElement = createEventContainer(state)
+  innerContainer.appendChild(eventElement)
 
   addCanvasElementsToContainer(innerContainer, canvasElements)
 
@@ -132,10 +185,10 @@ export const render = (container: HTMLElement, options: InputOptions): RenderedC
   const _options: Options = applyContainerBoundingRectToOptions(innerContainer, inputOptions, bindHeight, bindWidth)
 
   const resizeObserver: ResizeObserver = bindHeight || bindWidth
-    ? bindContainerResizeToResizeFunction(innerContainer, canvasElements, inputOptions, bindHeight, bindWidth)
+    ? bindContainerResizeToResizeFunction(state, innerContainer, canvasElements, inputOptions, bindHeight, bindWidth)
     : null
 
-  renderIntoCanvasElements(canvasElements, _options)
+  state.renderedComponents = renderIntoCanvasElements(canvasElements, _options)
 
   return {
     destroy: () => {

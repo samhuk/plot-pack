@@ -29,19 +29,20 @@ export const getMarkerLineLength = (props: Options, axis: Axis2D) => (
 
 const determineShouldGoIntoNegativeDirection = (props: Options, axesGeometry: AxesGeometry, axis: Axis2D): boolean => {
   if (axis === Axis2D.X) {
-    const markerPosition = props.axesOptions?.[Axis2D.X]?.markerOrientation as XAxisMarkerOrientation
-    return determineXAxisMarkerPositioning(axesGeometry, markerPosition).shouldPlaceBelow
+    const markerOrientation = props.axesOptions?.[Axis2D.X]?.markerOrientation as XAxisMarkerOrientation
+    return determineXAxisMarkerPositioning(axesGeometry, markerOrientation).shouldPlaceBelow
   }
 
-  const markerPosition = props.axesOptions?.[Axis2D.Y]?.markerOrientation as YAxisMarkerOrientation
-  return determineYAxisMarkerPositioning(axesGeometry, markerPosition).shouldPlaceLeft
+  const markerOrientation = props.axesOptions?.[Axis2D.Y]?.markerOrientation as YAxisMarkerOrientation
+  return determineYAxisMarkerPositioning(axesGeometry, markerOrientation).shouldPlaceLeft
 }
 
 const determineOrthogonalPositions = (props: Options, axesGeometry: AxesGeometry, axis: Axis2D): { start: number, end: number } => {
   const { orthogonalScreenPosition } = axesGeometry[axis]
   const markerLength = getMarkerLineLength(props, axis)
   const shouldGoIntoNegativeDirection = determineShouldGoIntoNegativeDirection(props, axesGeometry, axis)
-  const orthogonalScreenPositionEnd = orthogonalScreenPosition + (shouldGoIntoNegativeDirection ? 1 : -1) * markerLength
+  const othogonalVectorCoefficient = axis === Axis2D.X ? (!shouldGoIntoNegativeDirection ? -1 : 1) : (shouldGoIntoNegativeDirection ? -1 : 1)
+  const orthogonalScreenPositionEnd = orthogonalScreenPosition + othogonalVectorCoefficient * markerLength
   return { start: orthogonalScreenPosition, end: orthogonalScreenPositionEnd }
 }
 
