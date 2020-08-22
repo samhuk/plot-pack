@@ -6,7 +6,7 @@ import { measureTextLineHeight, measureTextWidth } from '../../../common/helpers
 import ChartComponents from '../types/ChartComponents'
 import { getAxisLabelText, applyAxisLabelTextOptionsToDrawer, getAxisLabelMargin } from '../plotBase/components/axisLabels'
 import { Axis2D } from '../../../common/types/geometry'
-import { DEFAULT_NAVIGATOR_HEIGHT_PX } from '../navigator/navigator'
+import { DEFAULT_NAVIGATOR_HEIGHT_PX } from '../navigator'
 import ChartComponentRects from '../types/ChartComponentRects'
 import { renderInputColumn } from '../../../common/canvasFlex/rendering'
 

@@ -12,7 +12,7 @@ import drawTooltip, { getShouldDrawTooltip } from './tooltip'
 import DatumSnapMode from '../types/DatumSnapMode'
 import { CanvasDrawer } from '../../../common/drawer/types'
 import { createCanvasDrawer } from '../../../common/drawer/canvasDrawer'
-import { createDatumDistanceFunction } from '../data/datumDistance'
+import { createDatumDistanceFunction } from '../geometry/datumDistance'
 
 type NearestDatum = ProcessedDatum & {
   dp: number

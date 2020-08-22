@@ -11,7 +11,7 @@ import { CanvasDrawer } from '../../../common/drawer/types'
 import ChartComponentRects from '../types/ChartComponentRects'
 import { calculateProcessedDatums } from '../data/datumProcessing'
 import { getChartComponentRects } from './chartComponentRects'
-import { createDatumDistanceFunction, createDatumDimensionStringList } from '../data/datumDistance'
+import { createDatumDistanceFunction, createDatumDimensionStringList } from './datumDistance'
 import { getAxesValueRangeOptions } from '../data/datumsValueRange'
 import { getBestFitLineType } from '../data/bestFitLine'
 

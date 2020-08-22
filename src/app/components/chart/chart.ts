@@ -1,5 +1,4 @@
 import { Axis2D, Rect } from '../../common/types/geometry'
-
 import Options from './types/Options'
 import ChartGeometry from './types/ChartGeometry'
 import XAxisOrientation from './types/xAxisOrientation'
