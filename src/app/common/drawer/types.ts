@@ -26,7 +26,7 @@ type Drawer<T, R> = {
   clearRenderingSpace: (rectToClear?: Rect) => void
   // -- Style modifiers
   applyLineOptions: (lineOptions?: LineOptions, defaultOptions?: LineOptions) => void
-  applyFillOptions: (fillOptions?: any, defaultOptions?: LineOptions) => void
+  applyFillOptions: (fillOptions?: FillOptions, defaultOptions?: FillOptions) => void
   applyTextOptions: (textOptions?: TextOptionsBase, fallbackOptions?: TextOptionsBase) => void
   // -- Misc
   getRenderingContext: () => T

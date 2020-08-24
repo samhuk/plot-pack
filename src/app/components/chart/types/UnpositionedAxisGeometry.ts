@@ -22,6 +22,10 @@ export type UnpositionedAxisGeometry = {
   p: (v: number) => number
   v: (p: number) => number
   numGridLines: number
+  vlGrid: number
+  vuGrid: number
+  plGrid: number
+  puGrid: number
 }
 
 export default UnpositionedAxisGeometry

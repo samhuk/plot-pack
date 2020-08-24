@@ -64,8 +64,8 @@ export const getAxesValueRangeOptions = (props: Options, normalizedSeries: { [se
   const datumValueRange = calculateValueRangesOfSeries(normalizedSeries)
 
   const forcedVlX = props.axesOptions?.[Axis2D.X]?.valueBound?.lower
-  const forcedVlY = props.axesOptions?.[Axis2D.Y]?.valueBound?.lower
   const forcedVuX = props.axesOptions?.[Axis2D.X]?.valueBound?.upper
+  const forcedVlY = props.axesOptions?.[Axis2D.Y]?.valueBound?.lower
   const forcedVuY = props.axesOptions?.[Axis2D.Y]?.valueBound?.upper
 
   const axesValueRangeForceOptions: AxesValueRangeForceOptions = {

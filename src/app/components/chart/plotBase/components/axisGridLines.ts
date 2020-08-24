@@ -22,7 +22,7 @@ const createPath = (axesGeometry: AxesGeometry, axis: Axis2D): Path => {
 
   if (axis === Axis2D.X) {
     for (let i = 0; i < axesGeometry[Axis2D.X].numGridLines; i += 1) {
-      const x = axesGeometry[Axis2D.X].pl + axesGeometry[Axis2D.X].dpGrid * i
+      const x = axesGeometry[Axis2D.X].plGrid + axesGeometry[Axis2D.X].dpGrid * i
       path.push(
         { type: PathComponentType.MOVE_TO, x, y: axesGeometry[Axis2D.Y].pl },
         { type: PathComponentType.LINE_TO, x, y: axesGeometry[Axis2D.Y].pu },
@@ -31,7 +31,7 @@ const createPath = (axesGeometry: AxesGeometry, axis: Axis2D): Path => {
   }
   else {
     for (let i = 0; i < axesGeometry[Axis2D.Y].numGridLines; i += 1) {
-      const y = axesGeometry[Axis2D.Y].pl + axesGeometry[Axis2D.Y].dpGrid * i
+      const y = axesGeometry[Axis2D.Y].plGrid + axesGeometry[Axis2D.Y].dpGrid * i
       path.push(
         { type: PathComponentType.MOVE_TO, x: axesGeometry[Axis2D.X].pl, y },
         { type: PathComponentType.LINE_TO, x: axesGeometry[Axis2D.X].pu, y },

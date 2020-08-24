@@ -16,6 +16,10 @@ export const render = () => {
   const [xMax, setXMax] = useState(20)
   const [numPoints, setNumPoints] = useState(20)
   const [axesMargin, setAxesMargin] = useState(10)
+  const [forceVu, setForceVu] = useState(false)
+  const [forceVl, setForceVl] = useState(false)
+  const [vu, setVu] = useState(20)
+  const [vl, setVl] = useState(-20)
 
   const fn = (x: number) => 10 * Math.cos(x) + 0.5 * x
   const data1 = []
@@ -57,8 +61,18 @@ export const render = () => {
         <input type="number" min="0" value={width} onChange={e => setWidth(parseInt(e.target.value))} />
         Height:
         <input type="number" min="0" value={height} onChange={e => setHeight(parseInt(e.target.value))} />
+        <br />
         Axes Margin:
         <input type="number" min="0" value={axesMargin} onChange={e => setAxesMargin(parseInt(e.target.value))} />
+        <br />
+        Force upper x:
+        <input type="checkbox" checked={forceVu} onChange={e => setForceVu(e.target.checked)} />
+        Force lower x:
+        <input type="checkbox" checked={forceVl} onChange={e => setForceVl(e.target.checked)} />
+        upper x:
+        <input type="number" value={vu} onChange={e => setVu(parseInt(e.target.value))} />
+        lower x:
+        <input type="number" value={vl} onChange={e => setVl(parseInt(e.target.value))} />
         <Chart
           heightPx={height}
           widthPx={width}
@@ -113,6 +127,10 @@ export const render = () => {
               },
             },
             [Axis2D.X]: {
+              valueBound: {
+                lower: forceVl ? vl : null,
+                upper: forceVu ? vu : null,
+              },
               labelText: 'This is the X Axis',
               // dvGrid: 0.5,
               // valueBound: { lower: -1.25, upper: 5 },

@@ -8,12 +8,14 @@ import { drawAxisLine } from '../plotBase/components/axisLines'
 import { drawAxisMarkerLabels } from '../plotBase/components/axisMarkerLabels'
 import { drawAxisAxisMarkerLines } from '../plotBase/components/axisMarkerLines'
 import DatumValueFocusPoint from '../types/DatumValueFocusPoint'
-import DatumScreenFocusPoint from '../types/DatumScreenFocusPoint'
 import { Path } from '../../../common/drawer/path/types'
 import { LineOptions } from '../../../common/types/canvas'
 import { createDatumsConnectingLinePath } from '../data/connectingLine'
 import { getAxesValueRangeOptions } from '../data/datumsValueRange'
-import { isMouseEventInAxes } from '../plotInteractivity'
+import { isPositionInRect } from '../../../common/helpers/geometry'
+import Bound from '../types/Bound'
+import PositionedDatumValueFocusPoint from '../types/PositionedDatumValueFocusPoint'
+import { positionDatumValueFocusPoints } from '../data/datumProcessing'
 
 export const DEFAULT_NAVIGATOR_HEIGHT_PX = 100
 
@@ -22,19 +24,6 @@ const DEFAULT_CONNECTING_LINE_LINE_OPTIONS: LineOptions = {
   color: 'black',
   dashPattern: [],
 }
-
-type PositionedDatumValuePoint = DatumValueFocusPoint & DatumScreenFocusPoint
-
-const positionDatumValueFocusPoints = (
-  datumValueFocusPoints: DatumValueFocusPoint[],
-  xAxisPFn: (v: number) => number,
-  yAxisPFn: (v: number) => number,
-): PositionedDatumValuePoint[] => datumValueFocusPoints.map(valueFocusPoint => ({
-  fvX: valueFocusPoint.fvX,
-  fvY: valueFocusPoint.fvY,
-  fpX: xAxisPFn(valueFocusPoint.fvX),
-  fpY: yAxisPFn(valueFocusPoint.fvY),
-}))
 
 const getConnectingLineDashPattern = (props: Options, seriesKey: string) => (
   props.navigatorOptions?.seriesOptions?.[seriesKey]?.connectingLineOptions?.dashPattern
@@ -53,7 +42,7 @@ const getConnectingLineColor = (props: Options, seriesKey: string) => (
 
 const drawConnectingLineForSeries = (
   drawer: CanvasDrawer,
-  positionedDatumValueFocusPoints: PositionedDatumValuePoint[],
+  positionedDatumValueFocusPoints: PositionedDatumValueFocusPoint[],
   seriesKey: string,
   props: Options,
 ) => {
@@ -67,7 +56,7 @@ const drawConnectingLineForSeries = (
 
 const drawConnectingLineForAllSeries = (
   drawer: CanvasDrawer,
-  positionedDatumValueFocusPoints: { [seriesKey: string]: PositionedDatumValuePoint[] },
+  positionedDatumValueFocusPoints: { [seriesKey: string]: PositionedDatumValueFocusPoint[] },
   props: Options,
 ) => {
   Object.entries(positionedDatumValueFocusPoints)
@@ -76,11 +65,22 @@ const drawConnectingLineForAllSeries = (
     })
 }
 
+type State = {
+  mouseDownPosition: Point2D
+  isMouseDown: boolean
+  isInInitialState: boolean
+}
+
+const isMouseEventInRect = (cursorPositionFromEvent: { offsetX: number, offsetY: number }, rect: Rect) => (
+  isPositionInRect({ x: cursorPositionFromEvent.offsetX, y: cursorPositionFromEvent.offsetY }, rect)
+)
+
 export const drawNavigator = (
   drawers: { plotBase: CanvasDrawer, interactivity: CanvasDrawer },
   datumValueFocusPoints: { [seriesKey: string]: DatumValueFocusPoint[] },
   rect: Rect,
   props: Options,
+  onSelectXValueRange: (valueBound: Bound) => void,
 ) => {
   const drawer = drawers.plotBase
 
@@ -110,17 +110,63 @@ export const drawNavigator = (
   drawAxisAxisMarkerLines(drawer, axesGeometry, props, Axis2D.X)
   drawAxisAxisMarkerLines(drawer, axesGeometry, props, Axis2D.Y)
 
+  const state: State = {
+    isInInitialState: false,
+    mouseDownPosition: null,
+    isMouseDown: false,
+  }
+
+  const revertStateToInitial = (s: State) => {
+    /* eslint-disable no-param-reassign */
+    s.isInInitialState = true
+    s.mouseDownPosition = null
+    s.isMouseDown = false
+    /* eslint-enable no-param-reassign */
+  }
+
   return {
     eventHandlers: {
       onMouseMove: (e: MouseEvent) => {
         drawers.interactivity.clearRenderingSpace()
 
-        if (!isMouseEventInAxes(axesGeometry, e))
+        if (!isMouseEventInRect(e, rect) || !state.isMouseDown)
           return
 
-        const fromPoint: Point2D = { x: e.offsetX, y: rect.y }
-        const toPoint: Point2D = { x: e.offsetX, y: rect.y + rect.height }
-        drawers.interactivity.line([fromPoint, toPoint], { color: 'black', lineWidth: 1, dashPattern: [5, 5] })
+        const fromLineTopPoint: Point2D = { x: state.mouseDownPosition.x, y: axesGeometry[Axis2D.Y].pl }
+        const fromLineBottomPoint: Point2D = { x: state.mouseDownPosition.x, y: axesGeometry[Axis2D.Y].pu }
+        const toLineTopPoint: Point2D = { x: e.offsetX, y: axesGeometry[Axis2D.Y].pl }
+        const toLineBottomPoint: Point2D = { x: e.offsetX, y: axesGeometry[Axis2D.Y].pu }
+        const selectedAreaRect: Rect = {
+          x: state.mouseDownPosition.x,
+          y: axesGeometry[Axis2D.Y].pu,
+          width: e.offsetX - state.mouseDownPosition.x,
+          height: axesGeometry[Axis2D.Y].pl - axesGeometry[Axis2D.Y].pu,
+        }
+        // TODO: Make the draw options here configurable
+        drawers.interactivity.line([fromLineTopPoint, fromLineBottomPoint], { color: 'blue', lineWidth: 1.5 })
+        drawers.interactivity.line([toLineTopPoint, toLineBottomPoint], { color: 'blue', lineWidth: 1.5 })
+        drawers.interactivity.rect(selectedAreaRect, { fill: true, stroke: false, fillOptions: { color: 'rgba(0, 0, 255, 0.1)' } })
+      },
+      onMouseDown: (e: MouseEvent) => {
+        if (!isMouseEventInRect(e, rect))
+          return
+
+        state.isInInitialState = false
+        state.isMouseDown = true
+        state.mouseDownPosition = { x: e.offsetX, y: e.offsetY }
+      },
+      onMouseUp: (e: MouseEvent) => {
+        if (!state.isMouseDown)
+          return
+
+        if (isMouseEventInRect(e, rect)) {
+          const fromVX = axesGeometry[Axis2D.X].v(state.mouseDownPosition.x)
+          const toVX = axesGeometry[Axis2D.X].v(e.offsetX)
+          onSelectXValueRange({ lower: Math.min(fromVX, toVX), upper: Math.max(fromVX, toVX) })
+        }
+
+        drawers.interactivity.clearRenderingSpace()
+        revertStateToInitial(state)
       },
       onMouseLeave: () => drawers.interactivity.clearRenderingSpace(),
     },

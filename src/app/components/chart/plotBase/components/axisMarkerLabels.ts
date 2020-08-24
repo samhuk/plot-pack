@@ -90,7 +90,7 @@ const createAxisMarkerLabels = (
 
   const axisMarkerLabels: AxisMarkerLabel[] = []
   for (let i = 0; i < axesGeometry[axis].numGridLines; i += 1) {
-    const value = axesGeometry[axis].vl + axesGeometry[axis].dvGrid * i
+    const value = axesGeometry[axis].vlGrid + axesGeometry[axis].dvGrid * i
     const text = formatNumber(value, props, axis)
     const textWidth = measureTextWidth(ctx, text)
     const offsetVector = calculateMarkerLabelOffsetVector(axesGeometry, markerPosition, markerLineLength, lineHeight, textWidth, axis)

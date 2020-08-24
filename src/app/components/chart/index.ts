@@ -14,8 +14,10 @@ import { merge } from '../../common/helpers/function'
 
 type RenderedComponents = {
   eventHandlers: {
-    onMouseMove: (e: MouseEvent) => void,
-    onMouseLeave: (e: MouseEvent) => void,
+    onMouseMove: (e: MouseEvent) => void
+    onMouseLeave: (e: MouseEvent) => void
+    onMouseDown: (e: MouseEvent) => void
+    onMouseUp: (e: MouseEvent) => void
   }
 }
 
@@ -61,12 +63,15 @@ const renderIntoCanvasElements = (canvasElements: CanvasElements, options: Optio
     geometry.processedDatums,
     geometry.chartComponentRects[ChartComponents.NAVIGATOR],
     options,
+    xValueBound => console.log(xValueBound),
   )
 
   return {
     eventHandlers: {
       onMouseMove: merge(drawnNavigator.eventHandlers.onMouseMove, drawnPlotInteractivity.eventHandlers.onMouseMouse),
       onMouseLeave: merge(drawnNavigator.eventHandlers.onMouseLeave, drawnPlotInteractivity.eventHandlers.onMouseLeave),
+      onMouseDown: drawnNavigator.eventHandlers.onMouseDown,
+      onMouseUp: drawnNavigator.eventHandlers.onMouseUp,
     },
   }
 }
@@ -154,9 +159,12 @@ const createEventContainer = (state: State): HTMLElement => {
   eventElement.style.height = '100%'
   eventElement.style.position = 'absolute'
   eventElement.style.zIndex = '1'
+  eventElement.style.cursor = 'crosshair'
 
   eventElement.onmousemove = (e: MouseEvent) => state.renderedComponents.eventHandlers.onMouseMove(e)
   eventElement.onmouseleave = (e: MouseEvent) => state.renderedComponents.eventHandlers.onMouseLeave(e)
+  eventElement.onmouseup = (e: MouseEvent) => state.renderedComponents.eventHandlers.onMouseUp(e)
+  eventElement.onmousedown = (e: MouseEvent) => state.renderedComponents.eventHandlers.onMouseDown(e)
 
   return eventElement
 }

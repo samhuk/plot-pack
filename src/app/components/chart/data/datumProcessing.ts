@@ -6,6 +6,18 @@ import AxesBound from '../types/AxesBound'
 import { Axis2D } from '../../../common/types/geometry'
 import { isInRange } from '../../../common/helpers/math'
 import ProcessedDatum from '../types/ProcessedDatum'
+import PositionedDatumValueFocusPoint from '../types/PositionedDatumValueFocusPoint'
+
+export const positionDatumValueFocusPoints = (
+  datumValueFocusPoints: DatumValueFocusPoint[],
+  xAxisPFn: (v: number) => number,
+  yAxisPFn: (v: number) => number,
+): PositionedDatumValueFocusPoint[] => datumValueFocusPoints.map(valueFocusPoint => ({
+  fvX: valueFocusPoint.fvX,
+  fvY: valueFocusPoint.fvY,
+  fpX: xAxisPFn(valueFocusPoint.fvX),
+  fpY: yAxisPFn(valueFocusPoint.fvY),
+}))
 
 const determineDatumValueFocusPoint = (
   datum: Datum,

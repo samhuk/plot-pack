@@ -102,16 +102,24 @@ const calculateUnpositionedAxisGeometry = (
 
   const p = (v: number) => dpdv * (v - vlPrime) + pl
 
-  const dvPrime = vlPrime - vuPrime
+  const vlPrimeDvGridDifference = ((vlPrime % _dvGrid) / _dvGrid)
+  const vuPrimeDvGridDifference = ((vuPrime % _dvGrid) / _dvGrid) - 1
+  const shouldCorrectVlGrid = [1, 2, 4, 8, 16, 32, 64].indexOf(Math.abs(vlPrimeDvGridDifference / Number.EPSILON)) !== -1
+  const shouldCorrectVuGrid = [1, 2, 4, 8, 16, 32, 64].indexOf(Math.abs(vuPrimeDvGridDifference / Number.EPSILON)) !== -1
+  const vlGrid = vlPrime + (mod(vlPrime, _dvGrid) !== 0 ? Math.abs(mod(vlPrime, _dvGrid) - _dvGrid) : 0) - (shouldCorrectVlGrid ? _dvGrid : 0)
+  const vuGrid = vuPrime - mod(vuPrime, _dvGrid) + (shouldCorrectVuGrid ? _dvGrid : 0)
+  const dvGridTotal = vlGrid - vuGrid
 
   /* Solves floating-point imprecision errors made when calculating vlPrime or vuPrime.
    * Sometimes, and seemingly randomly, it will come out as, for example, 7.9999999...
-   * This essentially inspects the size of the error of dvPrime from the nearest whole
+   * This essentially inspects the size of the error of dvGridTotal from the nearest whole
    * grid value (e.g. 8). In that example, it's 1 * Number.EPSILON, but it can occasionally
    * be 2 * Number.EPSILON, 4 * ..., and so on.
    */
-  const floatingPointError = mod(dvPrime + _dvGrid / 2, _dvGrid) - _dvGrid / 2
-  const shouldAddOneDueToFloatingPointImprecision = [1, 2, 4, 8, 16, 32, 64].indexOf(floatingPointError / Number.EPSILON) !== -1
+  // const floatingPointError = mod(dvGridTotal + _dvGrid / 2, _dvGrid) - _dvGrid / 2
+  // const shouldAddOneDueToFloatingPointImprecision = [1, 2, 4, 8, 16, 32, 64].indexOf(floatingPointError / Number.EPSILON) !== -1
+
+  const numGridLines = Math.floor(Math.abs(dvGridTotal / _dvGrid)) + 1
 
   return {
     vl: vlPrime,
@@ -122,7 +130,11 @@ const calculateUnpositionedAxisGeometry = (
     dpGrid,
     p,
     v: _p => ((_p - pl) / dpdv) + vlPrime,
-    numGridLines: Math.floor(Math.abs(dvPrime / _dvGrid)) + 1 + (shouldAddOneDueToFloatingPointImprecision ? 1 : 0),
+    numGridLines,
+    vlGrid,
+    vuGrid,
+    plGrid: p(vlGrid),
+    puGrid: p(vuGrid),
   }
 }
 

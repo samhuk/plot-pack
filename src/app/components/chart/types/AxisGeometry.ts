@@ -1,3 +1,5 @@
+import { UnpositionedAxisGeometry } from './UnpositionedAxisGeometry'
+
 /**
  * Geometric properties of an axis.
  *
@@ -14,17 +16,8 @@
  * @param numGridLines Number of grid lines that fit on the axis for the
  * calculated dvGrid (i.e. this is something like (vl - vu) / dvGrid)
  */
-export type AxisGeometry = {
-  vl: number
-  vu: number
-  pl: number
-  pu: number
-  dvGrid: number
-  dpGrid: number
-  p: (v: number) => number
-  v: (p: number) => number
+export type AxisGeometry = UnpositionedAxisGeometry & {
   orthogonalScreenPosition: number
-  numGridLines: number
 }
 
 export default AxisGeometry

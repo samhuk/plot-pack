@@ -103,8 +103,7 @@ const isPositionInAxes = (axesGeometry: AxesGeometry, position: Point2D) => (
 )
 
 export const isMouseEventInAxes = (axesGeometry: AxesGeometry, cursorPositionFromEvent: { offsetX: number, offsetY: number }) => (
-  isInRange(axesGeometry[Axis2D.X].pl, axesGeometry[Axis2D.X].pu, cursorPositionFromEvent.offsetX)
-    && isInRange(axesGeometry[Axis2D.Y].pl, axesGeometry[Axis2D.Y].pu, cursorPositionFromEvent.offsetY)
+  isPositionInAxes(axesGeometry, { x: cursorPositionFromEvent.offsetX, y: cursorPositionFromEvent.offsetY })
 )
 
 const draw = (
@@ -167,13 +166,11 @@ const draw = (
   }
 }
 
-export const drawPlotInteractivity = (drawer: CanvasDrawer, props: Options, geometry: Geometry) => {
-  return {
-    eventHandlers: {
-      onMouseMouse: (e: MouseEvent) => draw(drawer, props, geometry, { x: e.offsetX, y: e.offsetY }),
-      onMouseLeave: () => drawer.clearRenderingSpace(),
-    },
-  }
-}
+export const drawPlotInteractivity = (drawer: CanvasDrawer, props: Options, geometry: Geometry) => ({
+  eventHandlers: {
+    onMouseMouse: (e: MouseEvent) => draw(drawer, props, geometry, { x: e.offsetX, y: e.offsetY }),
+    onMouseLeave: () => drawer.clearRenderingSpace(),
+  },
+})
 
 export default drawPlotInteractivity

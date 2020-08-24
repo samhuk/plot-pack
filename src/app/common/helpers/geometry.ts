@@ -1,4 +1,5 @@
-import { Rect, BoundingRect } from '../types/geometry'
+import { Rect, BoundingRect, Point2D } from '../types/geometry'
+import { isInRange } from './math'
 
 export const getBoundingRectOfRects = (rects: Rect[]): BoundingRect => {
   if (rects.length === 0)
@@ -24,3 +25,8 @@ export const getBoundingRectOfRects = (rects: Rect[]): BoundingRect => {
 
   return { left, right, top, bottom }
 }
+
+export const isPositionInRect = (position: Point2D, rect: Rect) => (
+  isInRange(rect.x, rect.x + rect.width, position.x)
+    && isInRange(rect.y, rect.y + rect.height, position.y)
+)
