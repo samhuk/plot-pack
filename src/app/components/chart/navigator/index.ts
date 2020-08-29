@@ -15,6 +15,7 @@ import { positionDatumValueFocusPoints } from '../data/datumProcessing'
 import Geometry from '../types/Geometry'
 import ChartComponents from '../types/ChartComponents'
 import AxesGeometry from '../types/AxesGeometry'
+import { boundToRange } from '../../../common/helpers/math'
 
 export const DEFAULT_NAVIGATOR_HEIGHT_PX = 100
 
@@ -129,14 +130,16 @@ export const drawNavigator = (
         if (!isMouseEventInRect(e, rect) || !state.isMouseDown)
           return
 
-        const fromLineTopPoint: Point2D = { x: state.mouseDownPosition.x, y: axesGeometry[Axis2D.Y].pl }
-        const fromLineBottomPoint: Point2D = { x: state.mouseDownPosition.x, y: axesGeometry[Axis2D.Y].pu }
-        const toLineTopPoint: Point2D = { x: e.offsetX, y: axesGeometry[Axis2D.Y].pl }
-        const toLineBottomPoint: Point2D = { x: e.offsetX, y: axesGeometry[Axis2D.Y].pu }
+        const constrainedMouseDownX = boundToRange(state.mouseDownPosition.x, axesGeometry[Axis2D.X].pl, axesGeometry[Axis2D.X].pu)
+        const constrainedCurrentMouseX = boundToRange(e.offsetX, axesGeometry[Axis2D.X].pl, axesGeometry[Axis2D.X].pu)
+        const fromLineTopPoint: Point2D = { x: constrainedMouseDownX, y: axesGeometry[Axis2D.Y].pl }
+        const fromLineBottomPoint: Point2D = { x: constrainedMouseDownX, y: axesGeometry[Axis2D.Y].pu }
+        const toLineTopPoint: Point2D = { x: constrainedCurrentMouseX, y: axesGeometry[Axis2D.Y].pl }
+        const toLineBottomPoint: Point2D = { x: constrainedCurrentMouseX, y: axesGeometry[Axis2D.Y].pu }
         const selectedAreaRect: Rect = {
-          x: state.mouseDownPosition.x,
+          x: constrainedMouseDownX,
           y: axesGeometry[Axis2D.Y].pu,
-          width: e.offsetX - state.mouseDownPosition.x,
+          width: constrainedCurrentMouseX - constrainedMouseDownX,
           height: axesGeometry[Axis2D.Y].pl - axesGeometry[Axis2D.Y].pu,
         }
         // TODO: Make the draw options here configurable
