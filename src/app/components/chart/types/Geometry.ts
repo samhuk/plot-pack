@@ -9,7 +9,8 @@ import ChartComponentRects from './ChartComponentRects'
  * to draw the component
  */
 export type Geometry = {
-  axesGeometry: AxesGeometry,
+  chartAxesGeometry: AxesGeometry,
+  navigatorAxesGeometry: AxesGeometry,
   processedDatums: { [seriesKey: string]: ProcessedDatum[] }
   bestFitStraightLineEquations: { [seriesKey: string]: StraightLineEquation }
   datumKdTrees: { [seriesKey: string]: KdTree<ProcessedDatum> }

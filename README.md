@@ -26,8 +26,8 @@ export const MyComponent = () => (
   <>
     <h1>Example usage of Graph</h1>
     <Graph 
-      heightPx={height}
-      widthPx={width}
+      height={height}
+      width={width}
       title="f(x) = x^2"
       series={{
         1: [

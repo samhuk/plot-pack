@@ -35,8 +35,8 @@ export const Candlestick = () => (
     <div className="sandbox">
       <h3>Standard</h3>
       <Chart
-        heightPx={700}
-        widthPx={700}
+        height={700}
+        width={700}
         title="APPL Price (FTSE)"
         datumFocusPointDeterminationMode={DatumFocusPointDeterminationMode.AVERAGE}
         axesOptions={{

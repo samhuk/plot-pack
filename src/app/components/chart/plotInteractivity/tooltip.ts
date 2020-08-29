@@ -321,7 +321,7 @@ export const draw = (
   const { boundingWidth, boundingHeight } = column
 
   const tooltipBoxPosition: Point2D = {
-    x: determineTooltipBoxXCoord(props.widthPx, boundingWidth, nearestDatumOfAllSeries.fpX),
+    x: determineTooltipBoxXCoord(props.width, boundingWidth, nearestDatumOfAllSeries.fpX),
     /* Position vertically centered relative to cursor position,
      * ensuring that it doesn't overflow at the top (negative y position)
      */

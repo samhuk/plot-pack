@@ -3,26 +3,45 @@ import Options from './types/Options'
 import { createGeometry } from './geometry/geometry'
 import drawPlotInteractivity from './plotInteractivity'
 import CanvasElements from './types/CanvasElements'
-import cloneInputOptions from './optionsHelper'
+import cloneOptions from './optionsHelper'
 import { RenderedChart } from './types/RenderedChart'
 import InputOptions from './types/InputOptions'
 import { createCanvasDrawer } from '../../common/drawer/canvasDrawer'
 import { drawNavigator } from './navigator'
-import ChartComponents from './types/ChartComponents'
 import { drawChart } from './chart'
 import { merge } from '../../common/helpers/function'
+import Bound from './types/Bound'
+import { Axis2D } from '../../common/types/geometry'
+
+/* eslint-disable no-param-reassign */
+
+type InteractiveEventHandlers = {
+  onMouseMove: (e: MouseEvent) => void
+  onMouseLeave: (e: MouseEvent) => void
+  onMouseDown: (e: MouseEvent) => void
+  onMouseUp: (e: MouseEvent) => void
+}
+
+type ComponentEventHandlers = {
+  onSelectNewXValueBound: (newBound: Bound) => void
+}
+
+type EventHandlers = InteractiveEventHandlers & ComponentEventHandlers & {
+  onContainerResize: () => void
+}
 
 type RenderedComponents = {
-  eventHandlers: {
-    onMouseMove: (e: MouseEvent) => void
-    onMouseLeave: (e: MouseEvent) => void
-    onMouseDown: (e: MouseEvent) => void
-    onMouseUp: (e: MouseEvent) => void
-  }
+  eventHandlers: InteractiveEventHandlers
 }
 
 type State = {
+  eventHandlers: EventHandlers
+  canvasElements: CanvasElements,
   renderedComponents: RenderedComponents
+  inputOptions: InputOptions
+  options: Options
+  interactiveEventElement: HTMLElement
+  containerElement: HTMLElement
 }
 
 const CONTAINER_CLASS = 'pp-chart'
@@ -34,36 +53,64 @@ const areClientRectsEqualSize = (r1: DOMRect, r2: DOMRect): boolean => (
   && r1.left === r2.left
 )
 
-const applyContainerBoundingRectToOptions = (container: HTMLElement, options: InputOptions, bindHeight: boolean, bindWidth: boolean): Options => {
-  const boundingRect = container.getBoundingClientRect()
-  if (bindHeight)
-    // eslint-disable-next-line no-param-reassign
-    options.heightPx = boundingRect.height
-  if (bindWidth)
-    // eslint-disable-next-line no-param-reassign
-    options.widthPx = boundingRect.width
+const createCanvasElement = () => {
+  const el = document.createElement('canvas')
+  el.style.position = 'absolute'
+  el.style.display = 'inline'
+  return el
+}
+
+const createCanvasElements = (): CanvasElements => ({
+  chartPlotBase: createCanvasElement(),
+  chartInteractivity: createCanvasElement(),
+  navigatorInteractivity: createCanvasElement(),
+  navigatorPlotBase: createCanvasElement(),
+})
+
+const createContainer = (rectDimensions?: { height?: number, width?: number }) => {
+  // Create element
+  const el = document.createElement('div')
+  el.classList.add(CONTAINER_CLASS)
+  // Size element as given dimensions, or expand to fit outer container if not given
+  el.style.height = rectDimensions?.height != null ? `${rectDimensions.height}px` : '100%'
+  el.style.width = rectDimensions?.width != null ? `${rectDimensions.width}px` : '100%'
+  return el
+}
+
+const applyContainerRectToOptions = (containerElement: HTMLElement, options: Options|InputOptions): Options => {
+  if (options.width != null && options.height != null)
+    return options as Options
+
+  const boundingRect = containerElement.getBoundingClientRect()
+
+  if (options.height == null)
+    options.height = boundingRect.height
+  if (options.width == null)
+    options.height = boundingRect.width
 
   return options as Options
 }
 
-const renderIntoCanvasElements = (canvasElements: CanvasElements, options: Options): RenderedComponents => {
-  const plotDrawer = createCanvasDrawer(canvasElements.chart, options.heightPx, options.widthPx)
-  const plotInteractivityDrawer = createCanvasDrawer(canvasElements.interactivity, options.heightPx, options.widthPx)
-  const navigatorPlotDrawer = createCanvasDrawer(canvasElements.navigatorPlotBase, options.heightPx, options.widthPx)
-  const navigatorInteractivityDrawer = createCanvasDrawer(canvasElements.navigatorInteractivity, options.heightPx, options.widthPx)
+const renderComponents = (state: State): RenderedComponents => {
+  // Create canvas drawers for each canvas layer
+  const plotDrawer = createCanvasDrawer(state.canvasElements.chartPlotBase, state.options)
+  const plotInteractivityDrawer = createCanvasDrawer(state.canvasElements.chartInteractivity, state.options)
+  const navigatorPlotDrawer = createCanvasDrawer(state.canvasElements.navigatorPlotBase, state.options)
+  const navigatorInteractivityDrawer = createCanvasDrawer(state.canvasElements.navigatorInteractivity, state.options)
 
-  const geometry = createGeometry(plotDrawer, options)
+  // Create geometry
+  const geometry = createGeometry(plotDrawer, state.options)
 
-  drawChart(plotDrawer, geometry, options)
-
-  const drawnPlotInteractivity = drawPlotInteractivity(plotInteractivityDrawer, options, geometry)
-
+  // Draw the chart
+  drawChart(plotDrawer, geometry, state.options)
+  // Draw plot interactivity
+  const drawnPlotInteractivity = drawPlotInteractivity(plotInteractivityDrawer, state.options, geometry)
+  // Draw the navigator
   const drawnNavigator = drawNavigator(
     { interactivity: navigatorInteractivityDrawer, plotBase: navigatorPlotDrawer },
-    geometry.processedDatums,
-    geometry.chartComponentRects[ChartComponents.NAVIGATOR],
-    options,
-    xValueBound => console.log(xValueBound),
+    geometry,
+    state.options,
+    state.eventHandlers.onSelectNewXValueBound,
   )
 
   return {
@@ -76,127 +123,105 @@ const renderIntoCanvasElements = (canvasElements: CanvasElements, options: Optio
   }
 }
 
-const addCanvasElementsToContainer = (container: HTMLElement, canvasElements: CanvasElements) => {
-  container.appendChild(canvasElements.chart)
-  container.appendChild(canvasElements.interactivity)
-  container.appendChild(canvasElements.navigatorInteractivity)
-  container.appendChild(canvasElements.navigatorPlotBase)
-}
-
-const handleResizeEvent = (
-  state: State,
-  options: InputOptions,
-  container: HTMLElement,
-  canvasElements: CanvasElements,
-  bindHeight: boolean,
-  bindWidth: boolean,
-) => {
-  const _options = applyContainerBoundingRectToOptions(container, options, bindHeight, bindWidth)
-  // eslint-disable-next-line no-param-reassign
-  state.renderedComponents = renderIntoCanvasElements(canvasElements, _options)
-}
-
-const createHandleResizeEventFunction = (
-  state: State,
-  options: InputOptions,
-  container: HTMLElement,
-  canvasElements: CanvasElements,
-  bindHeight: boolean,
-  bindWidth: boolean,
-) => () => handleResizeEvent(state, options, container, canvasElements, bindHeight, bindWidth)
-
-const createCanvasElement = () => {
-  const el = document.createElement('canvas')
-  el.style.border = '1px solid black' // DEBUG LINE
-  el.style.position = 'absolute'
-  el.style.display = 'inline'
-  return el
-}
-
-const createCanvasElements = (): CanvasElements => ({
-  chart: createCanvasElement(),
-  interactivity: createCanvasElement(),
-  navigatorInteractivity: createCanvasElement(),
-  navigatorPlotBase: createCanvasElement(),
-})
-
-const createContainer = (options: InputOptions) => {
-  // Create element
-  const innerContainer = document.createElement('div')
-  innerContainer.classList.add(CONTAINER_CLASS)
-  // Size element as given dimensions, or expand to fit outer container if not given
-  innerContainer.style.height = options.heightPx != null ? `${options.heightPx}px` : '100%'
-  innerContainer.style.width = options.widthPx != null ? `${options.widthPx}px` : '100%'
-  return innerContainer
-}
-
-const bindContainerResizeToResizeFunction = (
-  state: State,
-  container: HTMLElement,
-  canvasElements: CanvasElements,
-  inputOptions: InputOptions,
-  bindHeight: boolean,
-  bindWidth: boolean,
-): ResizeObserver => {
-  const onResize = createHandleResizeEventFunction(state, inputOptions, container, canvasElements, bindHeight, bindWidth)
-  let currentContainerRect = container.getBoundingClientRect()
+const bindToElementResize = (element: HTMLElement, onResize: () => void): ResizeObserver => {
+  let currentRect = element.getBoundingClientRect()
   const resizeObserver = new ResizeObserver(() => {
-    const newContainerRect = container.getBoundingClientRect()
-    if (!areClientRectsEqualSize(currentContainerRect, newContainerRect))
+    const newRect = element.getBoundingClientRect()
+    if (!areClientRectsEqualSize(currentRect, newRect))
       onResize()
-    currentContainerRect = newContainerRect
+    currentRect = newRect
   })
 
-  resizeObserver.observe(container)
+  resizeObserver.observe(element)
 
   return resizeObserver
 }
 
-const createEventContainer = (state: State): HTMLElement => {
-  const eventElement = document.createElement('div')
-  eventElement.classList.add('event-container')
-  eventElement.style.width = '100%'
-  eventElement.style.height = '100%'
-  eventElement.style.position = 'absolute'
-  eventElement.style.zIndex = '1'
-  eventElement.style.cursor = 'crosshair'
+const createInteractiveEventContainer = (eventHandlers: InteractiveEventHandlers): HTMLElement => {
+  const interactiveEventElement = document.createElement('div')
+  interactiveEventElement.classList.add('event-container')
+  interactiveEventElement.style.width = '100%'
+  interactiveEventElement.style.height = '100%'
+  interactiveEventElement.style.position = 'absolute'
+  interactiveEventElement.style.zIndex = '1'
+  interactiveEventElement.style.cursor = 'crosshair'
 
-  eventElement.onmousemove = (e: MouseEvent) => state.renderedComponents.eventHandlers.onMouseMove(e)
-  eventElement.onmouseleave = (e: MouseEvent) => state.renderedComponents.eventHandlers.onMouseLeave(e)
-  eventElement.onmouseup = (e: MouseEvent) => state.renderedComponents.eventHandlers.onMouseUp(e)
-  eventElement.onmousedown = (e: MouseEvent) => state.renderedComponents.eventHandlers.onMouseDown(e)
+  interactiveEventElement.onmousemove = eventHandlers.onMouseMove
+  interactiveEventElement.onmouseleave = eventHandlers.onMouseLeave
+  interactiveEventElement.onmouseup = eventHandlers.onMouseUp
+  interactiveEventElement.onmousedown = eventHandlers.onMouseDown
 
-  return eventElement
+  return interactiveEventElement
 }
 
-export const render = (container: HTMLElement, options: InputOptions): RenderedChart => {
-  if (options.series == null || Object.keys(options.series).length === 0)
+const setXAxisValueBoundToOptions = (options: Options, bound: Bound): void => {
+  if (options.axesOptions == null)
+    options.axesOptions = {}
+  if (options.axesOptions[Axis2D.X] == null)
+    options.axesOptions[Axis2D.X] = {}
+  options.axesOptions[Axis2D.X].valueBound = bound
+}
+
+const createEventHandlers = (state: State): EventHandlers => {
+  const eventHandlers: EventHandlers = {
+    onMouseDown: e => state.renderedComponents.eventHandlers.onMouseDown(e),
+    onMouseUp: e => state.renderedComponents.eventHandlers.onMouseUp(e),
+    onMouseLeave: e => state.renderedComponents.eventHandlers.onMouseLeave(e),
+    onMouseMove: e => state.renderedComponents.eventHandlers.onMouseMove(e),
+    onSelectNewXValueBound: newBound => {
+      setXAxisValueBoundToOptions(state.options, newBound)
+      state.renderedComponents = renderComponents(state)
+    },
+    onContainerResize: () => {
+      // Create new options given the new container size and input options
+      applyContainerRectToOptions(state.containerElement, state.options)
+      state.renderedComponents = renderComponents(state)
+    },
+  }
+  return eventHandlers
+}
+
+export const render = (parentContainerElement: HTMLElement, inputOptions: InputOptions): RenderedChart => {
+  if (inputOptions.series == null || Object.keys(inputOptions.series).length === 0)
     return null
 
-  const state: State = { renderedComponents: null }
+  const state: State = {
+    inputOptions,
+    canvasElements: null,
+    containerElement: null,
+    eventHandlers: null,
+    renderedComponents: null,
+    options: null,
+    interactiveEventElement: null,
+  }
 
-  const inputOptions: InputOptions = cloneInputOptions(options)
-  const canvasElements = createCanvasElements()
+  state.canvasElements = createCanvasElements()
+  state.containerElement = createContainer(state.inputOptions)
 
-  const innerContainer = createContainer(options)
-  container.appendChild(innerContainer)
+  // Add canvas elements to container element
+  state.containerElement.appendChild(state.canvasElements.chartPlotBase)
+  state.containerElement.appendChild(state.canvasElements.chartInteractivity)
+  state.containerElement.appendChild(state.canvasElements.navigatorInteractivity)
+  state.containerElement.appendChild(state.canvasElements.navigatorPlotBase)
+  // Add container element to the "outer" container element
+  parentContainerElement.appendChild(state.containerElement)
 
-  // Create event container and add to inner container
-  const eventElement = createEventContainer(state)
-  innerContainer.appendChild(eventElement)
+  // Create event handlers
+  state.eventHandlers = createEventHandlers(state)
 
-  addCanvasElementsToContainer(innerContainer, canvasElements)
+  // Create initial new options given the current container and input options
+  state.options = applyContainerRectToOptions(state.containerElement, cloneOptions(state.inputOptions))
 
-  const bindHeight = inputOptions.heightPx == null
-  const bindWidth = inputOptions.widthPx == null
+  // Render components
+  state.renderedComponents = renderComponents(state)
 
-  const _options: Options = applyContainerBoundingRectToOptions(innerContainer, inputOptions, bindHeight, bindWidth)
+  // Create interactive event element, prepending it such that it's on top to capture interactive events
+  state.interactiveEventElement = createInteractiveEventContainer(state.renderedComponents.eventHandlers)
+  state.containerElement.prepend(state.interactiveEventElement)
 
-  const resizeObserver: ResizeObserver = bindHeight || bindWidth
-    ? bindContainerResizeToResizeFunction(state, innerContainer, canvasElements, inputOptions, bindHeight, bindWidth)
-    : null
-
-  state.renderedComponents = renderIntoCanvasElements(canvasElements, _options)
+  // Create resize observer if either height or width has not been defined
+  const shouldObserveResize = state.inputOptions.height == null || state.inputOptions.width == null
+  const resizeObserver = shouldObserveResize ? bindToElementResize(state.containerElement, state.eventHandlers.onContainerResize) : null
 
   return {
     destroy: () => {

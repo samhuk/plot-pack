@@ -74,8 +74,8 @@ export const render = () => {
         lower x:
         <input type="number" value={vl} onChange={e => setVl(parseInt(e.target.value))} />
         <Chart
-          heightPx={height}
-          widthPx={width}
+          height={height}
+          width={width}
           title="This is the title for the chart"
           titleOptions={{
             color: 'blue',
@@ -215,8 +215,8 @@ export const render = () => {
       <div className="sandbox">
         <h3>Mostly default options (realistic use case example)</h3>
         <Chart
-          heightPx={height}
-          widthPx={width}
+          height={height}
+          width={width}
           series={{
             1: data3,
             2: data4,
@@ -247,8 +247,8 @@ export const render = () => {
       <div className="sandbox">
         <h3>All default options</h3>
         <Chart
-          heightPx={height}
-          widthPx={width}
+          height={height}
+          width={width}
           series={{
             1: data1,
             2: data2,
@@ -259,8 +259,8 @@ export const render = () => {
       <div className="sandbox">
         <h3>Some random data</h3>
         <Chart
-          heightPx={height}
-          widthPx={width}
+          height={height}
+          width={width}
           series={{
             1: randomData1,
           }}

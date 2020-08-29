@@ -120,8 +120,8 @@ const createCanvasFlexColumn = (drawer: CanvasDrawer, props: Options): InputColu
   const navigatorRow = createNavigatorRow(props)
 
   return {
-    height: props.heightPx,
-    width: props.widthPx,
+    height: props.height,
+    width: props.width,
     widthUnits: SizeUnit.PX,
     rows: [
       // -- Title

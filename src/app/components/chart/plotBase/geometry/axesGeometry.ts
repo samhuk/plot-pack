@@ -266,7 +266,8 @@ const createAppliedCalculateAxesGeometryFunction = (
 
 /**
  * ### Introduction
- * This is a function that calculates the axes geometry given some basic information.
+ * This is a function that calculates  axes geometry given some basic information. It is the
+ * entry-point to the most non-trivial module of the chart component.
  *
  * ### Approach
  *

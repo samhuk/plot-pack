@@ -1,8 +1,9 @@
 import InputOptions from './types/InputOptions'
+import Options from './types/Options'
 
-export const cloneInputOptions = (options: InputOptions): InputOptions => ({
-  heightPx: options.heightPx,
-  widthPx: options.widthPx,
+export const cloneOptions = <T extends InputOptions | Options>(options: T): T => ({
+  height: options.height,
+  width: options.width,
   series: options.series,
   axesLabelOptions: options.axesLabelOptions,
   axesOptions: options.axesOptions,
@@ -21,6 +22,6 @@ export const cloneInputOptions = (options: InputOptions): InputOptions => ({
   visibilityOptions: options.visibilityOptions,
   chartMargin: options.chartMargin,
   navigatorOptions: options.navigatorOptions,
-})
+} as T)
 
-export default cloneInputOptions
+export default cloneOptions

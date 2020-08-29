@@ -12,7 +12,7 @@ export const Chart = (props: InputOptions) => {
   }
 
   return (
-    <div ref={onElementReady} style={{ position: 'relative', height: props.heightPx ?? '100%', width: props.widthPx ?? '100%' }} />
+    <div ref={onElementReady} style={{ position: 'relative', height: props.height ?? '100%', width: props.width ?? '100%' }} />
   )
 }
 

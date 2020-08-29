@@ -1,7 +1,7 @@
 import { CanvasDrawer, CanvasDrawerState, DrawOptions, TextOptions } from './types'
 import { get2DContext, applyTextOptionsToContext, getTextLineHeightMetrics } from '../helpers/canvas'
 import { LineOptions, FillOptions, TextOptions as TextOptionsBase } from '../types/canvas'
-import { Line, CircularSector, Rect, Circle, Point2D } from '../types/geometry'
+import { Line, CircularSector, Rect, Circle, Point2D, RectDimensions } from '../types/geometry'
 import { createPath2DFromPath } from './path/path'
 import { Path, PathComponentType } from './path/types'
 
@@ -212,13 +212,9 @@ const text = (state: CanvasDrawerState, _text: string, position: Point2D, textOp
     state.ctx.restore()
 }
 
-export const createCanvasDrawer = (
-  canvasElement: HTMLCanvasElement,
-  height: number,
-  width: number,
-): CanvasDrawer => {
+export const createCanvasDrawer = (canvasElement: HTMLCanvasElement, rectDimensions: RectDimensions): CanvasDrawer => {
   const state: CanvasDrawerState = {
-    ctx: get2DContext(canvasElement, width, height),
+    ctx: get2DContext(canvasElement, rectDimensions.width, rectDimensions.height),
     drawnObjects: [],
   }
 

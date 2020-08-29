@@ -28,15 +28,17 @@ const kdTree: any = require('kd-tree-javascript')
 export const createGeometry = (drawer: CanvasDrawer, props: Options): Geometry => {
   const normalizedSeries = mapDict(props.series, (seriesKey, datums) => normalizeDatumsErrorBarsValues(datums, props, seriesKey))
 
-  const axesValueRangeOptions = getAxesValueRangeOptions(props, normalizedSeries)
+  const chartAxesValueRangeOptions = getAxesValueRangeOptions(props, normalizedSeries)
 
   const chartComponentRects: ChartComponentRects = getChartComponentRects(drawer, props)
 
-  const axesGeometry = createAxesGeometry(drawer, props, axesValueRangeOptions, chartComponentRects[ChartComponents.CHART])
+  const chartAxesGeometry = createAxesGeometry(drawer, props, chartAxesValueRangeOptions, chartComponentRects[ChartComponents.CHART])
+
+  const navigatorAxesGeometry = createAxesGeometry(drawer, props, chartAxesValueRangeOptions, chartComponentRects[ChartComponents.NAVIGATOR])
 
   // Calculate positioned datums, adding screen position and a focus point to each datum.
   const processedDatums = mapDict(normalizedSeries, (seriesKey, datums) => (
-    calculateProcessedDatums(datums, axesGeometry[Axis2D.X].p, axesGeometry[Axis2D.Y].p, axesValueRangeOptions, props.datumFocusPointDeterminationMode)
+    calculateProcessedDatums(datums, chartAxesGeometry[Axis2D.X].p, chartAxesGeometry[Axis2D.Y].p, chartAxesValueRangeOptions, props.datumFocusPointDeterminationMode)
   ))
 
   // Calculate best fit straight line for each series
@@ -55,7 +57,8 @@ export const createGeometry = (drawer: CanvasDrawer, props: Options): Geometry =
   ))
 
   return {
-    axesGeometry,
+    chartAxesGeometry,
+    navigatorAxesGeometry,
     bestFitStraightLineEquations,
     processedDatums,
     datumKdTrees,

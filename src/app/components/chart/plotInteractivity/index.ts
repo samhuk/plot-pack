@@ -116,7 +116,7 @@ const draw = (
   const ctx = drawer.getRenderingContext()
 
   // Determine if the cursor is within the chart area
-  const isCursorWithinChartArea = isPositionInAxes(geometry.axesGeometry, cursorPoint)
+  const isCursorWithinChartArea = isPositionInAxes(geometry.chartAxesGeometry, cursorPoint)
 
   // Don't draw anything if cursor isn't within the chart area (this excludes the padding area too)
   if (!isCursorWithinChartArea)
@@ -149,15 +149,15 @@ const draw = (
 
   // Draw the vertical and horizontal lines, intersecting at where the cursor is
   if (getShouldDrawCursorPositionLine(props, Axis2D.X))
-    drawCursorPositionLine(ctx, cursorPoint, nearestDatumOfAllSeries, geometry.axesGeometry, Axis2D.X, props)
+    drawCursorPositionLine(ctx, cursorPoint, nearestDatumOfAllSeries, geometry.chartAxesGeometry, Axis2D.X, props)
   if (getShouldDrawCursorPositionLine(props, Axis2D.Y))
-    drawCursorPositionLine(ctx, cursorPoint, nearestDatumOfAllSeries, geometry.axesGeometry, Axis2D.Y, props)
+    drawCursorPositionLine(ctx, cursorPoint, nearestDatumOfAllSeries, geometry.chartAxesGeometry, Axis2D.Y, props)
 
   // Draw the axis value labels at the cursor co-ordinates (next to the axes)
   if (getShouldDrawCursorPositionValueLabel(props, Axis2D.X))
-    drawCursorPositionValueLabel(ctx, cursorPoint, nearestDatumOfAllSeries, geometry.axesGeometry, Axis2D.X, props)
+    drawCursorPositionValueLabel(ctx, cursorPoint, nearestDatumOfAllSeries, geometry.chartAxesGeometry, Axis2D.X, props)
   if (getShouldDrawCursorPositionValueLabel(props, Axis2D.Y))
-    drawCursorPositionValueLabel(ctx, cursorPoint, nearestDatumOfAllSeries, geometry.axesGeometry, Axis2D.Y, props)
+    drawCursorPositionValueLabel(ctx, cursorPoint, nearestDatumOfAllSeries, geometry.chartAxesGeometry, Axis2D.Y, props)
 
   // Tooltip is drawn last, since that has to be on top over everything else
   if (highlightedDatums != null) {

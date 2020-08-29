@@ -132,7 +132,7 @@ const drawSeriesData = (
 }
 
 const drawBackground = (drawer: CanvasDrawer, props: Options) => {
-  const rect: Rect = { x: 0, y: 0, width: props.widthPx, height: props.heightPx }
+  const rect: Rect = { x: 0, y: 0, width: props.width, height: props.height }
   drawer.rect(rect, { stroke: false, fill: true, fillOptions: { color: props.backgroundColor ?? DEFAULT_BACKGROUND_COLOR } })
 }
 
@@ -144,7 +144,7 @@ const drawAllSeriesData = (drawer: CanvasDrawer, g: Geometry, props: Options) =>
   // Draw straight lines of best fit for each series
   Object.entries(g.bestFitStraightLineEquations)
     .filter(([seriesKey, eq]) => eq != null && getShouldShowLineOfBestFit(props, seriesKey))
-    .forEach(([seriesKey, eq]) => drawStraightLineOfBestFit(drawer, eq, g.axesGeometry, props, seriesKey))
+    .forEach(([seriesKey, eq]) => drawStraightLineOfBestFit(drawer, eq, g.chartAxesGeometry, props, seriesKey))
 }
 
 export const drawChart = (drawer: CanvasDrawer, g: Geometry, props: Options) => {
@@ -153,7 +153,7 @@ export const drawChart = (drawer: CanvasDrawer, g: Geometry, props: Options) => 
   drawBackground(drawer, props)
 
   // Draw the base chart, i.e. axes lines, grid lines, labels, title, etc., but no series data.
-  drawBaseChart(drawer, g.axesGeometry, g.chartComponentRects, props)
+  drawBaseChart(drawer, g.chartAxesGeometry, g.chartComponentRects, props)
 
   // Draw data and best fit line for each series, i.e. markers, error bars, connecting line, best fit line, etc.
   drawAllSeriesData(drawer, g, props)

@@ -4,14 +4,16 @@ export enum Axis2D {
 }
 
 export type Point2D = {
-  x: number,
-  y: number,
+  x: number
+  y: number
 }
 
-export type Rect = Point2D & {
-  width: number,
-  height: number,
+export type RectDimensions = {
+  width: number
+  height: number
 }
+
+export type Rect = Point2D & RectDimensions
 
 export type BoundingRect = {
   left: number
@@ -39,15 +41,15 @@ export type Quadrilateral = [Point2D, Point2D, Point2D, Point2D]
 export type Polygon = Point2D[]
 
 export type Arc = {
-  start: number,
+  start: number
   end: number
 }
 
 export type Circle = {
-  position: Point2D,
-  radius: number,
+  position: Point2D
+  radius: number
 }
 
 export type CircularSector = Circle & {
-  arc: Arc,
+  arc: Arc
 }
