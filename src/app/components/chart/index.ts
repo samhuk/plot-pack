@@ -71,22 +71,23 @@ const createContainer = (rectDimensions?: { height?: number, width?: number }) =
   // Create element
   const el = document.createElement('div')
   el.classList.add(CONTAINER_CLASS)
-  // Size element as given dimensions, or expand to fit outer container if not given
+  // Size element as given dimensions, or expand to fit parent element if not given
   el.style.height = rectDimensions?.height != null ? `${rectDimensions.height}px` : '100%'
   el.style.width = rectDimensions?.width != null ? `${rectDimensions.width}px` : '100%'
   return el
 }
 
-const applyContainerRectToOptions = (containerElement: HTMLElement, options: Options|InputOptions): Options => {
-  if (options.width != null && options.height != null)
+const applyContainerRectToOptions = (containerElement: HTMLElement, inputOptions: InputOptions, options: Options|InputOptions): Options => {
+  // We don't need to bind to dimension(s) and options already has dimensions defined
+  if (inputOptions.width != null && inputOptions.height != null && options.width != null && options.height != null)
     return options as Options
 
   const boundingRect = containerElement.getBoundingClientRect()
 
-  if (options.height == null)
+  if (inputOptions.height == null)
     options.height = boundingRect.height
-  if (options.width == null)
-    options.height = boundingRect.width
+  if (inputOptions.width == null)
+    options.width = boundingRect.width
 
   return options as Options
 }
@@ -173,8 +174,8 @@ const createEventHandlers = (state: State): EventHandlers => {
       state.renderedComponents = renderComponents(state)
     },
     onContainerResize: () => {
-      // Create new options given the new container size and input options
-      applyContainerRectToOptions(state.containerElement, state.options)
+      // Create new options given the new container size and current options
+      applyContainerRectToOptions(state.containerElement, state.inputOptions, state.options)
       state.renderedComponents = renderComponents(state)
     },
   }
@@ -209,8 +210,12 @@ export const render = (parentContainerElement: HTMLElement, inputOptions: InputO
   // Create event handlers
   state.eventHandlers = createEventHandlers(state)
 
+  const areDimensionsFullyDefined = state.inputOptions.height != null && state.inputOptions.width != null
+
   // Create initial new options given the current container and input options
-  state.options = applyContainerRectToOptions(state.containerElement, cloneOptions(state.inputOptions))
+  state.options = areDimensionsFullyDefined
+    ? cloneOptions(state.inputOptions) as Options
+    : applyContainerRectToOptions(state.containerElement, state.inputOptions, cloneOptions(state.inputOptions))
 
   // Render components
   state.renderedComponents = renderComponents(state)
@@ -220,8 +225,7 @@ export const render = (parentContainerElement: HTMLElement, inputOptions: InputO
   state.containerElement.prepend(state.interactiveEventElement)
 
   // Create resize observer if either height or width has not been defined
-  const shouldObserveResize = state.inputOptions.height == null || state.inputOptions.width == null
-  const resizeObserver = shouldObserveResize ? bindToElementResize(state.containerElement, state.eventHandlers.onContainerResize) : null
+  const resizeObserver = !areDimensionsFullyDefined ? bindToElementResize(state.containerElement, state.eventHandlers.onContainerResize) : null
 
   return {
     destroy: () => {

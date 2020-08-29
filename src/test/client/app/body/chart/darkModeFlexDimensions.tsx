@@ -7,8 +7,6 @@ import DatumSnapMode from '../../../../../app/components/chart/types/DatumSnapMo
 import DatumHighlightAppearanceType from '../../../../../app/components/chart/types/DatumHighlightAppearanceType'
 
 export const DarkModeFlexDimensions = () => {
-  const [height, setHeight] = useState(500)
-  const [width, setWidth] = useState(500)
   const [xMax, setXMax] = useState(20)
   const [numPoints, setNumPoints] = useState(20)
 
@@ -40,10 +38,6 @@ export const DarkModeFlexDimensions = () => {
           <input type="number" min="0" value={numPoints} onChange={e => setNumPoints(parseInt(e.target.value))} />
           X Max:
           <input type="number" value={xMax} onChange={e => setXMax(parseInt(e.target.value))} />
-          Width:
-          <input type="number" min="0" value={width} onChange={e => setWidth(parseInt(e.target.value))} />
-          Height:
-          <input type="number" min="0" value={height} onChange={e => setHeight(parseInt(e.target.value))} />
         </div>
         <div style={{ height: '50%' }}>
           <Chart

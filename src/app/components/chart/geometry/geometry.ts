@@ -38,7 +38,13 @@ export const createGeometry = (drawer: CanvasDrawer, props: Options): Geometry =
 
   // Calculate positioned datums, adding screen position and a focus point to each datum.
   const processedDatums = mapDict(normalizedSeries, (seriesKey, datums) => (
-    calculateProcessedDatums(datums, chartAxesGeometry[Axis2D.X].p, chartAxesGeometry[Axis2D.Y].p, chartAxesValueRangeOptions, props.datumFocusPointDeterminationMode)
+    calculateProcessedDatums(
+      datums,
+      chartAxesGeometry[Axis2D.X].p,
+      chartAxesGeometry[Axis2D.Y].p,
+      chartAxesValueRangeOptions,
+      props.datumFocusPointDeterminationMode,
+    )
   ))
 
   // Calculate best fit straight line for each series
