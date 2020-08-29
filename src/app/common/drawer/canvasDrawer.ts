@@ -190,7 +190,7 @@ const clearRenderingSpace = (state: CanvasDrawerState, rectToClear: Rect) => {
     state.ctx.clearRect(0, 0, state.ctx.canvas.height, state.ctx.canvas.width)
 }
 
-const text = (state: CanvasDrawerState, _text: string, position: Point2D, textOptions: TextOptions) => {
+const text = (state: CanvasDrawerState, _text: string, position: Point2D, angle: number, textOptions: TextOptions) => {
   if (textOptions != null)
     applyTextOptions(state, textOptions, null)
 
@@ -200,11 +200,11 @@ const text = (state: CanvasDrawerState, _text: string, position: Point2D, textOp
   // Adding the ascent here makes the text sit snugly into the top-left corner of the text rect
   const textY = position.y + textLineHeightMetrics.ascent
 
-  const shouldRotate = textOptions?.angle != null
+  const shouldRotate = angle != null
   if (shouldRotate) {
     state.ctx.save()
     state.ctx.translate(position.x, position.y)
-    state.ctx.rotate(textOptions.angle)
+    state.ctx.rotate(angle)
     state.ctx.translate(-position.x, -position.y)
   }
   state.ctx.fillText(_text, textX, textY)
@@ -232,6 +232,6 @@ export const createCanvasDrawer = (canvasElement: HTMLCanvasElement, rectDimensi
       isoscelesTriangle(state, boundingRect, drawOptions)
     ),
     clearRenderingSpace: rectToClear => clearRenderingSpace(state, rectToClear),
-    text: (_text, position, textOptions) => text(state, _text, position, textOptions),
+    text: (_text, position, angle, textOptions) => text(state, _text, position, angle, textOptions),
   }
 }

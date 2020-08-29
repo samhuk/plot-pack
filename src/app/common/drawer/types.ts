@@ -9,13 +9,11 @@ export type DrawOptions = {
   fill?: boolean
 }
 
-export type TextOptions = TextOptionsBase & {
-  angle?: number
-}
+export type TextOptions = TextOptionsBase
 
 type Drawer<T, R> = {
   // -- Draw text commands
-  text: (text: string, position: Point2D, textOptions?: TextOptions) => void
+  text: (text: string, position: Point2D, angle?: number, textOptions?: TextOptions) => void
   // -- Draw shape commands
   line: (line: Line, lineOptions?: LineOptions) => R
   rect: (rect: Rect, drawOptions?: DrawOptions) => R
