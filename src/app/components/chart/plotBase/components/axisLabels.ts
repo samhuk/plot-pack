@@ -32,7 +32,7 @@ const drawAxisLabel = (drawer: CanvasDrawer, textRect: Rect, axis: Axis2D, props
   if (axis === Axis2D.X)
     drawer.text(text, textRect)
   else
-    drawer.text(text, { x: textRect.x, y: textRect.y + textRect.height }, { angle: -Math.PI / 2 })
+    drawer.text(text, { x: textRect.x, y: textRect.y + textRect.height }, -Math.PI / 2)
 }
 
 export const drawAxesLabels = (drawer: CanvasDrawer, xAxisLabelTextRect: Rect, yAxisLabelTextRect: Rect, props: Options) => {
