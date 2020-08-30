@@ -1,23 +1,23 @@
-import { Axis2D, Rect } from '../../common/types/geometry'
-import Options from './types/Options'
-import Geometry from './types/Geometry'
-import XAxisOrientation from './types/xAxisOrientation'
-import YAxisOrientation from './types/yAxisOrientation'
-import { drawCustomMarker, drawStandardMarker, getShouldShowCustomMarkers, getShouldShowMarkers } from './data/marker'
-import ProcessedDatum from './types/ProcessedDatum'
-import drawDatumsConnectingLine, { getShouldShowConnectingLine } from './data/connectingLine'
-import { drawAxisGridLines, getShouldShowAxisGridLines } from './plotBase/components/axisGridLines'
-import { drawAxisMarkerLabels, getShouldShowAxisMarkerLabels } from './plotBase/components/axisMarkerLabels'
-import { drawAxisAxisMarkerLines, getShouldShowAxisMarkerLines } from './plotBase/components/axisMarkerLines'
-import { drawAxisLine, getShouldShowAxisLine } from './plotBase/components/axisLines'
-import { drawStraightLineOfBestFit } from './data/straightLineOfBestFit'
-import drawAxesLabels from './plotBase/components/axisLabels'
-import drawDatumErrorBarsForDatums, { getShouldShowErrorBars } from './data/errorBars'
-import AxesGeometry from './types/AxesGeometry'
-import drawTitle from './title'
-import { CanvasDrawer } from '../../common/drawer/types'
-import ChartComponents from './types/ChartComponents'
-import ChartComponentRects from './types/ChartComponentRects'
+import { CanvasDrawer } from '../../../common/drawer/types'
+import Geometry from '../types/Geometry'
+import Options from '../types/Options'
+import XAxisOrientation from '../types/xAxisOrientation'
+import YAxisOrientation from '../types/yAxisOrientation'
+import ProcessedDatum from '../types/ProcessedDatum'
+import { drawCustomMarker, drawStandardMarker, getShouldShowCustomMarkers, getShouldShowMarkers } from '../data/marker'
+import AxesGeometry from '../types/AxesGeometry'
+import ChartComponentRects from '../types/ChartComponentRects'
+import { getShouldShowAxisLine, drawAxisLine } from '../plotBase/components/axisLines'
+import { Axis2D, Rect } from '../../../common/types/geometry'
+import { getShouldShowAxisGridLines, drawAxisGridLines } from '../plotBase/components/axisGridLines'
+import { getShouldShowAxisMarkerLines, drawAxisAxisMarkerLines } from '../plotBase/components/axisMarkerLines'
+import { getShouldShowAxisMarkerLabels, drawAxisMarkerLabels } from '../plotBase/components/axisMarkerLabels'
+import drawAxesLabels from '../plotBase/components/axisLabels'
+import ChartComponents from '../types/ChartComponents'
+import drawTitle from '../title'
+import drawDatumErrorBarsForDatums, { getShouldShowErrorBars } from '../data/errorBars'
+import drawDatumsConnectingLine, { getShouldShowConnectingLine } from '../data/connectingLine'
+import { drawStraightLineOfBestFit } from '../data/straightLineOfBestFit'
 
 const DEFAULT_BACKGROUND_COLOR = 'white'
 
@@ -147,14 +147,20 @@ const drawAllSeriesData = (drawer: CanvasDrawer, g: Geometry, props: Options) =>
     .forEach(([seriesKey, eq]) => drawStraightLineOfBestFit(drawer, eq, g.chartAxesGeometry, props, seriesKey))
 }
 
-export const drawChart = (drawer: CanvasDrawer, g: Geometry, props: Options) => {
+export const drawPlotBase = (
+  drawer: CanvasDrawer,
+  geometry: Geometry,
+  props: Options,
+) => {
   drawer.clearRenderingSpace()
 
   drawBackground(drawer, props)
 
   // Draw the base chart, i.e. axes lines, grid lines, labels, title, etc., but no series data.
-  drawBaseChart(drawer, g.chartAxesGeometry, g.chartComponentRects, props)
+  drawBaseChart(drawer, geometry.chartAxesGeometry, geometry.chartComponentRects, props)
 
   // Draw data and best fit line for each series, i.e. markers, error bars, connecting line, best fit line, etc.
-  drawAllSeriesData(drawer, g, props)
+  drawAllSeriesData(drawer, geometry, props)
 }
+
+export default drawPlotBase

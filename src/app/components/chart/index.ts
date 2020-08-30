@@ -1,7 +1,6 @@
 import ResizeObserver from 'resize-observer-polyfill'
 import Options from './types/Options'
 import { createGeometry } from './geometry/geometry'
-import drawPlotInteractivity from './plotInteractivity'
 import CanvasElements from './types/CanvasElements'
 import cloneOptions from './optionsHelper'
 import { RenderedChart } from './types/RenderedChart'
@@ -94,32 +93,38 @@ const applyContainerRectToOptions = (containerElement: HTMLElement, inputOptions
 
 const renderComponents = (state: State): RenderedComponents => {
   // Create canvas drawers for each canvas layer
-  const plotDrawer = createCanvasDrawer(state.canvasElements.chartPlotBase, state.options)
-  const plotInteractivityDrawer = createCanvasDrawer(state.canvasElements.chartInteractivity, state.options)
+  const chartPlotBaseDrawer = createCanvasDrawer(state.canvasElements.chartPlotBase, state.options)
+  const chartPlotInteractivityDrawer = createCanvasDrawer(state.canvasElements.chartInteractivity, state.options)
   const navigatorPlotDrawer = createCanvasDrawer(state.canvasElements.navigatorPlotBase, state.options)
   const navigatorInteractivityDrawer = createCanvasDrawer(state.canvasElements.navigatorInteractivity, state.options)
 
   // Create geometry
-  const geometry = createGeometry(plotDrawer, state.options)
+  const geometry = createGeometry(chartPlotBaseDrawer, state.options)
 
   // Draw the chart
-  drawChart(plotDrawer, geometry, state.options)
-  // Draw plot interactivity
-  const drawnPlotInteractivity = drawPlotInteractivity(plotInteractivityDrawer, state.options, geometry)
+  const chart = drawChart(
+    { plotBase: chartPlotBaseDrawer, interactivity: chartPlotInteractivityDrawer },
+    geometry,
+    state.options,
+  )
+
   // Draw the navigator
-  const drawnNavigator = drawNavigator(
+  const navigator = drawNavigator(
     { interactivity: navigatorInteractivityDrawer, plotBase: navigatorPlotDrawer },
     geometry,
     state.options,
-    state.eventHandlers.onSelectNewXValueBound,
+    {
+      onSelectXValueBound: state.eventHandlers.onSelectNewXValueBound,
+      onResetXValueBound: null,
+    },
   )
 
   return {
     eventHandlers: {
-      onMouseMove: merge(drawnNavigator.eventHandlers.onMouseMove, drawnPlotInteractivity.eventHandlers.onMouseMouse),
-      onMouseLeave: merge(drawnNavigator.eventHandlers.onMouseLeave, drawnPlotInteractivity.eventHandlers.onMouseLeave),
-      onMouseDown: drawnNavigator.eventHandlers.onMouseDown,
-      onMouseUp: drawnNavigator.eventHandlers.onMouseUp,
+      onMouseMove: merge(navigator.interactivity.onMouseMove, chart.interactivity.onMouseMove),
+      onMouseLeave: merge(navigator.interactivity.onMouseLeave, chart.interactivity.onMouseLeave),
+      onMouseDown: navigator.interactivity.onMouseDown,
+      onMouseUp: navigator.interactivity.onMouseUp,
     },
   }
 }

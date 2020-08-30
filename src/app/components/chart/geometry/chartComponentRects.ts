@@ -108,7 +108,14 @@ const createNavigatorRow = (props: Options): InputRow => {
     heightUnits: props.navigatorOptions?.height != null ? (props.navigatorOptions?.heightUnit ?? SizeUnit.PX) : SizeUnit.PX,
     width: 100,
     widthUnits: SizeUnit.PERCENT,
-    id: ChartComponents.NAVIGATOR,
+    padding: 5,
+    columns: [{
+      width: 100,
+      widthUnits: SizeUnit.PERCENT,
+      height: 100,
+      heightUnits: SizeUnit.PERCENT,
+      id: ChartComponents.NAVIGATOR,
+    }],
   }
 }
 
