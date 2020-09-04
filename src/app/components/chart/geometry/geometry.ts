@@ -8,12 +8,12 @@ import { normalizeDatumsErrorBarsValues } from '../data/errorBars'
 import { createAxesGeometry } from '../plotBase/geometry/axesGeometry'
 import ChartComponents from '../types/ChartComponents'
 import { CanvasDrawer } from '../../../common/drawer/types'
-import ChartComponentRects from '../types/ChartComponentRects'
 import { calculateProcessedDatums } from '../data/datumProcessing'
 import { getChartComponentRects } from './chartComponentRects'
 import { createDatumDistanceFunction, createDatumDimensionStringList } from './datumDistance'
-import { getAxesValueRangeOptions } from '../data/datumsValueRange'
+import { getAxesValueRangeOptions, calculateValueRangesOfSeries } from '../data/datumsValueRange'
 import { getBestFitLineType } from '../data/bestFitLine'
+import AxesValueRangeOptions from '../types/AxesValueRangeOptions'
 
 const kdTree: any = require('kd-tree-javascript')
 
@@ -28,13 +28,13 @@ const kdTree: any = require('kd-tree-javascript')
 export const createGeometry = (drawer: CanvasDrawer, props: Options): Geometry => {
   const normalizedSeries = mapDict(props.series, (seriesKey, datums) => normalizeDatumsErrorBarsValues(datums, props, seriesKey))
 
-  const chartAxesValueRangeOptions = getAxesValueRangeOptions(props, normalizedSeries)
+  const datumValueRange = calculateValueRangesOfSeries(normalizedSeries)
 
-  const chartComponentRects: ChartComponentRects = getChartComponentRects(drawer, props)
+  const chartAxesValueRangeOptions = getAxesValueRangeOptions(props, datumValueRange)
+
+  const chartComponentRects = getChartComponentRects(drawer, props)
 
   const chartAxesGeometry = createAxesGeometry(drawer, props, chartAxesValueRangeOptions, chartComponentRects[ChartComponents.CHART])
-
-  const navigatorAxesGeometry = createAxesGeometry(drawer, props, chartAxesValueRangeOptions, chartComponentRects[ChartComponents.NAVIGATOR])
 
   // Calculate positioned datums, adding screen position and a focus point to each datum.
   const processedDatums = mapDict(normalizedSeries, (seriesKey, datums) => (
@@ -42,7 +42,7 @@ export const createGeometry = (drawer: CanvasDrawer, props: Options): Geometry =
       datums,
       chartAxesGeometry[Axis2D.X].p,
       chartAxesGeometry[Axis2D.Y].p,
-      chartAxesValueRangeOptions,
+      datumValueRange,
       props.datumFocusPointDeterminationMode,
     )
   ))
@@ -61,6 +61,23 @@ export const createGeometry = (drawer: CanvasDrawer, props: Options): Geometry =
     createDatumDistanceFunction(props.datumSnapOptions?.mode),
     createDatumDimensionStringList(props.datumSnapOptions?.mode),
   ))
+
+  const navigatorAxesValueRangeOptions: AxesValueRangeOptions = {
+    [Axis2D.X]: {
+      isUpperForced: false,
+      isLowerForced: false,
+      lower: datumValueRange[Axis2D.X].lower,
+      upper: datumValueRange[Axis2D.X].upper,
+    },
+    [Axis2D.Y]: {
+      isLowerForced: false,
+      isUpperForced: false,
+      lower: datumValueRange[Axis2D.Y].lower,
+      upper: datumValueRange[Axis2D.Y].upper,
+    },
+  }
+
+  const navigatorAxesGeometry = createAxesGeometry(drawer, props, navigatorAxesValueRangeOptions, chartComponentRects[ChartComponents.NAVIGATOR])
 
   return {
     chartAxesGeometry,

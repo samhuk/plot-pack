@@ -3,8 +3,8 @@ import AxesBound from '../types/AxesBound'
 import { Axis2D } from '../../../common/types/geometry'
 import { mapDict } from '../../../common/helpers/dict'
 import Options from '../types/Options'
-import AxesValueRangeOptions from '../types/AxesValueRangeOptions'
 import AxesValueRangeForceOptions from '../types/AxesValueRangeForceOptions'
+import AxesValueRangeOptions from '../types/AxesValueRangeOptions'
 
 const getValueRangeOfDatum = (datum: Datum) => ({
   x: {
@@ -60,9 +60,7 @@ export const calculateValueRangesOfSeries = (series: { [seriesKey: string]: Datu
       }), null)
 )
 
-export const getAxesValueRangeOptions = (props: Options, normalizedSeries: { [seriesKey: string]: Datum[] }): AxesValueRangeOptions => {
-  const datumValueRange = calculateValueRangesOfSeries(normalizedSeries)
-
+export const getAxesValueRangeOptions = (props: Options, datumValueRange: AxesBound): AxesValueRangeOptions => {
   const forcedVlX = props.axesOptions?.[Axis2D.X]?.valueBound?.lower
   const forcedVuX = props.axesOptions?.[Axis2D.X]?.valueBound?.upper
   const forcedVlY = props.axesOptions?.[Axis2D.Y]?.valueBound?.lower

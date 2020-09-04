@@ -4,6 +4,8 @@ import DatumScreenFocusPoint from '../types/DatumScreenFocusPoint'
 import { Path, PathComponentType } from '../../../common/drawer/path/types'
 import { CanvasDrawer } from '../../../common/drawer/types'
 import { LineOptions } from '../../../common/types/canvas'
+import AxesBound from '../types/AxesBound'
+import { getRectRestrictedLineOfTwoPointsUsingAxesBounds } from '../../../common/helpers/geometry'
 
 const DEFAULT_CONNECTING_LINE_LINE_OPTIONS: LineOptions = {
   color: 'black',
@@ -55,7 +57,10 @@ export const drawConnectingLine = (
   ctx.stroke(path)
 }
 
-export const createDatumsConnectingLinePath = (datumScreenFocusPoints: DatumScreenFocusPoint[]): Path => {
+export const createDatumsConnectingLinePath = (
+  datumScreenFocusPoints: DatumScreenFocusPoint[],
+  screenBounds: AxesBound,
+): Path => {
   if (datumScreenFocusPoints.length < 2)
     return null
 
@@ -64,8 +69,17 @@ export const createDatumsConnectingLinePath = (datumScreenFocusPoints: DatumScre
   for (let i = 1; i < datumScreenFocusPoints.length; i += 1) {
     const prevDatum = datumScreenFocusPoints[i - 1]
     const { fpX, fpY } = datumScreenFocusPoints[i]
-    path.push({ type: PathComponentType.MOVE_TO, x: prevDatum.fpX, y: prevDatum.fpY })
-    path.push({ type: PathComponentType.LINE_TO, x: fpX, y: fpY })
+
+    const linePoints = getRectRestrictedLineOfTwoPointsUsingAxesBounds(
+      { x: prevDatum.fpX, y: prevDatum.fpY },
+      { x: fpX, y: fpY },
+      screenBounds,
+    )
+
+    if (linePoints != null) {
+      path.push({ type: PathComponentType.MOVE_TO, x: linePoints[0].x, y: linePoints[0].y })
+      path.push({ type: PathComponentType.LINE_TO, x: linePoints[1].x, y: linePoints[1].y })
+    }
   }
 
   return path
@@ -74,6 +88,7 @@ export const createDatumsConnectingLinePath = (datumScreenFocusPoints: DatumScre
 export const drawDatumsConnectingLine = (
   drawer: CanvasDrawer,
   datumScreenFocusPoints: DatumScreenFocusPoint[],
+  axesScreenBounds: AxesBound,
   props: Options,
   seriesKey: string,
 ) => {
@@ -86,7 +101,7 @@ export const drawDatumsConnectingLine = (
     lineWidth,
   }, DEFAULT_CONNECTING_LINE_LINE_OPTIONS)
 
-  const path = createDatumsConnectingLinePath(datumScreenFocusPoints)
+  const path = createDatumsConnectingLinePath(datumScreenFocusPoints, axesScreenBounds)
   drawer.path(path)
 }
 

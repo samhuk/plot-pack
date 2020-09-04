@@ -8,6 +8,8 @@ import { isPositionInRect } from '../../../common/helpers/geometry'
 import NavigatorEventHandlers from '../types/NavigatorEventHandlers'
 import NavigatorInteractivity from '../types/NavigatorInteractivity'
 
+/* eslint-disable no-param-reassign */
+
 type State = {
   mouseDownPosition: Point2D
   isMouseDown: boolean
@@ -18,12 +20,10 @@ const isMouseEventInRect = (cursorPositionFromEvent: { offsetX: number, offsetY:
   isPositionInRect({ x: cursorPositionFromEvent.offsetX, y: cursorPositionFromEvent.offsetY }, rect)
 )
 
-const revertStateToInitial = (s: State) => {
-  /* eslint-disable no-param-reassign */
-  s.isInInitialState = true
-  s.mouseDownPosition = null
-  s.isMouseDown = false
-  /* eslint-enable no-param-reassign */
+const revertStateToInitial = (state: State) => {
+  state.isInInitialState = true
+  state.mouseDownPosition = null
+  state.isMouseDown = false
 }
 
 export const drawNavigatorInteractivity = (
@@ -78,12 +78,16 @@ export const drawNavigatorInteractivity = (
         return
 
       if (isMouseEventInRect(e, rect)) {
-        const fromVX = axesGeometry[Axis2D.X].v(state.mouseDownPosition.x)
-        const toVX = axesGeometry[Axis2D.X].v(e.offsetX)
-        eventHandlers.onSelectXValueBound({ lower: Math.min(fromVX, toVX), upper: Math.max(fromVX, toVX) })
+        const constrainedMouseDownX = boundToRange(state.mouseDownPosition.x, axesGeometry[Axis2D.X].pl, axesGeometry[Axis2D.X].pu)
+        const constrainedCurrentMouseX = boundToRange(e.offsetX, axesGeometry[Axis2D.X].pl, axesGeometry[Axis2D.X].pu)
+        const fromVX = axesGeometry[Axis2D.X].v(constrainedMouseDownX)
+        const toVX = axesGeometry[Axis2D.X].v(constrainedCurrentMouseX)
+        eventHandlers.onSelectXValueBound({
+          lower: Math.min(fromVX, toVX),
+          upper: Math.max(fromVX, toVX),
+        })
       }
 
-      drawer.clearRenderingSpace()
       revertStateToInitial(state)
     },
     onMouseLeave: () => drawer.clearRenderingSpace(),

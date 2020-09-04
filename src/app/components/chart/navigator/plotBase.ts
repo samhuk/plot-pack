@@ -12,6 +12,7 @@ import ChartComponents from '../types/ChartComponents'
 import { LineOptions } from '../../../common/types/canvas'
 import { mapDict } from '../../../common/helpers/dict'
 import { positionDatumValueFocusPoints } from '../data/datumProcessing'
+import AxesBound from '../types/AxesBound'
 
 const DEFAULT_CONNECTING_LINE_LINE_OPTIONS: LineOptions = {
   lineWidth: 1,
@@ -37,10 +38,11 @@ const getConnectingLineColor = (props: Options, seriesKey: string) => (
 const drawConnectingLineForSeries = (
   drawer: CanvasDrawer,
   positionedDatumValueFocusPoints: PositionedDatumValueFocusPoint[],
+  axesScreenBounds: AxesBound,
   seriesKey: string,
   props: Options,
 ) => {
-  const path: Path = createDatumsConnectingLinePath(positionedDatumValueFocusPoints)
+  const path: Path = createDatumsConnectingLinePath(positionedDatumValueFocusPoints, axesScreenBounds)
   const color = getConnectingLineColor(props, seriesKey)
   const lineWidth = getConnectingLineLineWidth(props, seriesKey)
   const dashPattern = getConnectingLineDashPattern(props, seriesKey)
@@ -51,11 +53,12 @@ const drawConnectingLineForSeries = (
 const drawConnectingLineForAllSeries = (
   drawer: CanvasDrawer,
   positionedDatumValueFocusPoints: { [seriesKey: string]: PositionedDatumValueFocusPoint[] },
+  axesScreenBounds: AxesBound,
   props: Options,
 ) => {
   Object.entries(positionedDatumValueFocusPoints)
     .forEach(([seriesKey, _positionedDatumValueFocusPoints]) => {
-      drawConnectingLineForSeries(drawer, _positionedDatumValueFocusPoints, seriesKey, props)
+      drawConnectingLineForSeries(drawer, _positionedDatumValueFocusPoints, axesScreenBounds, seriesKey, props)
     })
 }
 
@@ -72,8 +75,19 @@ export const drawNavigatorPlotBase = (
     positionDatumValueFocusPoints(datumValueFocusPoints, axesGeometry[Axis2D.X].p, axesGeometry[Axis2D.Y].p)
   ))
 
+  const axesScreenBounds: AxesBound = {
+    [Axis2D.X]: {
+      lower: geometry.navigatorAxesGeometry[Axis2D.X].pl,
+      upper: geometry.navigatorAxesGeometry[Axis2D.X].pu,
+    },
+    [Axis2D.Y]: {
+      lower: geometry.navigatorAxesGeometry[Axis2D.Y].pl,
+      upper: geometry.navigatorAxesGeometry[Axis2D.Y].pu,
+    },
+  }
+
   // Draw connecting line for each series
-  drawConnectingLineForAllSeries(drawer, positionedDatumValueFocusPoints, props)
+  drawConnectingLineForAllSeries(drawer, positionedDatumValueFocusPoints, axesScreenBounds, props)
 
   // Draw top border
   drawer.line([rect, { x: rect.x + rect.width, y: rect.y }], { color: 'black', lineWidth: 1 })
