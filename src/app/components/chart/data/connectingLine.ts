@@ -5,7 +5,7 @@ import { Path, PathComponentType } from '../../../common/drawer/path/types'
 import { CanvasDrawer } from '../../../common/drawer/types'
 import { LineOptions } from '../../../common/types/canvas'
 import AxesBound from '../types/AxesBound'
-import { getRectRestrictedLineOfTwoPointsUsingAxesBounds } from '../../../common/helpers/geometry'
+import { getRectRestrictedLineBetweenTwoPointsUsingAxesBounds } from '../../../common/helpers/geometry'
 
 const DEFAULT_CONNECTING_LINE_LINE_OPTIONS: LineOptions = {
   color: 'black',
@@ -70,7 +70,7 @@ export const createDatumsConnectingLinePath = (
     const prevDatum = datumScreenFocusPoints[i - 1]
     const { fpX, fpY } = datumScreenFocusPoints[i]
 
-    const linePoints = getRectRestrictedLineOfTwoPointsUsingAxesBounds(
+    const linePoints = getRectRestrictedLineBetweenTwoPointsUsingAxesBounds(
       { x: prevDatum.fpX, y: prevDatum.fpY },
       { x: fpX, y: fpY },
       screenBounds,
