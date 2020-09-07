@@ -6,10 +6,10 @@ import { Axis2D } from '../../../common/types/geometry'
 import { mapDict } from '../../../common/helpers/dict'
 import { normalizeDatumsErrorBarsValues } from '../data/errorBars'
 import { createAxesGeometry } from '../plotBase/geometry/axesGeometry'
-import ChartComponents from '../types/ChartComponents'
+import ChartZones from '../types/ChartZones'
 import { CanvasDrawer } from '../../../common/drawer/types'
 import { calculateProcessedDatums } from '../data/datumProcessing'
-import { getChartComponentRects } from './chartComponentRects'
+import { getChartZoneRects } from './chartZoneRects'
 import { createDatumDistanceFunction, createDatumDimensionStringList } from './datumDistance'
 import { getAxesValueRangeOptions, calculateValueRangesOfSeries } from '../data/datumsValueRange'
 import { getBestFitLineType } from '../data/bestFitLine'
@@ -32,9 +32,9 @@ export const createGeometry = (drawer: CanvasDrawer, props: Options): Geometry =
 
   const chartAxesValueRangeOptions = getAxesValueRangeOptions(props, datumValueRange)
 
-  const chartComponentRects = getChartComponentRects(drawer, props)
+  const chartZoneRects = getChartZoneRects(drawer, props)
 
-  const chartAxesGeometry = createAxesGeometry(drawer, props, chartAxesValueRangeOptions, chartComponentRects[ChartComponents.CHART])
+  const chartAxesGeometry = createAxesGeometry(drawer, props, chartAxesValueRangeOptions, chartZoneRects[ChartZones.CHART])
 
   // Calculate positioned datums, adding screen position and a focus point to each datum.
   const processedDatums = mapDict(normalizedSeries, (seriesKey, datums) => (
@@ -77,7 +77,7 @@ export const createGeometry = (drawer: CanvasDrawer, props: Options): Geometry =
     },
   }
 
-  const navigatorAxesGeometry = createAxesGeometry(drawer, props, navigatorAxesValueRangeOptions, chartComponentRects[ChartComponents.NAVIGATOR])
+  const navigatorAxesGeometry = createAxesGeometry(drawer, props, navigatorAxesValueRangeOptions, chartZoneRects[ChartZones.NAVIGATOR])
 
   return {
     chartAxesGeometry,
@@ -85,6 +85,6 @@ export const createGeometry = (drawer: CanvasDrawer, props: Options): Geometry =
     bestFitStraightLineEquations,
     processedDatums,
     datumKdTrees,
-    chartComponentRects,
+    chartZoneRects,
   }
 }

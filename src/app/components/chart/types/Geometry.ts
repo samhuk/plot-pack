@@ -2,7 +2,7 @@ import { StraightLineEquation } from '../../../common/types/geometry'
 import ProcessedDatum from './ProcessedDatum'
 import KdTree from './KdTree'
 import AxesGeometry from './AxesGeometry'
-import ChartComponentRects from './ChartComponentRects'
+import ChartZoneRects from './ChartZoneRects'
 
 /**
  * Geometry of a component. This is all the information that one would need
@@ -14,7 +14,7 @@ export type Geometry = {
   processedDatums: { [seriesKey: string]: ProcessedDatum[] }
   bestFitStraightLineEquations: { [seriesKey: string]: StraightLineEquation }
   datumKdTrees: { [seriesKey: string]: KdTree<ProcessedDatum> }
-  chartComponentRects: ChartComponentRects
+  chartZoneRects: ChartZoneRects
 }
 
 export default Geometry

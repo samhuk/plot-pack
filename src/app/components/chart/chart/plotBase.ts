@@ -6,14 +6,14 @@ import YAxisOrientation from '../types/yAxisOrientation'
 import ProcessedDatum from '../types/ProcessedDatum'
 import { drawCustomMarker, drawStandardMarker, getShouldShowCustomMarkers, getShouldShowMarkers } from '../data/marker'
 import AxesGeometry from '../types/AxesGeometry'
-import ChartComponentRects from '../types/ChartComponentRects'
+import ChartZoneRects from '../types/ChartZoneRects'
 import { getShouldShowAxisLine, drawAxisLine } from '../plotBase/components/axisLines'
 import { Axis2D, Rect } from '../../../common/types/geometry'
 import { getShouldShowAxisGridLines, drawAxisGridLines } from '../plotBase/components/axisGridLines'
 import { getShouldShowAxisMarkerLines, drawAxisAxisMarkerLines } from '../plotBase/components/axisMarkerLines'
 import { getShouldShowAxisMarkerLabels, drawAxisMarkerLabels } from '../plotBase/components/axisMarkerLabels'
 import drawAxesLabels from '../plotBase/components/axisLabels'
-import ChartComponents from '../types/ChartComponents'
+import ChartZones from '../types/ChartZones'
 import drawTitle from '../title'
 import drawDatumErrorBarsForDatums, { getShouldShowErrorBars } from '../data/errorBars'
 import drawDatumsConnectingLine, { getShouldShowConnectingLine } from '../data/connectingLine'
@@ -87,7 +87,7 @@ const drawDatumMarkers = (
 const drawBaseChart = (
   drawer: CanvasDrawer,
   axesGeometry: AxesGeometry,
-  chartComponentRects: ChartComponentRects,
+  chartZoneRects: ChartZoneRects,
   props: Options,
 ) => {
   // Show axis lines by default
@@ -114,9 +114,9 @@ const drawBaseChart = (
   if (getShouldShowAxisMarkerLabels(props, Axis2D.Y))
     drawAxisMarkerLabels(drawer, axesGeometry, Axis2D.Y, props)
 
-  drawAxesLabels(drawer, chartComponentRects[ChartComponents.X_AXIS_TITLE], chartComponentRects[ChartComponents.Y_AXIS_TITLE], props)
+  drawAxesLabels(drawer, chartZoneRects[ChartZones.X_AXIS_TITLE], chartZoneRects[ChartZones.Y_AXIS_TITLE], props)
 
-  drawTitle(drawer, chartComponentRects[ChartComponents.TITLE_BAR], props)
+  drawTitle(drawer, chartZoneRects[ChartZones.TITLE_BAR], props)
 }
 
 const drawSeriesData = (
@@ -175,7 +175,7 @@ export const drawPlotBase = (
   drawBackground(drawer, props)
 
   // Draw the base chart, i.e. axes lines, grid lines, labels, title, etc., but no series data.
-  drawBaseChart(drawer, geometry.chartAxesGeometry, geometry.chartComponentRects, props)
+  drawBaseChart(drawer, geometry.chartAxesGeometry, geometry.chartZoneRects, props)
 
   // Draw data and best fit line for each series, i.e. markers, error bars, connecting line, best fit line, etc.
   drawAllSeriesData(drawer, geometry, props)

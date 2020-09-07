@@ -3,11 +3,11 @@ import { getTitle, applyTitleTextOptionsToDrawer, getTitleMargin } from '../titl
 import { CanvasDrawer } from '../../../common/drawer/types'
 import { InputRow, SizeUnit, ColumnJustification, InputColumn, RowJustification } from '../../../common/canvasFlex/types'
 import { measureTextLineHeight, measureTextWidth } from '../../../common/helpers/canvas'
-import ChartComponents from '../types/ChartComponents'
+import ChartZones from '../types/ChartZones'
 import { getAxisLabelText, applyAxisLabelTextOptionsToDrawer, getAxisLabelMargin } from '../plotBase/components/axisLabels'
 import { Axis2D } from '../../../common/types/geometry'
 import { DEFAULT_NAVIGATOR_HEIGHT_PX } from '../navigator'
-import ChartComponentRects from '../types/ChartComponentRects'
+import ChartZoneRects from '../types/ChartZoneRects'
 import { renderInputColumn } from '../../../common/canvasFlex/rendering'
 
 const DEFAULT_GRAPH_MARGIN = 10
@@ -28,7 +28,7 @@ const createTitleRow = (drawer: CanvasDrawer, props: Options): InputRow => {
     margin: getTitleMargin(props),
     columnJustification: ColumnJustification.CENTER,
     columns: [{
-      id: ChartComponents.TITLE_BAR,
+      id: ChartZones.TITLE_BAR,
       height: 100,
       heightUnits: SizeUnit.PERCENT,
       width: titleTextWidth,
@@ -54,7 +54,7 @@ const createYAxisLabelColumn = (drawer: CanvasDrawer, props: Options): InputColu
     margin: getAxisLabelMargin(props, Axis2D.Y),
     rowJustification: RowJustification.CENTER,
     rows: [{
-      id: ChartComponents.Y_AXIS_TITLE,
+      id: ChartZones.Y_AXIS_TITLE,
       width: 100,
       widthUnits: SizeUnit.PERCENT,
       height: labelTextWidth,
@@ -66,7 +66,7 @@ const createYAxisLabelColumn = (drawer: CanvasDrawer, props: Options): InputColu
 const getChartMargin = (props: Options) => props.chartMargin ?? DEFAULT_GRAPH_MARGIN
 
 const createChartColumn = (props: Options): InputColumn => ({
-  id: ChartComponents.CHART,
+  id: ChartZones.CHART,
   evenlyFillAvailableWidth: true,
   height: 100,
   heightUnits: SizeUnit.PERCENT,
@@ -90,7 +90,7 @@ const createXAxisLabelRow = (drawer: CanvasDrawer, props: Options): InputRow => 
     columnJustification: ColumnJustification.CENTER,
     margin: getAxisLabelMargin(props, Axis2D.X),
     columns: [{
-      id: ChartComponents.X_AXIS_TITLE,
+      id: ChartZones.X_AXIS_TITLE,
       height: 100,
       heightUnits: SizeUnit.PERCENT,
       width: labelTextWidth,
@@ -114,7 +114,7 @@ const createNavigatorRow = (props: Options): InputRow => {
       widthUnits: SizeUnit.PERCENT,
       height: 100,
       heightUnits: SizeUnit.PERCENT,
-      id: ChartComponents.NAVIGATOR,
+      id: ChartZones.NAVIGATOR,
     }],
   }
 }
@@ -151,13 +151,13 @@ const createCanvasFlexColumn = (drawer: CanvasDrawer, props: Options): InputColu
   }
 }
 
-export const getChartComponentRects = (drawer: CanvasDrawer, props: Options): ChartComponentRects => {
-  const chartComponentRectsRaw = renderInputColumn(createCanvasFlexColumn(drawer, props))
+export const getChartZoneRects = (drawer: CanvasDrawer, props: Options): ChartZoneRects => {
+  const chartZoneRectsRaw = renderInputColumn(createCanvasFlexColumn(drawer, props))
   return {
-    [ChartComponents.TITLE_BAR]: chartComponentRectsRaw[ChartComponents.TITLE_BAR],
-    [ChartComponents.Y_AXIS_TITLE]: chartComponentRectsRaw[ChartComponents.Y_AXIS_TITLE],
-    [ChartComponents.CHART]: chartComponentRectsRaw[ChartComponents.CHART],
-    [ChartComponents.X_AXIS_TITLE]: chartComponentRectsRaw[ChartComponents.X_AXIS_TITLE],
-    [ChartComponents.NAVIGATOR]: chartComponentRectsRaw[ChartComponents.NAVIGATOR],
+    [ChartZones.TITLE_BAR]: chartZoneRectsRaw[ChartZones.TITLE_BAR],
+    [ChartZones.Y_AXIS_TITLE]: chartZoneRectsRaw[ChartZones.Y_AXIS_TITLE],
+    [ChartZones.CHART]: chartZoneRectsRaw[ChartZones.CHART],
+    [ChartZones.X_AXIS_TITLE]: chartZoneRectsRaw[ChartZones.X_AXIS_TITLE],
+    [ChartZones.NAVIGATOR]: chartZoneRectsRaw[ChartZones.NAVIGATOR],
   }
 }

@@ -8,7 +8,7 @@ import { drawAxisLine } from '../plotBase/components/axisLines'
 import { drawAxisMarkerLabels } from '../plotBase/components/axisMarkerLabels'
 import { drawAxisAxisMarkerLines } from '../plotBase/components/axisMarkerLines'
 import Geometry from '../types/Geometry'
-import ChartComponents from '../types/ChartComponents'
+import ChartZones from '../types/ChartZones'
 import { LineOptions } from '../../../common/types/canvas'
 import { mapDict } from '../../../common/helpers/dict'
 import { positionDatumValueFocusPoints } from '../data/datumProcessing'
@@ -68,7 +68,7 @@ export const drawNavigatorPlotBase = (
   props: Options,
 ) => {
   const axesGeometry = geometry.navigatorAxesGeometry
-  const rect = geometry.chartComponentRects[ChartComponents.NAVIGATOR]
+  const rect = geometry.chartZoneRects[ChartZones.NAVIGATOR]
 
   // Position the datum value focus points using axes geometry
   const positionedDatumValueFocusPoints = mapDict(geometry.processedDatums, (seriesKey, datumValueFocusPoints) => (

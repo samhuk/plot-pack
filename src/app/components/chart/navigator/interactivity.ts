@@ -1,7 +1,7 @@
 import { CanvasDrawer } from '../../../common/drawer/types'
 import Geometry from '../types/Geometry'
 import Options from '../types/Options'
-import ChartComponents from '../types/ChartComponents'
+import ChartZones from '../types/ChartZones'
 import { boundToRange } from '../../../common/helpers/math'
 import { Axis2D, Point2D, Rect } from '../../../common/types/geometry'
 import { isPositionInRect } from '../../../common/helpers/geometry'
@@ -33,7 +33,7 @@ export const drawNavigatorInteractivity = (
   eventHandlers: NavigatorEventHandlers,
 ): NavigatorInteractivity => {
   const axesGeometry = geometry.navigatorAxesGeometry
-  const rect = geometry.chartComponentRects[ChartComponents.NAVIGATOR]
+  const rect = geometry.chartZoneRects[ChartZones.NAVIGATOR]
 
   const state: State = {
     isInInitialState: false,
