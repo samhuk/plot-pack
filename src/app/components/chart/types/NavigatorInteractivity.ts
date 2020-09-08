@@ -3,6 +3,7 @@ export type NavigatorInteractivity = {
   onMouseDown: (e: MouseEvent) => void
   onMouseUp: (e: MouseEvent) => void
   onMouseLeave: () => void
+  onMouseEnter: () => void
 }
 
 export default NavigatorInteractivity
