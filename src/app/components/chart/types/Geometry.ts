@@ -11,7 +11,8 @@ import ChartZoneRects from './ChartZoneRects'
 export type Geometry = {
   chartAxesGeometry: AxesGeometry,
   navigatorAxesGeometry: AxesGeometry,
-  processedDatums: { [seriesKey: string]: ProcessedDatum[] }
+  chartProcessedDatums: { [seriesKey: string]: ProcessedDatum[] }
+  navigatorProcessedDatums: { [seriesKey: string]: ProcessedDatum[] }
   bestFitStraightLineEquations: { [seriesKey: string]: StraightLineEquation }
   datumKdTrees: { [seriesKey: string]: KdTree<ProcessedDatum> }
   chartZoneRects: ChartZoneRects

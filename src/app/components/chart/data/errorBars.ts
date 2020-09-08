@@ -122,12 +122,10 @@ export const normalizeDatumsErrorBarsValuesY = (datums: Datum[], errorBarsMode: 
   }
 }
 
-export const normalizeDatumsErrorBarsValues = (datums: Datum[], props: Options, seriesKey: string) => (
-  normalizeDatumsErrorBarsValuesY(
-    normalizeDatumsErrorBarsValuesX(datums, getErrorBarsMode(props, seriesKey, Axis2D.X)),
-    getErrorBarsMode(props, seriesKey, Axis2D.Y),
-  )
-)
+export const normalizeDatumsErrorBarsValues = (datums: Datum[], props: Options, seriesKey: string) => {
+  const _datums = normalizeDatumsErrorBarsValuesX(datums, getErrorBarsMode(props, seriesKey, Axis2D.X))
+  return normalizeDatumsErrorBarsValuesY(_datums, getErrorBarsMode(props, seriesKey, Axis2D.Y))
+}
 
 const createErrorBarsPathY = (x: number, y1: number, y2: number, capSize: number): Path => {
   const path: Path = []

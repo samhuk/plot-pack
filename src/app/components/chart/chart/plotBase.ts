@@ -156,7 +156,7 @@ const drawAllSeriesData = (drawer: CanvasDrawer, g: Geometry, props: Options) =>
   }
 
   // Draw series data for each series, i.e. markers, error bars, connecting line, etc.
-  Object.entries(g.processedDatums)
+  Object.entries(g.chartProcessedDatums)
     .forEach(([seriesKey, processedDatums]) => drawSeriesData(drawer, processedDatums, axesScreenBounds, props, seriesKey))
 
   // Draw straight lines of best fit for each series

@@ -4,9 +4,10 @@ import DatumValueFocusPoint from '../types/DatumValueFocusPoint'
 import { calculateMean } from '../../../common/helpers/stat'
 import AxesBound from '../types/AxesBound'
 import { Axis2D } from '../../../common/types/geometry'
-import { isInRange } from '../../../common/helpers/math'
+import { isInRangeOptionalBounds } from '../../../common/helpers/math'
 import ProcessedDatum from '../types/ProcessedDatum'
 import PositionedDatumValueFocusPoint from '../types/PositionedDatumValueFocusPoint'
+import FocusedDatum from '../types/FocusedDatum'
 
 export const positionDatumValueFocusPoints = (
   datumValueFocusPoints: DatumValueFocusPoint[],
@@ -49,10 +50,38 @@ const determineDatumValueFocusPoint = (
 }
 
 const mapDatumValueCoordinateToScreenPositionValue = (value: number | number[], transformationFunction: (value: number) => number) => (
-  typeof value === 'number'
-    ? (value != null ? transformationFunction(value as number) : null)
-    : (value as number[]).map(subValue => (subValue != null ? transformationFunction(subValue) : null))
+  value == null
+    ? null
+    : (typeof value === 'number'
+      ? transformationFunction(value)
+      : value.map(subValue => (subValue != null ? transformationFunction(subValue) : null))
+    )
 )
+
+export const filterFocusedDatumsOutsideOfAxesBounds = (
+  focusedDatums: FocusedDatum[],
+  axesValueBounds: AxesBound,
+): Datum[] => focusedDatums.filter(d => (
+  isInRangeOptionalBounds(d.fvX, axesValueBounds[Axis2D.X]?.lower, axesValueBounds[Axis2D.X]?.upper)
+    && isInRangeOptionalBounds(d.fvY, axesValueBounds[Axis2D.Y]?.lower, axesValueBounds[Axis2D.Y]?.upper)
+))
+
+/**
+ * Maps a list of datums to focused datums, via a focus point determinination mode
+ * @param datums List of datums
+ * @param datumValueFocusPointDeterminationMode The method which to determine the
+ * focus point of the datums. Can be chosen to use the first point as the focus point, second,
+ * custom function.
+ */
+export const calculateFocusedDatums = (
+  datums: Datum[],
+  datumValueFocusPointDeterminationMode: DatumFocusPointDeterminationMode | ((datum: Datum) => DatumValueFocusPoint),
+): FocusedDatum[] => datums.map(datum => {
+  const { fvX, fvY } = typeof datumValueFocusPointDeterminationMode === 'function'
+    ? datumValueFocusPointDeterminationMode(datum)
+    : determineDatumValueFocusPoint(datum, datumValueFocusPointDeterminationMode)
+  return { x: datum.x, y: datum.y, fvX, fvY }
+})
 
 /**
  * Maps a list of Datums to ProcessedDatums
@@ -60,41 +89,18 @@ const mapDatumValueCoordinateToScreenPositionValue = (value: number | number[], 
  * @param datums List of Datums
  * @param xAxisPFn Function that transforms an x value into a screen x-position
  * @param yAxisPFn Function that transforms a y value into a screen y-position
- * @param axesValueBound The value bounds of the x and y axes
- * @param datumValueFocusPointDeterminationMode The method which to determine the
- * focus point of the datums. Can be chosen to use the first point as the focus point, second,
- * custom function.
  */
 export const calculateProcessedDatums = (
-  datums: Datum[],
+  focusedDatums: FocusedDatum[],
   xAxisPFn: (v: number) => number,
   yAxisPFn: (v: number) => number,
-  axesValueBound: AxesBound,
-  datumValueFocusPointDeterminationMode: DatumFocusPointDeterminationMode | ((datum: Datum) => DatumValueFocusPoint),
-): ProcessedDatum[] => datums
-  .filter(({ x, y }) => {
-    const vlX = axesValueBound[Axis2D.X].lower
-    const vuX = axesValueBound[Axis2D.X].upper
-    const vlY = axesValueBound[Axis2D.Y].lower
-    const vuY = axesValueBound[Axis2D.Y].upper
-    return (
-      typeof x === 'number' ? isInRange(vlX, vuX, x) : (isInRange(vlX, vuX, Math.min(...x)) || isInRange(vlX, vuX, Math.max(...x)))
-    ) && (
-      typeof y === 'number' ? isInRange(vlY, vuY, y) : (isInRange(vlY, vuY, Math.min(...y)) || isInRange(vlY, vuY, Math.max(...y)))
-    )
-  })
-  .map(datum => {
-    const datumValueFocusPoint = typeof datumValueFocusPointDeterminationMode === 'function'
-      ? datumValueFocusPointDeterminationMode(datum)
-      : determineDatumValueFocusPoint(datum, datumValueFocusPointDeterminationMode)
-    return {
-      x: datum.x,
-      y: datum.y,
-      pX: mapDatumValueCoordinateToScreenPositionValue(datum.x, xAxisPFn),
-      pY: mapDatumValueCoordinateToScreenPositionValue(datum.y, yAxisPFn),
-      fvX: datumValueFocusPoint.fvX,
-      fvY: datumValueFocusPoint.fvY,
-      fpX: xAxisPFn(datumValueFocusPoint.fvX),
-      fpY: yAxisPFn(datumValueFocusPoint.fvY),
-    }
-  })
+): ProcessedDatum[] => focusedDatums.map(d => ({
+  x: d.x,
+  y: d.y,
+  pX: mapDatumValueCoordinateToScreenPositionValue(d.x, xAxisPFn),
+  pY: mapDatumValueCoordinateToScreenPositionValue(d.y, yAxisPFn),
+  fvX: d.fvX,
+  fvY: d.fvY,
+  fpX: xAxisPFn(d.fvX),
+  fpY: yAxisPFn(d.fvY),
+}))

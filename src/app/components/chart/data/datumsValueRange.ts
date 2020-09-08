@@ -7,45 +7,38 @@ import AxesValueRangeForceOptions from '../types/AxesValueRangeForceOptions'
 import AxesValueRangeOptions from '../types/AxesValueRangeOptions'
 
 const getValueRangeOfDatum = (datum: Datum) => ({
-  x: {
-    min: typeof datum.x === 'number' ? datum.x : Math.min(...datum.x),
-    max: typeof datum.x === 'number' ? datum.x : Math.max(...datum.x),
-  },
-  y: {
-    min: typeof datum.y === 'number' ? datum.y : Math.min(...datum.y),
-    max: typeof datum.y === 'number' ? datum.y : Math.max(...datum.y),
-  },
+  xMin: typeof datum.x === 'number' ? datum.x : Math.min(...datum.x),
+  xMax: typeof datum.x === 'number' ? datum.x : Math.max(...datum.x),
+  yMin: typeof datum.y === 'number' ? datum.y : Math.min(...datum.y),
+  yMax: typeof datum.y === 'number' ? datum.y : Math.max(...datum.y),
 })
 
 /**
  * Determines the minimum and maximum values for each axis
  */
-const calculateValueRangesOfDatums = (datums: Datum[]): AxesBound => {
+const calculateValueBoundsOfDatums = (datums: Datum[]): AxesBound => {
   if (datums.length === 0)
     return { [Axis2D.X]: { lower: 0, upper: 0 }, [Axis2D.Y]: { lower: 0, upper: 0 } }
 
   const firstDatumValueRange = getValueRangeOfDatum(datums[0])
-  let xMin = firstDatumValueRange.x.min
-  let xMax = firstDatumValueRange.x.max
-  let yMin = firstDatumValueRange.y.min
-  let yMax = firstDatumValueRange.y.max
+  let { xMin, xMax, yMin, yMax } = firstDatumValueRange
   for (let i = 1; i < datums.length; i += 1) {
     const datumValueRanges = getValueRangeOfDatum(datums[i])
-    if (datumValueRanges.x.max > xMax)
-      xMax = datumValueRanges.x.max
-    if (datumValueRanges.x.min < xMin)
-      xMin = datumValueRanges.x.min
-    if (datumValueRanges.y.max > yMax)
-      yMax = datumValueRanges.y.max
-    if (datumValueRanges.y.min < yMin)
-      yMin = datumValueRanges.y.min
+    if (datumValueRanges.xMax > xMax)
+      xMax = datumValueRanges.xMax
+    if (datumValueRanges.xMin < xMin)
+      xMin = datumValueRanges.xMin
+    if (datumValueRanges.yMax > yMax)
+      yMax = datumValueRanges.yMax
+    if (datumValueRanges.yMin < yMin)
+      yMin = datumValueRanges.yMin
   }
 
   return { [Axis2D.X]: { lower: xMin, upper: xMax }, [Axis2D.Y]: { lower: yMin, upper: yMax } }
 }
 
-export const calculateValueRangesOfSeries = (series: { [seriesKey: string]: Datum[] }): AxesBound => (
-  Object.values(mapDict(series, (_, datums) => calculateValueRangesOfDatums(datums)))
+export const calculateValueBoundsOfSeries = (series: { [seriesKey: string]: Datum[] }): AxesBound => (
+  Object.values(mapDict(series, (_, datums) => calculateValueBoundsOfDatums(datums)))
     .reduce((acc, axesRange) => (acc == null
       ? axesRange
       : {

@@ -110,7 +110,7 @@ const renderComponents = (state: State): RenderedComponents => {
 
   // Draw the navigator
   const navigator = drawNavigator(
-    { interactivity: navigatorInteractivityDrawer, plotBase: navigatorPlotDrawer },
+    { plotBase: navigatorPlotDrawer, interactivity: navigatorInteractivityDrawer },
     geometry,
     state.options,
     {
@@ -129,21 +129,7 @@ const renderComponents = (state: State): RenderedComponents => {
   }
 }
 
-const bindToElementResize = (element: HTMLElement, onResize: () => void): ResizeObserver => {
-  let currentRect = element.getBoundingClientRect()
-  const resizeObserver = new ResizeObserver(() => {
-    const newRect = element.getBoundingClientRect()
-    if (!areClientRectsEqualSize(currentRect, newRect))
-      onResize()
-    currentRect = newRect
-  })
-
-  resizeObserver.observe(element)
-
-  return resizeObserver
-}
-
-const createInteractiveEventContainer = (eventHandlers: InteractiveEventHandlers): HTMLElement => {
+const createInteractiveEventContainer = (): HTMLElement => {
   const interactiveEventElement = document.createElement('div')
   interactiveEventElement.classList.add('event-container')
   interactiveEventElement.style.width = '100%'
@@ -151,11 +137,6 @@ const createInteractiveEventContainer = (eventHandlers: InteractiveEventHandlers
   interactiveEventElement.style.position = 'absolute'
   interactiveEventElement.style.zIndex = '1'
   interactiveEventElement.style.cursor = 'crosshair'
-
-  interactiveEventElement.onmousemove = eventHandlers.onMouseMove
-  interactiveEventElement.onmouseleave = eventHandlers.onMouseLeave
-  interactiveEventElement.onmouseup = eventHandlers.onMouseUp
-  interactiveEventElement.onmousedown = eventHandlers.onMouseDown
 
   return interactiveEventElement
 }
@@ -168,6 +149,14 @@ const setXAxisValueBoundToOptions = (options: Options, bound: Bound): void => {
   options.axesOptions[Axis2D.X].valueBound = bound
 }
 
+const renderInternal = (state: State): void => {
+  state.renderedComponents = renderComponents(state)
+  state.interactiveEventElement.onmousemove = state.renderedComponents.eventHandlers.onMouseMove
+  state.interactiveEventElement.onmouseleave = state.renderedComponents.eventHandlers.onMouseLeave
+  state.interactiveEventElement.onmouseup = state.renderedComponents.eventHandlers.onMouseUp
+  state.interactiveEventElement.onmousedown = state.renderedComponents.eventHandlers.onMouseDown
+}
+
 const createEventHandlers = (state: State): EventHandlers => {
   const eventHandlers: EventHandlers = {
     onMouseDown: e => state.renderedComponents.eventHandlers.onMouseDown(e),
@@ -176,15 +165,29 @@ const createEventHandlers = (state: State): EventHandlers => {
     onMouseMove: e => state.renderedComponents.eventHandlers.onMouseMove(e),
     onSelectNewXValueBound: newBound => {
       setXAxisValueBoundToOptions(state.options, newBound)
-      state.renderedComponents = renderComponents(state)
+      renderInternal(state)
     },
     onContainerResize: () => {
       // Create new options given the new container size and current options
       applyContainerRectToOptions(state.containerElement, state.inputOptions, state.options)
-      state.renderedComponents = renderComponents(state)
+      renderInternal(state)
     },
   }
   return eventHandlers
+}
+
+const bindToElementResize = (element: HTMLElement, onResize: () => void): ResizeObserver => {
+  let currentRect = element.getBoundingClientRect()
+  const resizeObserver = new ResizeObserver(() => {
+    const newRect = element.getBoundingClientRect()
+    if (!areClientRectsEqualSize(currentRect, newRect))
+      onResize()
+    currentRect = newRect
+  })
+
+  resizeObserver.observe(element)
+
+  return resizeObserver
 }
 
 export const render = (parentContainerElement: HTMLElement, inputOptions: InputOptions): RenderedChart => {
@@ -222,12 +225,12 @@ export const render = (parentContainerElement: HTMLElement, inputOptions: InputO
     ? cloneOptions(state.inputOptions) as Options
     : applyContainerRectToOptions(state.containerElement, state.inputOptions, cloneOptions(state.inputOptions))
 
-  // Render components
-  state.renderedComponents = renderComponents(state)
-
   // Create interactive event element, prepending it such that it's on top to capture interactive events
-  state.interactiveEventElement = createInteractiveEventContainer(state.renderedComponents.eventHandlers)
+  state.interactiveEventElement = createInteractiveEventContainer()
   state.containerElement.prepend(state.interactiveEventElement)
+
+  // Render components
+  renderInternal(state)
 
   // Create resize observer if either height or width has not been defined
   const resizeObserver = !areDimensionsFullyDefined ? bindToElementResize(state.containerElement, state.eventHandlers.onContainerResize) : null

@@ -11,11 +11,16 @@ export const boundToRange = (x: number, bound1: number, bound2: number) => {
     return upperBound
   return x
 }
+
 export const isInRange = (bound1: number, bound2: number, x: number) => {
   if (bound1 < bound2)
     return x >= bound1 && x <= bound2
   return x >= bound2 && x <= bound1
 }
+
+export const isInRangeOptionalBounds = (x: number, lowerBound?: number, upperBound?: number) => (
+  (lowerBound == null || x >= lowerBound) && (upperBound == null || x <= upperBound)
+)
 
 export const sum = (array: number[]): number => array.reduce((acc, value) => acc + value, 0)
 

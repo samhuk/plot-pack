@@ -10,8 +10,6 @@ import { drawAxisAxisMarkerLines } from '../plotBase/components/axisMarkerLines'
 import Geometry from '../types/Geometry'
 import ChartZones from '../types/ChartZones'
 import { LineOptions } from '../../../common/types/canvas'
-import { mapDict } from '../../../common/helpers/dict'
-import { positionDatumValueFocusPoints } from '../data/datumProcessing'
 import AxesBound from '../types/AxesBound'
 
 const DEFAULT_CONNECTING_LINE_LINE_OPTIONS: LineOptions = {
@@ -70,11 +68,6 @@ export const drawNavigatorPlotBase = (
   const axesGeometry = geometry.navigatorAxesGeometry
   const rect = geometry.chartZoneRects[ChartZones.NAVIGATOR]
 
-  // Position the datum value focus points using axes geometry
-  const positionedDatumValueFocusPoints = mapDict(geometry.processedDatums, (seriesKey, datumValueFocusPoints) => (
-    positionDatumValueFocusPoints(datumValueFocusPoints, axesGeometry[Axis2D.X].p, axesGeometry[Axis2D.Y].p)
-  ))
-
   const axesScreenBounds: AxesBound = {
     [Axis2D.X]: {
       lower: geometry.navigatorAxesGeometry[Axis2D.X].pl,
@@ -87,7 +80,7 @@ export const drawNavigatorPlotBase = (
   }
 
   // Draw connecting line for each series
-  drawConnectingLineForAllSeries(drawer, positionedDatumValueFocusPoints, axesScreenBounds, props)
+  drawConnectingLineForAllSeries(drawer, geometry.navigatorProcessedDatums, axesScreenBounds, props)
 
   // Draw top border
   drawer.line([rect, { x: rect.x + rect.width, y: rect.y }], { color: 'black', lineWidth: 1 })
