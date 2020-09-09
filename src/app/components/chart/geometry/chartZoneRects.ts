@@ -65,8 +65,8 @@ const createYAxisLabelColumn = (drawer: CanvasDrawer, props: Options): InputColu
 
 const getChartMargin = (props: Options) => props.chartMargin ?? DEFAULT_GRAPH_MARGIN
 
-const createChartColumn = (props: Options): InputColumn => ({
-  id: ChartZones.CHART,
+const createChartPlotBaseColumn = (props: Options): InputColumn => ({
+  id: ChartZones.CHART_PLOT_BASE,
   evenlyFillAvailableWidth: true,
   height: 100,
   heightUnits: SizeUnit.PERCENT,
@@ -122,7 +122,7 @@ const createNavigatorRow = (props: Options): InputRow => {
 const createCanvasFlexColumn = (drawer: CanvasDrawer, props: Options): InputColumn => {
   const titleRow = createTitleRow(drawer, props)
   const yAxisLabelColumn = createYAxisLabelColumn(drawer, props)
-  const chartColumn = createChartColumn(props)
+  const chartPlotBaseColumn = createChartPlotBaseColumn(props)
   const xAxisLabelRow = createXAxisLabelRow(drawer, props)
   const navigatorRow = createNavigatorRow(props)
 
@@ -131,21 +131,36 @@ const createCanvasFlexColumn = (drawer: CanvasDrawer, props: Options): InputColu
     width: props.width,
     widthUnits: SizeUnit.PX,
     rows: [
-      // -- Title
-      titleRow,
       {
-        evenlyFillAvailableHeight: true,
         width: 100,
         widthUnits: SizeUnit.PERCENT,
-        columns: [
-          // -- LHS y-axis label
-          yAxisLabelColumn,
-          // Chart
-          chartColumn,
-        ],
+        evenlyFillAvailableHeight: true,
+        id: ChartZones.CHART,
+        columns: [{
+          width: 100,
+          widthUnits: SizeUnit.PERCENT,
+          height: 100,
+          heightUnits: SizeUnit.PERCENT,
+          rows: [
+            // -- Title
+            titleRow,
+            {
+              evenlyFillAvailableHeight: true,
+              width: 100,
+              widthUnits: SizeUnit.PERCENT,
+              columns: [
+                // -- LHS y-axis label column
+                yAxisLabelColumn,
+                // -- Chart plot base column
+                chartPlotBaseColumn,
+              ],
+            },
+            // -- Bottom x-axis label row
+            xAxisLabelRow,
+          ],
+        }],
       },
-      // Bottom x-axis label
-      xAxisLabelRow,
+      // -- Navigator row
       navigatorRow,
     ],
   }
@@ -157,6 +172,7 @@ export const getChartZoneRects = (drawer: CanvasDrawer, props: Options): ChartZo
     [ChartZones.TITLE_BAR]: chartZoneRectsRaw[ChartZones.TITLE_BAR],
     [ChartZones.Y_AXIS_TITLE]: chartZoneRectsRaw[ChartZones.Y_AXIS_TITLE],
     [ChartZones.CHART]: chartZoneRectsRaw[ChartZones.CHART],
+    [ChartZones.CHART_PLOT_BASE]: chartZoneRectsRaw[ChartZones.CHART_PLOT_BASE],
     [ChartZones.X_AXIS_TITLE]: chartZoneRectsRaw[ChartZones.X_AXIS_TITLE],
     [ChartZones.NAVIGATOR]: chartZoneRectsRaw[ChartZones.NAVIGATOR],
   }

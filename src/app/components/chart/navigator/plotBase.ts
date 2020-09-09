@@ -3,7 +3,7 @@ import { CanvasDrawer } from '../../../common/drawer/types'
 import PositionedDatumValueFocusPoint from '../types/PositionedDatumValueFocusPoint'
 import { Path } from '../../../common/drawer/path/types'
 import { createDatumsConnectingLinePath } from '../data/connectingLine'
-import { Axis2D } from '../../../common/types/geometry'
+import { Axis2D, Rect } from '../../../common/types/geometry'
 import { drawAxisLine } from '../plotBase/components/axisLines'
 import { drawAxisMarkerLabels } from '../plotBase/components/axisMarkerLabels'
 import { drawAxisAxisMarkerLines } from '../plotBase/components/axisMarkerLines'
@@ -11,6 +11,8 @@ import Geometry from '../types/Geometry'
 import ChartZones from '../types/ChartZones'
 import { LineOptions } from '../../../common/types/canvas'
 import AxesBound from '../types/AxesBound'
+
+const DEFAULT_BACKGROUND_COLOR = 'white'
 
 const DEFAULT_CONNECTING_LINE_LINE_OPTIONS: LineOptions = {
   lineWidth: 1,
@@ -60,11 +62,17 @@ const drawConnectingLineForAllSeries = (
     })
 }
 
+const drawBackground = (drawer: CanvasDrawer, props: Options, rect: Rect) => {
+  drawer.rect(rect, { stroke: false, fill: true, fillOptions: { color: props.backgroundColor ?? DEFAULT_BACKGROUND_COLOR } })
+}
+
 export const drawNavigatorPlotBase = (
   drawer: CanvasDrawer,
   geometry: Geometry,
   props: Options,
 ) => {
+  drawBackground(drawer, props, geometry.chartZoneRects[ChartZones.NAVIGATOR])
+
   const axesGeometry = geometry.navigatorAxesGeometry
   const rect = geometry.chartZoneRects[ChartZones.NAVIGATOR]
 

@@ -5,6 +5,7 @@ import drawNavigatorPlotBase from './plotBase'
 import { drawNavigatorInteractivity } from './interactivity'
 import NavigatorEventHandlers from '../types/NavigatorEventHandlers'
 import Navigator from '../types/Navigator'
+import Bound from '../types/Bound'
 
 export const DEFAULT_NAVIGATOR_HEIGHT_PX = 100
 
@@ -13,10 +14,11 @@ export const drawNavigator = (
   geometry: Geometry,
   props: Options,
   eventHandlers: NavigatorEventHandlers,
+  selectedXValueBound: Bound,
 ): Navigator => {
   drawNavigatorPlotBase(drawers.plotBase, geometry, props)
 
-  const interactivity = drawNavigatorInteractivity(drawers.interactivity, geometry, props, eventHandlers)
+  const interactivity = drawNavigatorInteractivity(drawers.interactivity, geometry, props, eventHandlers, selectedXValueBound)
 
   return { interactivity }
 }

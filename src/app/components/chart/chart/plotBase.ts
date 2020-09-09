@@ -138,8 +138,7 @@ const drawSeriesData = (
     drawDatumsConnectingLine(drawer, processedDatums, axesScreenBounds, props, seriesKey)
 }
 
-const drawBackground = (drawer: CanvasDrawer, props: Options) => {
-  const rect: Rect = { x: 0, y: 0, width: props.width, height: props.height }
+const drawBackground = (drawer: CanvasDrawer, props: Options, rect: Rect) => {
   drawer.rect(rect, { stroke: false, fill: true, fillOptions: { color: props.backgroundColor ?? DEFAULT_BACKGROUND_COLOR } })
 }
 
@@ -170,9 +169,7 @@ export const drawPlotBase = (
   geometry: Geometry,
   props: Options,
 ) => {
-  drawer.clearRenderingSpace()
-
-  drawBackground(drawer, props)
+  drawBackground(drawer, props, geometry.chartZoneRects[ChartZones.CHART])
 
   // Draw the base chart, i.e. axes lines, grid lines, labels, title, etc., but no series data.
   drawBaseChart(drawer, geometry.chartAxesGeometry, geometry.chartZoneRects, props)

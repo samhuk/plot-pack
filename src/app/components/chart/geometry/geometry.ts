@@ -49,7 +49,7 @@ export const createGeometry = (drawer: CanvasDrawer, props: Options): Geometry =
   const chartVisibleDatumsValueRange = calculateValueBoundsOfSeries(chartVisibleFocusedDatums)
   const chartAxesValueRangeOptions = getAxesValueRangeOptions(props, chartVisibleDatumsValueRange)
   const chartZoneRects = getChartZoneRects(drawer, props)
-  const chartAxesGeometry = createAxesGeometry(drawer, props, chartAxesValueRangeOptions, chartZoneRects[ChartZones.CHART])
+  const chartAxesGeometry = createAxesGeometry(drawer, props, chartAxesValueRangeOptions, chartZoneRects[ChartZones.CHART_PLOT_BASE])
 
   // Calculate positioned datums, adding screen position and a focus point to each datum.
   const chartProcessedDatums = mapDict(focusedDatums, (seriesKey, datums) => (
