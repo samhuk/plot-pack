@@ -84,7 +84,21 @@ const endBoundSelection = (state: State, drawer: CanvasDrawer, axesGeometry: Axe
     drawXValueBoundBox(drawer, axesGeometry, state.lastSelectedXValueScreenStartPosition, state.lastSelectedXValueScreenEndPosition)
 
   document.removeEventListener('mouseup', state.documentMouseUpHandler)
-  state.documentMouseUpHandler = null
+  document.removeEventListener('keydown', state.documentKeyDownHandler)
+}
+
+const onDocumentMouseUp = (state: State, drawer: CanvasDrawer, axesGeometry: AxesGeometry) => {
+  // If mouse is outside canvas, then we need to handle it here. Else, the below onMouseUp function will handle it
+  if (state.isMouseWithinCanvasElement === false)
+    endBoundSelection(state, drawer, axesGeometry, true)
+  document.removeEventListener('mouseup', state.documentMouseUpHandler)
+}
+
+const onDocumentKeyDown = (e: KeyboardEvent, state: State, drawer: CanvasDrawer, axesGeometry: AxesGeometry) => {
+  if (!isEscape(e))
+    return
+
+  endBoundSelection(state, drawer, axesGeometry, true)
   document.removeEventListener('keydown', state.documentKeyDownHandler)
   state.documentKeyDownHandler = null
 }
@@ -92,26 +106,19 @@ const endBoundSelection = (state: State, drawer: CanvasDrawer, axesGeometry: Axe
 /**
  * Starts a bound selection.
  */
-const startBoundSelection = (e: MouseEvent, state: State, rect: Rect, drawer: CanvasDrawer, axesGeometry: AxesGeometry) => {
+const startBoundSelection = (e: MouseEvent, state: State, drawer: CanvasDrawer, axesGeometry: AxesGeometry) => {
   state.isSelectingBound = true
   state.mouseDownPosition = { x: e.offsetX, y: e.offsetY }
 
-  // Add document mouse-up handler since onMouseUp below is only called for the canvas element
-  state.documentMouseUpHandler = () => {
-    // If mouse is outside canvas, then we need to handle it here. Else, the below onMouseUp function will handle it
-    if (state.isMouseWithinCanvasElement === false)
-      endBoundSelection(state, drawer, axesGeometry, true)
-    document.removeEventListener('mouseup', state.documentMouseUpHandler)
-    state.documentMouseUpHandler = null
-  }
-  state.documentKeyDownHandler = (keydownEvent: KeyboardEvent) => {
-    if (isEscape(keydownEvent)) {
-      endBoundSelection(state, drawer, axesGeometry, true)
-      document.removeEventListener('keydown', state.documentKeyDownHandler)
-      state.documentKeyDownHandler = null
-    }
-  }
+  drawXValueBoundBoxForMouseEvent(e, state, axesGeometry, drawer)
+
+  /* Add document mouse-up handler, which will cancel the bound selection if it occurs during selection.
+   * This is because the onMouseUp handled within this component is only called for the canvas element.
+   */
   document.addEventListener('mouseup', state.documentMouseUpHandler)
+  /* Add document keydown event handler, which will cancel the bound selection if they escape key is
+   * pressed down during selection.
+   */
   document.addEventListener('keydown', state.documentKeyDownHandler)
 }
 
@@ -122,6 +129,7 @@ const onMouseMove = (e: MouseEvent, state: State, axesGeometry: AxesGeometry, re
   if (!state.isSelectingBound)
     return
 
+  // Hide the bound box if mouse is outside rect
   if (state.isSelectingBound && !isMouseEventInRect(e, rect)) {
     drawer.clearRenderingSpace()
     return
@@ -137,7 +145,7 @@ const onMouseDown = (e: MouseEvent, state: State, rect: Rect, drawer: CanvasDraw
   if (!isMouseEventInRect(e, rect))
     return
 
-  startBoundSelection(e, state, rect, drawer, axesGeometry)
+  startBoundSelection(e, state, drawer, axesGeometry)
 }
 
 /**
@@ -178,8 +186,8 @@ export const drawNavigatorInteractivity = (
     isMouseWithinCanvasElement: false,
     mouseDownPosition: null,
     isSelectingBound: false,
-    documentMouseUpHandler: null,
-    documentKeyDownHandler: null,
+    documentMouseUpHandler: () => onDocumentMouseUp(state, drawer, axesGeometry),
+    documentKeyDownHandler: kbdevnt => onDocumentKeyDown(kbdevnt, state, drawer, axesGeometry),
     lastSelectedXValueScreenStartPosition: null,
     lastSelectedXValueScreenEndPosition: null,
   }
