@@ -9,7 +9,7 @@ import NavigatorEventHandlers from '../types/NavigatorEventHandlers'
 import NavigatorInteractivity from '../types/NavigatorInteractivity'
 import AxesGeometry from '../types/AxesGeometry'
 import Bound from '../types/Bound'
-import { isEscape } from '../../../common/helpers/keyCode'
+import { isEscape, isA } from '../../../common/helpers/keyCode'
 
 /* eslint-disable no-param-reassign */
 
@@ -27,7 +27,9 @@ const isMouseEventInRect = (cursorPositionFromEvent: { offsetX: number, offsetY:
   isPositionInRect({ x: cursorPositionFromEvent.offsetX, y: cursorPositionFromEvent.offsetY }, rect)
 )
 
-const drawXValueBoundBox = (drawer: CanvasDrawer, axesGeometry: AxesGeometry, px0: number, px1: number) => {
+const drawXValueBoundBox = (drawer: CanvasDrawer, axesGeometry: AxesGeometry, xScreenBound: Bound) => {
+  const px0 = xScreenBound.lower
+  const px1 = xScreenBound.upper
   const fromLineTopPoint: Point2D = { x: px0, y: axesGeometry[Axis2D.Y].pl }
   const fromLineBottomPoint: Point2D = { x: px0, y: axesGeometry[Axis2D.Y].pu }
   const toLineTopPoint: Point2D = { x: px1, y: axesGeometry[Axis2D.Y].pl }
@@ -48,33 +50,32 @@ const drawXValueBoundBox = (drawer: CanvasDrawer, axesGeometry: AxesGeometry, px
   drawer.rect(selectedAreaRect, { fill: true, stroke: false, fillOptions: { color: 'rgba(0, 0, 255, 0.1)' } })
 }
 
-const convertMouseEventToBoundSelection = (e: MouseEvent, state: State, axesGeometry: AxesGeometry) => {
+const convertMouseEventToBoundSelection = (e: MouseEvent, state: State, axesGeometry: AxesGeometry): Bound => {
   const constrainedMouseDownX = boundToRange(state.mouseDownPosition.x, axesGeometry[Axis2D.X].pl, axesGeometry[Axis2D.X].pu)
   const constrainedCurrentMouseX = boundToRange(e.offsetX, axesGeometry[Axis2D.X].pl, axesGeometry[Axis2D.X].pu)
 
   return {
-    fromMouseX: constrainedMouseDownX,
-    toMouseX: constrainedCurrentMouseX,
+    lower: constrainedMouseDownX,
+    upper: constrainedCurrentMouseX,
   }
 }
 
 const drawXValueBoundBoxForMouseEvent = (e: MouseEvent, state: State, axesGeometry: AxesGeometry, drawer: CanvasDrawer) => {
   const bound = convertMouseEventToBoundSelection(e, state, axesGeometry)
-  drawXValueBoundBox(drawer, axesGeometry, bound.fromMouseX, bound.toMouseX)
+  drawXValueBoundBox(drawer, axesGeometry, bound)
 }
 
-const selectBoundForMouseEvent = (
+const selectBound = (
   state: State,
   axesGeometry: AxesGeometry,
-  e: MouseEvent,
   eventHandlers: NavigatorEventHandlers,
-  constrainedPositionBound: { fromMouseX: number, toMouseX: number },
+  constrainedPositionBound: Bound,
 ) => {
-  state.lastSelectedXValueScreenStartPosition = constrainedPositionBound.fromMouseX
-  state.lastSelectedXValueScreenEndPosition = constrainedPositionBound.toMouseX
+  state.lastSelectedXValueScreenStartPosition = constrainedPositionBound.lower
+  state.lastSelectedXValueScreenEndPosition = constrainedPositionBound.upper
 
-  const fromVX = axesGeometry[Axis2D.X].v(constrainedPositionBound.fromMouseX)
-  const toVX = axesGeometry[Axis2D.X].v(constrainedPositionBound.toMouseX)
+  const fromVX = axesGeometry[Axis2D.X].v(constrainedPositionBound.lower)
+  const toVX = axesGeometry[Axis2D.X].v(constrainedPositionBound.upper)
   eventHandlers.onSelectXValueBound({
     lower: Math.min(fromVX, toVX),
     upper: Math.max(fromVX, toVX),
@@ -92,8 +93,13 @@ const endBoundSelection = (state: State, drawer: CanvasDrawer, axesGeometry: Axe
   state.isSelectingBound = false
 
   // Draw the last selected box
-  if (cancel && state.lastSelectedXValueScreenEndPosition != null && state.lastSelectedXValueScreenStartPosition != null)
-    drawXValueBoundBox(drawer, axesGeometry, state.lastSelectedXValueScreenStartPosition, state.lastSelectedXValueScreenEndPosition)
+  if (cancel && state.lastSelectedXValueScreenEndPosition != null && state.lastSelectedXValueScreenStartPosition != null) {
+    const bound: Bound = {
+      lower: state.lastSelectedXValueScreenStartPosition,
+      upper: state.lastSelectedXValueScreenEndPosition,
+    }
+    drawXValueBoundBox(drawer, axesGeometry, bound)
+  }
 
   document.removeEventListener('mouseup', state.documentMouseUpHandler)
   document.removeEventListener('keydown', state.documentKeyDownHandler)
@@ -106,13 +112,22 @@ const onDocumentMouseUp = (state: State, drawer: CanvasDrawer, axesGeometry: Axe
   document.removeEventListener('mouseup', state.documentMouseUpHandler)
 }
 
-const onDocumentKeyDown = (e: KeyboardEvent, state: State, drawer: CanvasDrawer, axesGeometry: AxesGeometry) => {
-  if (!isEscape(e))
-    return
-
-  endBoundSelection(state, drawer, axesGeometry, true)
-  document.removeEventListener('keydown', state.documentKeyDownHandler)
-  state.documentKeyDownHandler = null
+const onDocumentKeyDown = (
+  e: KeyboardEvent,
+  state: State,
+  drawer: CanvasDrawer,
+  axesGeometry: AxesGeometry,
+  eventHandlers: NavigatorEventHandlers,
+) => {
+  if (isEscape(e)) {
+    endBoundSelection(state, drawer, axesGeometry, true)
+  }
+  else if (isA(e)) {
+    const bound: Bound = { lower: axesGeometry[Axis2D.X].pl, upper: axesGeometry[Axis2D.X].pu }
+    drawXValueBoundBox(drawer, axesGeometry, bound)
+    selectBound(state, axesGeometry, eventHandlers, bound)
+    endBoundSelection(state, drawer, axesGeometry, false)
+  }
 }
 
 /**
@@ -176,9 +191,9 @@ const onMouseUp = (
 
   const isMouseInRect = isMouseEventInRect(e, rect)
   const bound = convertMouseEventToBoundSelection(e, state, axesGeometry)
-  const isSufficientSelection = Math.abs(bound.fromMouseX - bound.toMouseX) > 1
+  const isSufficientSelection = Math.abs(bound.lower - bound.upper) > 1
   if (isMouseInRect && isSufficientSelection)
-    selectBoundForMouseEvent(state, axesGeometry, e, eventHandlers, bound)
+    selectBound(state, axesGeometry, eventHandlers, bound)
 
   const shouldCancel = !isMouseInRect || !isSufficientSelection
   endBoundSelection(state, drawer, axesGeometry, shouldCancel)
@@ -199,14 +214,14 @@ export const drawNavigatorInteractivity = (
     upper: selectedXValueBound?.upper ?? axesGeometry[Axis2D.X].pu,
   }
 
-  drawXValueBoundBox(drawer, axesGeometry, initialMouseBound.lower, initialMouseBound.upper)
+  drawXValueBoundBox(drawer, axesGeometry, initialMouseBound)
 
   const state: State = {
     isMouseWithinCanvasElement: false,
     mouseDownPosition: null,
     isSelectingBound: false,
     documentMouseUpHandler: () => onDocumentMouseUp(state, drawer, axesGeometry),
-    documentKeyDownHandler: kbdevnt => onDocumentKeyDown(kbdevnt, state, drawer, axesGeometry),
+    documentKeyDownHandler: kbdevnt => onDocumentKeyDown(kbdevnt, state, drawer, axesGeometry, eventHandlers),
     lastSelectedXValueScreenStartPosition: initialMouseBound.lower,
     lastSelectedXValueScreenEndPosition: initialMouseBound.upper,
   }
