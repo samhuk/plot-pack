@@ -48,21 +48,33 @@ const drawXValueBoundBox = (drawer: CanvasDrawer, axesGeometry: AxesGeometry, px
   drawer.rect(selectedAreaRect, { fill: true, stroke: false, fillOptions: { color: 'rgba(0, 0, 255, 0.1)' } })
 }
 
-const drawXValueBoundBoxForMouseEvent = (e: MouseEvent, state: State, axesGeometry: AxesGeometry, drawer: CanvasDrawer) => {
+const convertMouseEventToBoundSelection = (e: MouseEvent, state: State, axesGeometry: AxesGeometry) => {
   const constrainedMouseDownX = boundToRange(state.mouseDownPosition.x, axesGeometry[Axis2D.X].pl, axesGeometry[Axis2D.X].pu)
   const constrainedCurrentMouseX = boundToRange(e.offsetX, axesGeometry[Axis2D.X].pl, axesGeometry[Axis2D.X].pu)
-  drawXValueBoundBox(drawer, axesGeometry, constrainedCurrentMouseX, constrainedMouseDownX)
+
+  return {
+    fromMouseX: constrainedMouseDownX,
+    toMouseX: constrainedCurrentMouseX,
+  }
 }
 
-const selectBoundForMouseEvent = (state: State, axesGeometry: AxesGeometry, e: MouseEvent, eventHandlers: NavigatorEventHandlers) => {
-  const constrainedMouseDownX = boundToRange(state.mouseDownPosition.x, axesGeometry[Axis2D.X].pl, axesGeometry[Axis2D.X].pu)
-  const constrainedCurrentMouseX = boundToRange(e.offsetX, axesGeometry[Axis2D.X].pl, axesGeometry[Axis2D.X].pu)
+const drawXValueBoundBoxForMouseEvent = (e: MouseEvent, state: State, axesGeometry: AxesGeometry, drawer: CanvasDrawer) => {
+  const bound = convertMouseEventToBoundSelection(e, state, axesGeometry)
+  drawXValueBoundBox(drawer, axesGeometry, bound.fromMouseX, bound.toMouseX)
+}
 
-  state.lastSelectedXValueScreenStartPosition = constrainedMouseDownX
-  state.lastSelectedXValueScreenEndPosition = constrainedCurrentMouseX
+const selectBoundForMouseEvent = (
+  state: State,
+  axesGeometry: AxesGeometry,
+  e: MouseEvent,
+  eventHandlers: NavigatorEventHandlers,
+  constrainedPositionBound: { fromMouseX: number, toMouseX: number },
+) => {
+  state.lastSelectedXValueScreenStartPosition = constrainedPositionBound.fromMouseX
+  state.lastSelectedXValueScreenEndPosition = constrainedPositionBound.toMouseX
 
-  const fromVX = axesGeometry[Axis2D.X].v(constrainedMouseDownX)
-  const toVX = axesGeometry[Axis2D.X].v(constrainedCurrentMouseX)
+  const fromVX = axesGeometry[Axis2D.X].v(constrainedPositionBound.fromMouseX)
+  const toVX = axesGeometry[Axis2D.X].v(constrainedPositionBound.toMouseX)
   eventHandlers.onSelectXValueBound({
     lower: Math.min(fromVX, toVX),
     upper: Math.max(fromVX, toVX),
@@ -163,10 +175,13 @@ const onMouseUp = (
     return
 
   const isMouseInRect = isMouseEventInRect(e, rect)
-  if (isMouseInRect)
-    selectBoundForMouseEvent(state, axesGeometry, e, eventHandlers)
+  const bound = convertMouseEventToBoundSelection(e, state, axesGeometry)
+  const isSufficientSelection = Math.abs(bound.fromMouseX - bound.toMouseX) > 1
+  if (isMouseInRect && isSufficientSelection)
+    selectBoundForMouseEvent(state, axesGeometry, e, eventHandlers, bound)
 
-  endBoundSelection(state, drawer, axesGeometry, !isMouseInRect)
+  const shouldCancel = !isMouseInRect || !isSufficientSelection
+  endBoundSelection(state, drawer, axesGeometry, shouldCancel)
 }
 
 export const drawNavigatorInteractivity = (
@@ -179,8 +194,12 @@ export const drawNavigatorInteractivity = (
   const axesGeometry = geometry.navigatorAxesGeometry
   const rect = geometry.chartZoneRects[ChartZones.NAVIGATOR]
 
-  if (selectedXValueBound != null)
-    drawXValueBoundBox(drawer, axesGeometry, selectedXValueBound.lower, selectedXValueBound.upper)
+  const initialMouseBound: Bound = {
+    lower: selectedXValueBound?.lower ?? axesGeometry[Axis2D.X].pl,
+    upper: selectedXValueBound?.upper ?? axesGeometry[Axis2D.X].pu,
+  }
+
+  drawXValueBoundBox(drawer, axesGeometry, initialMouseBound.lower, initialMouseBound.upper)
 
   const state: State = {
     isMouseWithinCanvasElement: false,
@@ -188,8 +207,8 @@ export const drawNavigatorInteractivity = (
     isSelectingBound: false,
     documentMouseUpHandler: () => onDocumentMouseUp(state, drawer, axesGeometry),
     documentKeyDownHandler: kbdevnt => onDocumentKeyDown(kbdevnt, state, drawer, axesGeometry),
-    lastSelectedXValueScreenStartPosition: null,
-    lastSelectedXValueScreenEndPosition: null,
+    lastSelectedXValueScreenStartPosition: initialMouseBound.lower,
+    lastSelectedXValueScreenEndPosition: initialMouseBound.upper,
   }
 
   return {
