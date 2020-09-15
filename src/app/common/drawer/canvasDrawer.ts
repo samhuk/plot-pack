@@ -1,5 +1,5 @@
 import { CanvasDrawer, CanvasDrawerState, DrawOptions, TextOptions } from './types'
-import { get2DContext, applyTextOptionsToContext, getTextLineHeightMetrics } from '../helpers/canvas'
+import { get2DContext, applyTextOptionsToContext, getTextLineHeightMetrics, measureTextWidth, measureTextLineHeight } from '../helpers/canvas'
 import { LineOptions, FillOptions, TextOptions as TextOptionsBase } from '../types/canvas'
 import { Line, CircularSector, Rect, Circle, Point2D, RectDimensions } from '../types/geometry'
 import { createPath2DFromPath } from './path/path'
@@ -36,8 +36,6 @@ const drawPath2D = (state: CanvasDrawerState, _path: Path2D, stroke: boolean = t
   if (fill ?? false) // don't fill by default
     state.ctx.fill(_path)
 }
-
-/* eslint-enable no-param-reassign */
 
 export const createLinePath = (_line: Line): Path2D => {
   const p = new Path2D()
@@ -233,5 +231,11 @@ export const createCanvasDrawer = (canvasElement: HTMLCanvasElement, rectDimensi
     ),
     clearRenderingSpace: rectToClear => clearRenderingSpace(state, rectToClear),
     text: (_text, position, angle, textOptions) => text(state, _text, position, angle, textOptions),
+    measureTextWidth: _text => measureTextWidth(state.ctx, _text),
+    measureTextHeight: _text => measureTextLineHeight(state.ctx, _text),
+    measureTextRectDimensions: _text => ({
+      width: measureTextWidth(state.ctx, _text),
+      height: measureTextLineHeight(state.ctx, _text),
+    }),
   }
 }

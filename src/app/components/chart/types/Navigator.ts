@@ -1,7 +1,9 @@
-import NavigatorInteractivity from "./NavigatorInteractivity"
+import NavigatorBoundSelector from './NavigatorBoundSelector'
+import NavigatorActionButtons from './NavigatorActionButtons'
 
 export type Navigator = {
-  interactivity: NavigatorInteractivity
+  boundSelector: NavigatorBoundSelector
+  actionButtons: NavigatorActionButtons
 }
 
 export default Navigator

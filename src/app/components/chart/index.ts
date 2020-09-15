@@ -48,7 +48,8 @@ type State = {
     chartPlotBase: CanvasDrawer
     chartPlotInteractivity: CanvasDrawer
     navigatorPlot: CanvasDrawer
-    navigatorInteractivity: CanvasDrawer
+    navigatorBoundSelector: CanvasDrawer
+    navigatorActionButtons: CanvasDrawer
   }
 }
 
@@ -71,8 +72,9 @@ const createCanvasElement = () => {
 const createCanvasElements = (): CanvasElements => ({
   chartPlotBase: createCanvasElement(),
   chartInteractivity: createCanvasElement(),
-  navigatorInteractivity: createCanvasElement(),
+  navigatorBoundSelector: createCanvasElement(),
   navigatorPlotBase: createCanvasElement(),
+  navigatorActionButtons: createCanvasElement(),
 })
 
 const createContainer = (rectDimensions?: { height?: number, width?: number }) => {
@@ -107,7 +109,8 @@ const renderComponents = (state: State, renderNewNavigator: boolean = false): Re
       chartPlotBase: createCanvasDrawer(state.canvasElements.chartPlotBase, state.options),
       chartPlotInteractivity: createCanvasDrawer(state.canvasElements.chartInteractivity, state.options),
       navigatorPlot: createCanvasDrawer(state.canvasElements.navigatorPlotBase, state.options),
-      navigatorInteractivity: createCanvasDrawer(state.canvasElements.navigatorInteractivity, state.options),
+      navigatorBoundSelector: createCanvasDrawer(state.canvasElements.navigatorBoundSelector, state.options),
+      navigatorActionButtons: createCanvasDrawer(state.canvasElements.navigatorActionButtons, state.options),
     }
   }
 
@@ -124,11 +127,19 @@ const renderComponents = (state: State, renderNewNavigator: boolean = false): Re
   // Draw the navigator
   const navigator = renderNewNavigator
     ? drawNavigator(
-      { plotBase: state.drawers.navigatorPlot, interactivity: state.drawers.navigatorInteractivity },
+      {
+        plotBase: state.drawers.navigatorPlot,
+        boundSelector: state.drawers.navigatorBoundSelector,
+        actionButtons: state.drawers.navigatorActionButtons,
+      },
       geometry,
       state.options,
       state.eventHandlers,
       state.selectedXValueBound,
+      {
+        resetCursor: () => state.interactiveEventElement.style.cursor = 'crosshair',
+        setCursor: cursor => state.interactiveEventElement.style.cursor = cursor,
+      },
     )
     : state.renderedComponents.navigator
 
@@ -158,11 +169,19 @@ const setXAxisValueBoundToOptions = (options: Options, bound: Bound): void => {
 const renderInternal = (state: State, renderNewNavigator: boolean = false): void => {
   state.renderedComponents = renderComponents(state, renderNewNavigator)
   const interactiveEventHandlers: InteractiveEventHandlers = {
-    onMouseMove: merge(state.renderedComponents.navigator.interactivity.onMouseMove, state.renderedComponents.chart.interactivity.onMouseMove),
-    onMouseLeave: merge(state.renderedComponents.navigator.interactivity.onMouseLeave, state.renderedComponents.chart.interactivity.onMouseLeave),
-    onMouseEnter: state.renderedComponents.navigator.interactivity.onMouseEnter,
-    onMouseDown: state.renderedComponents.navigator.interactivity.onMouseDown,
-    onMouseUp: state.renderedComponents.navigator.interactivity.onMouseUp,
+    onMouseMove: merge(
+      state.renderedComponents.chart.interactivity.onMouseMove,
+      state.renderedComponents.navigator.boundSelector.onMouseMove,
+      state.renderedComponents.navigator.actionButtons.onMouseMove,
+    ),
+    onMouseLeave: merge(state.renderedComponents.navigator.boundSelector.onMouseLeave, state.renderedComponents.chart.interactivity.onMouseLeave),
+    onMouseEnter: state.renderedComponents.navigator.boundSelector.onMouseEnter,
+    onMouseDown: e => {
+      const shouldNotCallProceeders = state.renderedComponents.navigator.actionButtons.onMouseDown(e)
+      if (!shouldNotCallProceeders)
+        state.renderedComponents.navigator.boundSelector.onMouseDown(e)
+    },
+    onMouseUp: state.renderedComponents.navigator.boundSelector.onMouseUp,
   }
   state.interactiveEventElement.onmousemove = interactiveEventHandlers.onMouseMove
   state.interactiveEventElement.onmouseenter = interactiveEventHandlers.onMouseEnter
@@ -226,7 +245,8 @@ export const render = (parentContainerElement: HTMLElement, inputOptions: InputO
   state.containerElement.appendChild(state.canvasElements.chartPlotBase)
   state.containerElement.appendChild(state.canvasElements.chartInteractivity)
   state.containerElement.appendChild(state.canvasElements.navigatorPlotBase)
-  state.containerElement.appendChild(state.canvasElements.navigatorInteractivity)
+  state.containerElement.appendChild(state.canvasElements.navigatorBoundSelector)
+  state.containerElement.appendChild(state.canvasElements.navigatorActionButtons)
   // Add container element to the "outer" container element
   parentContainerElement.appendChild(state.containerElement)
 

@@ -22,6 +22,8 @@ export const createPath2DFromPath = (path: Path, precreatedPath2D?: Path2D): Pat
       p.arc(pc.x, pc.y, pc.radius, 0, Math.PI * 2)
     else if (pc.type === PathComponentType.ARC)
       p.arc(pc.x, pc.y, pc.radius, pc.startAngle ?? 0, pc.endAngle)
+    else if (pc.type === PathComponentType.QUADRATIC_CURVE_TO)
+      p.quadraticCurveTo(pc.cPos.x, pc.cPos.y, pc.pos.x, pc.pos.y)
   }
   return p
 }

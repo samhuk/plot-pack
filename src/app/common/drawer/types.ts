@@ -1,4 +1,4 @@
-import { Rect, Line, Circle, CircularSector, Point2D } from '../types/geometry'
+import { Rect, Line, Circle, CircularSector, Point2D, RectDimensions } from '../types/geometry'
 import { LineOptions, FillOptions, TextOptions as TextOptionsBase } from '../types/canvas'
 import { Path } from './path/types'
 
@@ -28,6 +28,9 @@ type Drawer<T, R> = {
   applyTextOptions: (textOptions?: TextOptionsBase, fallbackOptions?: TextOptionsBase) => void
   // -- Misc
   getRenderingContext: () => T
+  measureTextWidth: (text: string) => number,
+  measureTextHeight: (text?: string) => number,
+  measureTextRectDimensions: (text: string) => RectDimensions,
 }
 
 export type CanvasDrawer = Drawer<CanvasRenderingContext2D, Path2D>

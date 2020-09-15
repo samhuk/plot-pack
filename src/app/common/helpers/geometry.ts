@@ -32,6 +32,10 @@ export const isPositionInRect = (position: Point2D, rect: Rect) => (
     && isInRange(rect.y, rect.y + rect.height, position.y)
 )
 
+export const isMouseEventInRect = (cursorPositionFromEvent: { offsetX: number, offsetY: number }, rect: Rect) => (
+  isPositionInRect({ x: cursorPositionFromEvent.offsetX, y: cursorPositionFromEvent.offsetY }, rect)
+)
+
 export const isPositionInAxesBounds = (position: Point2D, axesBounds: AxesBound) => (
   isInRange(axesBounds[Axis2D.X].lower, axesBounds[Axis2D.X].upper, position.x)
     && isInRange(axesBounds[Axis2D.Y].lower, axesBounds[Axis2D.Y].upper, position.y)
