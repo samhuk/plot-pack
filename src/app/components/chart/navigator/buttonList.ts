@@ -80,9 +80,11 @@ const mapButtonToColumn = (
     padding: 5,
     render: rect => {
       buttonRects.push(rect)
-      // Button rect shape
+      // Define button rect shape
       const path = createRoundedRectPath(rect, 5)
+      // Hovered button styling
       const fillColor = index !== state.hoveredButtonIndex ? 'white' : '#ddd'
+      // Drawn button rect shape
       options.drawer.path(path, { fill: true, fillOptions: { color: fillColor }, stroke: true, lineOptions: { lineWidth: 1, color: 'aaa' } })
     },
     rows: [{

@@ -214,8 +214,8 @@ export const drawNavigatorBoundSelector = (
   const rect = geometry.chartZoneRects[ChartZones.NAVIGATOR]
 
   const initialMouseBound: Bound = {
-    lower: selectedXValueBound?.lower ?? axesGeometry[Axis2D.X].pl,
-    upper: selectedXValueBound?.upper ?? axesGeometry[Axis2D.X].pu,
+    lower: selectedXValueBound?.lower != null ? axesGeometry[Axis2D.X].p(selectedXValueBound?.lower) : axesGeometry[Axis2D.X].pl,
+    upper: selectedXValueBound?.upper != null ? axesGeometry[Axis2D.X].p(selectedXValueBound?.upper) : axesGeometry[Axis2D.X].pu,
   }
 
   drawXValueBoundBox(drawer, axesGeometry, initialMouseBound)

@@ -234,7 +234,7 @@ export const render = (parentContainerElement: HTMLElement, inputOptions: InputO
     renderedComponents: null,
     options: null,
     interactiveEventElement: null,
-    selectedXValueBound: null,
+    selectedXValueBound: inputOptions.axesOptions?.[Axis2D.X]?.valueBound,
     drawers: null,
   }
 

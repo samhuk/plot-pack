@@ -38,6 +38,7 @@ export type CommonOptions = {
   datumHighlightOptions?: DatumHighlightOptions
   datumSnapOptions?: DatumSnapOptions
   navigatorOptions?: NavigatorOptions
+  autoSetAxisBoundsToFitOnlyVisibleDatums?: boolean
 }
 
 export default CommonOptions

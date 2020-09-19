@@ -43,10 +43,14 @@ export const createGeometry = (drawer: CanvasDrawer, props: Options): Geometry =
     [Axis2D.X]: props.axesOptions?.[Axis2D.X]?.valueBound,
     [Axis2D.Y]: props.axesOptions?.[Axis2D.Y]?.valueBound,
   }
-  const chartVisibleFocusedDatums = mapDict(focusedDatums, (_, datums) => (
-    filterFocusedDatumsOutsideOfAxesBounds(datums, chartOptionsSpecifiedChartAxesValueBounds)
-  ))
-  const chartVisibleDatumsValueRange = calculateValueBoundsOfSeries(chartVisibleFocusedDatums)
+  const datumsForChartAxesValueRangeOptions = (props.autoSetAxisBoundsToFitOnlyVisibleDatums ?? true)
+    // Chart-visible focused datums
+    ? mapDict(focusedDatums, (_, datums) => (
+      filterFocusedDatumsOutsideOfAxesBounds(datums, chartOptionsSpecifiedChartAxesValueBounds)
+    ))
+    // All focused datums
+    : focusedDatums
+  const chartVisibleDatumsValueRange = calculateValueBoundsOfSeries(datumsForChartAxesValueRangeOptions)
   const chartAxesValueRangeOptions = getAxesValueRangeOptions(props, chartVisibleDatumsValueRange)
   const chartZoneRects = getChartZoneRects(drawer, props)
   const chartAxesGeometry = createAxesGeometry(drawer, props, chartAxesValueRangeOptions, chartZoneRects[ChartZones.CHART_PLOT_BASE])
