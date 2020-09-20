@@ -1,7 +1,5 @@
-Object.defineProperty(exports, "__esModule", {
-  value: true
-})
+Object.defineProperty(exports, "__esModule", { value: true })
 
-exports.Graph = require('./lib/components/graph')
+exports.Chart = require('./lib/components/chart')
 
 exports.PieChart = require('./lib/components/pieChart')
