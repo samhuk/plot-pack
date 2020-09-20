@@ -47,6 +47,7 @@ export const render = () => {
   for (let i = 1; i < 50; i += 1)
     randomData1.push({ x: Math.random(), y: Math.random() })
 
+  /* eslint-disable object-curly-newline */
   return (
     <div className="chart">
       <h2>Chart</h2>

@@ -20,6 +20,7 @@ app
     app.handle(req, res)
   })
   .listen(port, '0.0.0.0', err => {
+    /* eslint-disable no-console */
     if (err)
       console.log(err)
     else

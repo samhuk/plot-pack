@@ -29,6 +29,7 @@ export const DarkModeFlexDimensions = () => {
   for (let i = -10; i < 10; i += 1)
     data2.push({ x: i, y: i })
 
+  /* eslint-disable object-curly-newline */
   return (
     <div className="chart dark-mode-flex-dimensions">
       <div className="sandbox" style={{ }}>

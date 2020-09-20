@@ -20,7 +20,11 @@ export const createRoundedRectPath = (
     { type: PathComponentType.LINE_TO, x: x + width - _cornerRadii.topRight, y },
     { type: PathComponentType.QUADRATIC_CURVE_TO, cPos: { x: x + width, y }, pos: { x: x + width, y: y + _cornerRadii.topRight } },
     { type: PathComponentType.LINE_TO, x: x + width, y: y + height - _cornerRadii.bottomRight },
-    { type: PathComponentType.QUADRATIC_CURVE_TO, cPos: { x: x + width, y: y + height }, pos: { x: x + width - _cornerRadii.bottomRight, y: y + height } },
+    {
+      type: PathComponentType.QUADRATIC_CURVE_TO,
+      cPos: { x: x + width, y: y + height },
+      pos: { x: x + width - _cornerRadii.bottomRight, y: y + height },
+    },
     { type: PathComponentType.LINE_TO, x: x + _cornerRadii.bottomLeft, y: y + height },
     { type: PathComponentType.QUADRATIC_CURVE_TO, cPos: { x, y: y + height }, pos: { x, y: y + height - _cornerRadii.bottomLeft } },
     { type: PathComponentType.LINE_TO, x, y: y + _cornerRadii.topLeft },

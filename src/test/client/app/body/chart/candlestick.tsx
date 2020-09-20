@@ -28,6 +28,7 @@ const drawCandlestickMarker = (ctx: CanvasRenderingContext2D, datum: ProcessedDa
   ctx.fill(boxRect)
 }
 
+/* eslint-disable object-curly-newline */
 export const Candlestick = () => (
   <div className="chart">
     <h2>Candlestick charts</h2>

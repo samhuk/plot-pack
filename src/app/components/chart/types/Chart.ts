@@ -1,4 +1,4 @@
-import PlotInteractivity from "./PlotInteractivity"
+import PlotInteractivity from './PlotInteractivity'
 
 export type Chart = {
   interactivity: PlotInteractivity

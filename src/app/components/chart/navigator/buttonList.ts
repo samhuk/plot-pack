@@ -105,9 +105,7 @@ const render = (drawer: CanvasDrawer, containerRect: Rect, column: Column) => {
 }
 
 export const drawButtonList = (options: Options): DrawnButtonList => {
-  const state: State = {
-    hoveredButtonIndex: -1,
-  }
+  const state: State = { hoveredButtonIndex: -1 }
 
   const buttonRects: Rect[] = []
   const numButtonsMinusOne = options.buttons.length - 1
