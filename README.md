@@ -19,7 +19,7 @@ A chart component that is capable of rendering charts in a flexible and configur
 
 ```jsx
 import React from 'react';
-import Chart from 'plot-pack/lib/components/chart/react'
+import { Chart } from 'plot-pack'
 import { Axis2D } from 'plot-pack/lib/common/types/geometry';
 import { NumberFormatNotation } from 'plot-pack/lib/common/types/math';
 import MarkerType from 'plot-pack/lib/components/chart/types/MarkerType';
