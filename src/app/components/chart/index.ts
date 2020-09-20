@@ -1,7 +1,7 @@
 import ResizeObserver from 'resize-observer-polyfill'
 import Options from './types/Options'
 import { createGeometry } from './geometry/geometry'
-import CanvasElements from './types/CanvasElements'
+import CanvasLayerElements from './types/CanvasLayerElements'
 import cloneOptions from './optionsHelper'
 import { RenderedChart } from './types/RenderedChart'
 import InputOptions from './types/InputOptions'
@@ -14,7 +14,8 @@ import { Axis2D } from '../../common/types/geometry'
 import Chart from './types/Chart'
 import Navigator from './types/Navigator'
 import NavigatorEventHandlers from './types/NavigatorEventHandlers'
-import { CanvasDrawer } from '../../common/drawer/types'
+import CanvasLayerDrawers from './types/CanvasLayerDrawers'
+import CanvasLayers from './types/CanvasLayers'
 
 /* eslint-disable no-param-reassign */
 
@@ -37,20 +38,14 @@ type RenderedComponents = {
 
 type State = {
   eventHandlers: EventHandlers
-  canvasElements: CanvasElements,
+  canvasLayerElements: CanvasLayerElements,
   renderedComponents: RenderedComponents
   inputOptions: InputOptions
   options: Options
   interactiveEventElement: HTMLElement
   containerElement: HTMLElement
   selectedXValueBound: Bound
-  drawers: {
-    chartPlotBase: CanvasDrawer
-    chartPlotInteractivity: CanvasDrawer
-    navigatorPlot: CanvasDrawer
-    navigatorBoundSelector: CanvasDrawer
-    navigatorActionButtons: CanvasDrawer
-  }
+  canvasLayerDrawers: CanvasLayerDrawers
 }
 
 const CONTAINER_CLASS = 'pp-chart'
@@ -69,12 +64,12 @@ const createCanvasElement = () => {
   return el
 }
 
-const createCanvasElements = (): CanvasElements => ({
-  chartPlotBase: createCanvasElement(),
-  chartInteractivity: createCanvasElement(),
-  navigatorBoundSelector: createCanvasElement(),
-  navigatorPlotBase: createCanvasElement(),
-  navigatorActionButtons: createCanvasElement(),
+const createCanvasLayerElements = (): CanvasLayerElements => ({
+  [CanvasLayers.CHART_PLOT_BASE]: createCanvasElement(),
+  [CanvasLayers.CHART_INTERACTIVITY]: createCanvasElement(),
+  [CanvasLayers.NAVIGATOR_PLOT_BASE]: createCanvasElement(),
+  [CanvasLayers.NAVIGATOR_BOUND_SELECTOR]: createCanvasElement(),
+  [CanvasLayers.NAVIGATOR_ACTION_BUTTONS]: createCanvasElement(),
 })
 
 const createContainer = (rectDimensions?: { height?: number, width?: number }) => {
@@ -102,24 +97,25 @@ const applyContainerRectToOptions = (containerElement: HTMLElement, inputOptions
   return options as Options
 }
 
+const createCanvasLayerDrawers = (state: State): CanvasLayerDrawers => ({
+  [CanvasLayers.CHART_PLOT_BASE]: createCanvasDrawer(state.canvasLayerElements[CanvasLayers.CHART_PLOT_BASE], state.options),
+  [CanvasLayers.CHART_INTERACTIVITY]: createCanvasDrawer(state.canvasLayerElements[CanvasLayers.CHART_INTERACTIVITY], state.options),
+  [CanvasLayers.NAVIGATOR_PLOT_BASE]: createCanvasDrawer(state.canvasLayerElements[CanvasLayers.NAVIGATOR_PLOT_BASE], state.options),
+  [CanvasLayers.NAVIGATOR_BOUND_SELECTOR]: createCanvasDrawer(state.canvasLayerElements[CanvasLayers.NAVIGATOR_BOUND_SELECTOR], state.options),
+  [CanvasLayers.NAVIGATOR_ACTION_BUTTONS]: createCanvasDrawer(state.canvasLayerElements[CanvasLayers.NAVIGATOR_ACTION_BUTTONS], state.options),
+})
+
 const renderComponents = (state: State, renderNewNavigator: boolean = false): RenderedComponents => {
   // Create canvas drawers for each canvas layer, if not already created
-  if (state.drawers == null) {
-    state.drawers = {
-      chartPlotBase: createCanvasDrawer(state.canvasElements.chartPlotBase, state.options),
-      chartPlotInteractivity: createCanvasDrawer(state.canvasElements.chartInteractivity, state.options),
-      navigatorPlot: createCanvasDrawer(state.canvasElements.navigatorPlotBase, state.options),
-      navigatorBoundSelector: createCanvasDrawer(state.canvasElements.navigatorBoundSelector, state.options),
-      navigatorActionButtons: createCanvasDrawer(state.canvasElements.navigatorActionButtons, state.options),
-    }
-  }
+  if (state.canvasLayerDrawers == null)
+    state.canvasLayerDrawers = createCanvasLayerDrawers(state)
 
   // Create geometry
-  const geometry = createGeometry(state.drawers.chartPlotBase, state.options)
+  const geometry = createGeometry(state.canvasLayerDrawers[CanvasLayers.CHART_PLOT_BASE], state.options)
 
   // Draw the chart
   const chart = drawChart(
-    { plotBase: state.drawers.chartPlotBase, interactivity: state.drawers.chartPlotInteractivity },
+    { plotBase: state.canvasLayerDrawers[CanvasLayers.CHART_PLOT_BASE], interactivity: state.canvasLayerDrawers[CanvasLayers.CHART_INTERACTIVITY] },
     geometry,
     state.options,
   )
@@ -128,9 +124,9 @@ const renderComponents = (state: State, renderNewNavigator: boolean = false): Re
   const navigator = renderNewNavigator
     ? drawNavigator(
       {
-        plotBase: state.drawers.navigatorPlot,
-        boundSelector: state.drawers.navigatorBoundSelector,
-        actionButtons: state.drawers.navigatorActionButtons,
+        plotBase: state.canvasLayerDrawers[CanvasLayers.NAVIGATOR_PLOT_BASE],
+        boundSelector: state.canvasLayerDrawers[CanvasLayers.NAVIGATOR_BOUND_SELECTOR],
+        actionButtons: state.canvasLayerDrawers[CanvasLayers.NAVIGATOR_ACTION_BUTTONS],
       },
       geometry,
       state.options,
@@ -228,25 +224,21 @@ export const render = (parentContainerElement: HTMLElement, inputOptions: InputO
 
   const state: State = {
     inputOptions,
-    canvasElements: null,
+    canvasLayerElements: null,
     containerElement: null,
     eventHandlers: null,
     renderedComponents: null,
     options: null,
     interactiveEventElement: null,
     selectedXValueBound: inputOptions.axesOptions?.[Axis2D.X]?.valueBound,
-    drawers: null,
+    canvasLayerDrawers: null,
   }
 
-  state.canvasElements = createCanvasElements()
+  state.canvasLayerElements = createCanvasLayerElements()
   state.containerElement = createContainer(state.inputOptions)
 
   // Add canvas elements to container element
-  state.containerElement.appendChild(state.canvasElements.chartPlotBase)
-  state.containerElement.appendChild(state.canvasElements.chartInteractivity)
-  state.containerElement.appendChild(state.canvasElements.navigatorPlotBase)
-  state.containerElement.appendChild(state.canvasElements.navigatorBoundSelector)
-  state.containerElement.appendChild(state.canvasElements.navigatorActionButtons)
+  Object.values(state.canvasLayerElements).forEach(el => state.containerElement.appendChild(el))
   // Add container element to the "outer" container element
   parentContainerElement.appendChild(state.containerElement)
 
