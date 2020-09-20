@@ -2,7 +2,7 @@
 
 Data visualization package
 
-## Graph
+## Chart
 
 ### Introduction
 
@@ -14,7 +14,6 @@ A chart component that is capable of rendering charts in a flexible and configur
 * kd-tree-javascript - Efficient O(nlog(n)) nearest-neighbor searching
 * core-js & @babel/polyfill - For polyfilling
 * Typescript - The package is exclusively written in Typescript
-
 
 ### Usage
 
@@ -63,7 +62,7 @@ export const MyComponent = () => (
 
 ![](docs/components/graph/images/variant_3.png)
 
-...to dark mode:
+...to dark mode and error bars:
 
 ![](docs/components/graph/images/variant_4.png)
 
