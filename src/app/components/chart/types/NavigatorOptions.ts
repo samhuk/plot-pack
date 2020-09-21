@@ -1,4 +1,4 @@
-import { SizeUnit } from '../../../common/canvasFlex/types'
+import { SizeUnit } from '../../../common/rectPositioningEngine/types'
 import NavigatorSeriesOptions from './NavigatorSeriesOptions'
 import { LineOptions } from '../../../common/types/canvas'
 import Datum from './Datum'

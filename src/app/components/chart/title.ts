@@ -2,7 +2,7 @@ import Options from './types/Options'
 import { CanvasDrawer } from '../../common/drawer/types'
 import { Rect } from '../../common/types/geometry'
 import { TextOptions } from '../../common/types/canvas'
-import { InputMargin } from '../../common/canvasFlex/types'
+import { InputMargin } from '../../common/rectPositioningEngine/types'
 
 const DEFAULT_TEXT_OPTIONS: TextOptions = {
   color: 'black',

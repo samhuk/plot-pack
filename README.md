@@ -81,6 +81,10 @@ export default App;
 
 plot-pack is not currently accepting contribution to the main line at the current time due to the early stage of the package. This will be reconsidered when the package has reached an appropriate level of maturity.
 
+## Publishing
+
+`npm run build-tsc && npm version patch && npm publish`
+
 ## Advised IDE Extensions
 
 ESLint

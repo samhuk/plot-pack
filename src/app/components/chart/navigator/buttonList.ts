@@ -1,8 +1,8 @@
 import { CanvasDrawer } from '../../../common/drawer/types'
-import { InputColumn, SizeUnit, Column } from '../../../common/canvasFlex/types'
-import { sizeInputColumn } from '../../../common/canvasFlex/boundingDimensions'
+import { InputColumn, SizeUnit, Column } from '../../../common/rectPositioningEngine/types'
+import { sizeInputColumn } from '../../../common/rectPositioningEngine/boundingDimensions'
 import { RectDimensions, Rect, Point2D } from '../../../common/types/geometry'
-import { renderColumn } from '../../../common/canvasFlex/rendering'
+import { renderColumn } from '../../../common/rectPositioningEngine/rendering'
 import { createRoundedRectPath } from '../../../common/drawer/path/shapes'
 import { isMouseEventInRect } from '../../../common/helpers/geometry'
 

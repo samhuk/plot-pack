@@ -1,4 +1,4 @@
-import { InputMargin } from '../../../common/canvasFlex/types'
+import { InputMargin } from '../../../common/rectPositioningEngine/types'
 import { TextOptions } from '../../../common/types/canvas'
 
 export type AxesLabelOptions = TextOptions & {

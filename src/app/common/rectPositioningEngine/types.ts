@@ -49,6 +49,20 @@ export type ElementOptions = {
   padding?: InputPadding
 }
 
+export type ColumnOptions = ElementOptions & {
+  numRows?: number
+  evenlyFillAvailableWidth?: boolean
+  rowJustification?: RowJustification
+  render?: (rect: Rect, index: number) => void
+}
+
+export type RowOptions = ElementOptions & {
+  numColumns?: number
+  evenlyFillAvailableHeight?: boolean
+  columnJustification?: ColumnJustification
+  render?: (rect: Rect, index: number) => void
+}
+
 /**
  * Options for the a column that hasn't been sized for it's bounding height and width.
  *
@@ -57,21 +71,18 @@ export type ElementOptions = {
  * options are desired. To be used in combination with nowRows.
  * @param numRows The number of rowTemplate to render
  *
- * @param evenlyFillAvailableWidth If true, the column will fill any available width left within
- * the parent row. If other sibling columns within the parent row have this property as true also,
- * then the available width is shared amongst these columns.
+ * @param evenlyFillAvailableWidth If true, the column will fill any available width left
+ * within the parent row. If other sibling columns within the parent row have this property
+ * as true also, then the available width is shared amongst these columns.
  *
+ * @param rowJustification If the total height of the child rows is less than the height of
+ * this column, then the rows will be justified vertically according to the row justification,
+ * i.e. top, center, or bottom.
  * @param render Function to call when the column's rendering rect has been calculated.
  */
-export type InputColumn = ElementOptions & {
+export type InputColumn = ColumnOptions & {
   rows?: InputRow[]
   rowTemplate?: InputRow
-  numRows?: number
-
-  evenlyFillAvailableWidth?: boolean
-
-  rowJustification?: RowJustification
-  render?: (rect: Rect, index: number) => void
 }
 
 /**
@@ -86,45 +97,28 @@ export type InputColumn = ElementOptions & {
  * the parent column. If other sibling rows within the parent column have this property as true also,
  * then the available height is shared amongst these rows.
  *
- * @param render Function to call when the row' rendering rect has been calculated.
+ * @param rowJustification If the total width of the child columns is less than the width of
+ * this row, then the columns will be justified horizontally according to the column justification,
+ * i.e. left, center, or right.
+ * @param render Function to call when the row's rendering rect has been calculated.
  */
-export type InputRow = ElementOptions & {
+export type InputRow = RowOptions & {
   columns?: InputColumn[]
   columnTemplate?: InputColumn
-  numColumns?: number
-
-  evenlyFillAvailableHeight?: boolean
-
-  columnJustification?: ColumnJustification
-  render?: (rect: Rect, index: number) => void
 }
 
-export type Column = ElementOptions & {
-  id?: string;
-  evenlyFillAvailableWidth?: boolean
-
-  numRows?: number
-  rowJustification?: RowJustification
-  render?: (rect: Rect, index: number) => void
-
-  boundingHeight: number
-  boundingWidth: number
+export type Column = ColumnOptions & {
   rows: Row[]
   rowTemplate: Row
-}
-
-export type Row = ElementOptions & {
-  id?: string;
-  evenlyFillAvailableHeight?: boolean
-
-  numColumns?: number
-  columnJustification?: ColumnJustification
-  render?: (rect: Rect, index: number) => void
-
   boundingHeight: number
   boundingWidth: number
+}
+
+export type Row = RowOptions & {
   columns: Column[]
   columnTemplate: Column
+  boundingHeight: number
+  boundingWidth: number
 }
 
 export type CalculatedRects = { [id: string]: Rect }

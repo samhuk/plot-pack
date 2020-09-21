@@ -12,9 +12,9 @@ import { getSize as getMarkerSize, drawStandardMarker, getShouldShowMarkers } fr
 import { drawConnectingLine, getShouldShowConnectingLine } from '../data/connectingLine'
 import { formatNumber } from '../plotBase/components/axisMarkerLabels'
 import { TextOptions, LineOptions } from '../../../common/types/canvas'
-import { sizeInputColumn } from '../../../common/canvasFlex/boundingDimensions'
-import { renderColumn } from '../../../common/canvasFlex/rendering'
-import { ColumnJustification, InputColumn, InputRow, SizeUnit } from '../../../common/canvasFlex/types'
+import { sizeInputColumn } from '../../../common/rectPositioningEngine/boundingDimensions'
+import { renderColumn } from '../../../common/rectPositioningEngine/rendering'
+import { ColumnJustification, InputColumn, InputRow, SizeUnit } from '../../../common/rectPositioningEngine/types'
 import { CanvasDrawer } from '../../../common/drawer/types'
 
 const PREVIEW_RIGHT_MARGIN = 10

@@ -1,14 +1,14 @@
 import Options from '../types/Options'
 import { getTitle, applyTitleTextOptionsToDrawer, getTitleMargin } from '../title'
 import { CanvasDrawer } from '../../../common/drawer/types'
-import { InputRow, SizeUnit, ColumnJustification, InputColumn, RowJustification } from '../../../common/canvasFlex/types'
+import { InputRow, SizeUnit, ColumnJustification, InputColumn, RowJustification } from '../../../common/rectPositioningEngine/types'
 import { measureTextLineHeight, measureTextWidth } from '../../../common/helpers/canvas'
 import ChartZones from '../types/ChartZones'
 import { getAxisLabelText, applyAxisLabelTextOptionsToDrawer, getAxisLabelMargin } from '../plotBase/components/axisLabels'
 import { Axis2D } from '../../../common/types/geometry'
 import { DEFAULT_NAVIGATOR_HEIGHT_PX } from '../navigator'
 import ChartZoneRects from '../types/ChartZoneRects'
-import { renderInputColumn } from '../../../common/canvasFlex/rendering'
+import { renderInputColumn } from '../../../common/rectPositioningEngine/rendering'
 
 const DEFAULT_GRAPH_MARGIN = 10
 
@@ -119,7 +119,7 @@ const createNavigatorRow = (props: Options): InputRow => {
   }
 }
 
-const createCanvasFlexColumn = (drawer: CanvasDrawer, props: Options): InputColumn => {
+const createCanvasRectEngineColumn = (drawer: CanvasDrawer, props: Options): InputColumn => {
   const titleRow = createTitleRow(drawer, props)
   const yAxisLabelColumn = createYAxisLabelColumn(drawer, props)
   const chartPlotBaseColumn = createChartPlotBaseColumn(props)
@@ -167,7 +167,7 @@ const createCanvasFlexColumn = (drawer: CanvasDrawer, props: Options): InputColu
 }
 
 export const getChartZoneRects = (drawer: CanvasDrawer, props: Options): ChartZoneRects => {
-  const chartZoneRectsRaw = renderInputColumn(createCanvasFlexColumn(drawer, props))
+  const chartZoneRectsRaw = renderInputColumn(createCanvasRectEngineColumn(drawer, props))
   return {
     [ChartZones.TITLE_BAR]: chartZoneRectsRaw[ChartZones.TITLE_BAR],
     [ChartZones.Y_AXIS_TITLE]: chartZoneRectsRaw[ChartZones.Y_AXIS_TITLE],

@@ -1,6 +1,6 @@
 # Data
 
-This module is responsible for drawing the series data, including:
+This module is responsible for the drawing of datums, including:
 * Datum markers
 * Error bars
 * Lines of best fit

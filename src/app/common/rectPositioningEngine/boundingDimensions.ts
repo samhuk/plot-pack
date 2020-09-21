@@ -1,10 +1,11 @@
 /**
  * Responsible for measuring the bounding dimensions (i.e. width and height) of columns and rows.
  */
-/* eslint-disable no-use-before-define */
 import { Row, Column, InputColumn, InputRow, SizeUnit } from './types'
 import { getHorizontalPadding, getVerticalPadding } from './padding'
 import { getHorizontalMargin, getVerticalMargin } from './margin'
+
+/* eslint-disable no-use-before-define */
 
 const getBoundingDimensionsOfColumnTemplates = (columnTemplate: InputColumn, numColumns: number) => {
   let width = 0

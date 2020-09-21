@@ -14,7 +14,7 @@ import DatumValueFocusPoint from './DatumValueFocusPoint'
 import ErrorBarsOptions from './ErrorBarsOptions'
 import NavigatorOptions from './NavigatorOptions'
 import TitleOptions from './TitleOptions'
-import { InputMargin } from '../../../common/canvasFlex/types'
+import { InputMargin } from '../../../common/rectPositioningEngine/types'
 
 /**
  * Options for the Chart
