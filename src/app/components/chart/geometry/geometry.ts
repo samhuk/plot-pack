@@ -50,8 +50,8 @@ export const createGeometry = (drawer: CanvasDrawer, props: Options): Geometry =
     ))
     // All focused datums
     : focusedDatums
-  const chartVisibleDatumsValueRange = calculateValueBoundsOfSeries(datumsForChartAxesValueRangeOptions)
-  const chartAxesValueRangeOptions = getAxesValueRangeOptions(props, chartVisibleDatumsValueRange)
+  const chartDatumsValueRange = calculateValueBoundsOfSeries(datumsForChartAxesValueRangeOptions)
+  const chartAxesValueRangeOptions = getAxesValueRangeOptions(props, chartDatumsValueRange)
   const chartZoneRects = getChartZoneRects(drawer, props)
   const chartAxesGeometry = createAxesGeometry(drawer, props, chartAxesValueRangeOptions, chartZoneRects[ChartZones.CHART_PLOT_BASE])
 
