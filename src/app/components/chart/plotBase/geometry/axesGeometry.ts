@@ -16,6 +16,15 @@ import AxesValueRangeOption from '../../types/AxesValueRangeOption'
 
 const DEFAULT_DP_GRID_MIN = 30
 
+/**
+ * Determines the grid spacing for when one is not provided. It will work out
+ * the best "human-friendly" grid spacing given the provided information, i.e.
+ * steps of 2, 4, 5, 10, 20, 40, 50, 100, ...
+ * @param vl The lower value bound
+ * @param vu The upper value bound
+ * @param dp The total screen space
+ * @param dpMin The minimum screen grid spacing
+ */
 const calculateAutoDvGrid = (vl: number, vu: number, dp: number, dpMin: number) => {
   // Calculate minimum possible value grid increment
   const dvGridMin = Math.abs(dpMin * ((vu - vl) / dp))
@@ -74,20 +83,36 @@ const determineGridBoundAndCount = (vlPrime: number, vuPrime: number, dvGrid: nu
   /* Multiplying the value bounds by (1 + ε) will avoid imprecision errors.
    * vlPrime and/or vuPrime can sometimes be {someInteger} - ε, which would cause
    * problems when the modulus operator is used on them (e.g. 7.999... % 8 = 0.999...,
-   * where-as since 7.999... is an imprecision off of 8.000..., one would expect 0).
+   * whereas one would expect 0). This essentially prevents the results of this
+   * function from being off by 1 or 2.
+   *
+   * The effect of this is that the total bounds are enlarged by a small proportion,
+   * ~10E-13.
    */
   const _vlPrime = vlPrime * (1 + 100 * Number.EPSILON)
   const _vuPrime = vuPrime * (1 + 100 * Number.EPSILON)
+
   const vlPrimeModDvGrid = mod(_vlPrime, dvGrid)
   const vuPrimeModDvGrid = mod(_vuPrime, dvGrid)
 
-  const vlGridVectorToNextGridIncrementAbove = vlPrimeModDvGrid !== 0 ? Math.abs(vlPrimeModDvGrid - dvGrid) : 0
-  const vuGridVectorToNextGridIncrementBelow = -vuPrimeModDvGrid
-  const vlGrid = vlPrime + vlGridVectorToNextGridIncrementAbove
-  const vuGrid = vuPrime + vuGridVectorToNextGridIncrementBelow
+  // Vector from vlPrime to next grid increment above
+  const vlPrimeVectorToNextGridIncrementAbove = vlPrimeModDvGrid !== 0 ? Math.abs(vlPrimeModDvGrid - dvGrid) : 0
+  // Vector from vuPrime to next grid increment below
+  const vuPrimeVectorToNextGridIncrementBelow = -vuPrimeModDvGrid
+  // "Move" vlPrime up to the next grid increment value above
+  const vlGrid = vlPrime + vlPrimeVectorToNextGridIncrementAbove
+  // "Move" vuPrime down to the next grid increment below
+  const vuGrid = vuPrime + vuPrimeVectorToNextGridIncrementBelow
 
-  const dvGridTotal = (vlGrid - vuGrid)
+  // Calculate the total grid space, i.e. vector from vuGrid to vlGrid
+  const dvGridTotal = vlGrid - vuGrid
 
+  /* Calculate number of grid lines. One would expect a .floor here rather than a .round,
+   * however since both vlGrid and vuGrid should be multiples of dvGrid, dvGridTotal / dvGrid
+   * should always be an integer. Due to floating point imprecision, vlGrid - vuGrid can
+   * sometimes be {someInteger} - ε, which .floor would yield {somInteger} - 1, which would
+   * be incorrect/unexpected.
+   */
   const numGridLines = Math.round(Math.abs(dvGridTotal / dvGrid)) + 1
 
   return { vlGrid, vuGrid, numGridLines }
@@ -262,15 +287,15 @@ const createAppliedCalculateAxesGeometryFunction = (
 
 /**
  * ### Introduction
- * This is a function that calculates  axes geometry given some basic information. It is the
- * entry-point to the most non-trivial module of the chart component.
+ * This is a function that calculates the axes geometry given some basic information. It is probably
+ * the most non-trivial module of the chart component.
  *
  * ### Approach
  *
  * The approach taken here is highly involved. This is mainly due to the cyclical dependence of
  * the axes geometry on their marker labels and vice versa. To expand, the axes marker labels
  * depend on the axes geometry (i.e. number of grid lines, grid spacing, etc.), however the
- * axes geometry depends on the bounding rect of the marker labels, (i.e. the larger the marker labels,
+ * axes geometry depends on the text of the marker labels, (i.e. the larger the marker label texts,
  * the less space is available for the axes).
  *
  * To attack this challenge, a "tentative" axes geometry is created, under the assumption
