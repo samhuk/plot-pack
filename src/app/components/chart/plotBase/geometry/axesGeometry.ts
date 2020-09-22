@@ -70,6 +70,29 @@ const getYAxisXPosition = (orientation: YAxisOrientation, plX: number, puX: numb
   }
 }
 
+const determineGridBoundAndCount = (vlPrime: number, vuPrime: number, dvGrid: number): { vlGrid: number, vuGrid: number, numGridLines: number } => {
+  /* Multiplying the value bounds by (1 + ε) will avoid imprecision errors.
+   * vlPrime and/or vuPrime can sometimes be {someInteger} - ε, which would cause
+   * problems when the modulus operator is used on them (e.g. 7.999... % 8 = 0.999...,
+   * where-as since 7.999... is an imprecision off of 8.000..., one would expect 0).
+   */
+  const _vlPrime = vlPrime * (1 + 100 * Number.EPSILON)
+  const _vuPrime = vuPrime * (1 + 100 * Number.EPSILON)
+  const vlPrimeModDvGrid = mod(_vlPrime, dvGrid)
+  const vuPrimeModDvGrid = mod(_vuPrime, dvGrid)
+
+  const vlGridVectorToNextGridIncrementAbove = vlPrimeModDvGrid !== 0 ? Math.abs(vlPrimeModDvGrid - dvGrid) : 0
+  const vuGridVectorToNextGridIncrementBelow = -vuPrimeModDvGrid
+  const vlGrid = vlPrime + vlGridVectorToNextGridIncrementAbove
+  const vuGrid = vuPrime + vuGridVectorToNextGridIncrementBelow
+
+  const dvGridTotal = (vlGrid - vuGrid)
+
+  const numGridLines = Math.round(Math.abs(dvGridTotal / dvGrid)) + 1
+
+  return { vlGrid, vuGrid, numGridLines }
+}
+
 /**
  * Calculates the geometrical properties of an axis given some initial details.
  * @param valueBound The lower and upper value bound (i.e. min and max value) of the data
@@ -102,34 +125,7 @@ const calculateUnpositionedAxisGeometry = (
 
   const p = (v: number) => dpdv * (v - vlPrime) + pl
 
-  /* This determines the vector from the nearest grid increment below to vlPrime
-   * in units of the grid spacing (i.e. relative to the grid spacing).
-   * E.g. if vlPrime is 415 and _dvGrid is 20, then this is 0.75, since 400 is the
-   * nearest grid increment below, and 415 is 0.75 * 20 units from that.
-   */
-  const vlPrimeDvGridDifference = mod(vlPrime, _dvGrid) / _dvGrid
-  /* This determines the vector from the nearest vuPrime to the nearest next grid increment below
-   * in units of the grid spacing (i.e. relative to the grid spacing).
-   * E.g. if vuPrime is 415 and _dvGrid is 20, then this is -0.25, since 420 is the
-   * nearest grid increment above, and 415 is -0.25 * 20 units from that.
-   */
-  const vuPrimeDvGridDifference = (mod(vuPrime, _dvGrid) / _dvGrid) - 1
-  /* Determines whether vlPrime/vuPrime was *very* close to the next grid increment below/above, by
-   * comparing it's value to EPSILON. If a floating point error occured, then this
-   * difference will be a multiple of 2^n.
-   */
-  const shouldCorrectVlGrid = [1, 2, 4, 8, 16, 32, 64].indexOf(Math.abs(vlPrimeDvGridDifference / Number.EPSILON)) !== -1
-  const shouldCorrectVuGrid = [1, 2, 4, 8, 16, 32, 64].indexOf(Math.abs(vuPrimeDvGridDifference / Number.EPSILON)) !== -1
-  const vlGridFloatingPointErrorCorrection = shouldCorrectVlGrid ? -_dvGrid : 0
-  const vuGridFloatingPointErrorCorrection = shouldCorrectVuGrid ? _dvGrid : 0
-  const vlGridVectorToNextGridIncrementAbove = mod(vlPrime, _dvGrid) !== 0 ? Math.abs(mod(vlPrime, _dvGrid) - _dvGrid) : 0
-  const vuGridVectorToNextGridIncrementBelow = -mod(vuPrime, _dvGrid)
-  const vlGrid = vlPrime + vlGridVectorToNextGridIncrementAbove + vlGridFloatingPointErrorCorrection
-  const vuGrid = vuPrime + vuGridVectorToNextGridIncrementBelow + vuGridFloatingPointErrorCorrection
-
-  const dvGridTotal = vlGrid - vuGrid
-
-  const numGridLines = Math.floor(Math.abs(dvGridTotal / _dvGrid)) + 1
+  const gridBoundAndCount = determineGridBoundAndCount(vlPrime, vuPrime, _dvGrid)
 
   return {
     vl: vlPrime,
@@ -140,11 +136,11 @@ const calculateUnpositionedAxisGeometry = (
     dpGrid,
     p,
     v: _p => ((_p - pl) / dpdv) + vlPrime,
-    numGridLines,
-    vlGrid,
-    vuGrid,
-    plGrid: p(vlGrid),
-    puGrid: p(vuGrid),
+    numGridLines: gridBoundAndCount.numGridLines,
+    vlGrid: gridBoundAndCount.vlGrid,
+    vuGrid: gridBoundAndCount.vuGrid,
+    plGrid: p(gridBoundAndCount.vlGrid),
+    puGrid: p(gridBoundAndCount.vuGrid),
   }
 }
 
