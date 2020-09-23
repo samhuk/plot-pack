@@ -1,20 +1,20 @@
 import { Rect } from '../types/geometry'
 
 export enum RowJustification {
-  TOP,
-  BOTTOM,
-  CENTER,
+  TOP = 'top',
+  BOTTOM = 'bottom',
+  CENTER = 'center',
 }
 
 export enum ColumnJustification {
-  LEFT,
-  RIGHT,
-  CENTER,
+  LEFT = 'left',
+  RIGHT = 'right',
+  CENTER = 'center',
 }
 
 export enum SizeUnit {
-  PX,
-  PERCENT,
+  PX = 'px',
+  PERCENT = '%',
 }
 
 export type InputMargin = number | Margin

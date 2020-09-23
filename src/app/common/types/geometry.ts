@@ -1,6 +1,6 @@
 export enum Axis2D {
-  X,
-  Y,
+  X = 'x',
+  Y = 'y',
 }
 
 export type Point2D = {

@@ -1,5 +1,5 @@
 export enum BestFitLineType {
-  STRAIGHT
+  STRAIGHT = 'straight'
 }
 
 export default BestFitLineType
