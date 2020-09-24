@@ -1,6 +1,12 @@
 # Plot Pack
 
-Data visualization package
+Javascript data visualization package.
+
+This is currently an early work-in-progress project. Current drives:
+* More documentation of usage
+* More components
+* Release builds
+* More functionality and customizability
 
 ## Chart
 
