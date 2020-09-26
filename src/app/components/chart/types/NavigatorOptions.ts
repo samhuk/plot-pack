@@ -6,7 +6,7 @@ import NavigatorBoundBoxOptions from './NavigatorBoundBoxOptions'
 
 /**
  * Options for the navigator.
- * 
+ *
  * @param series Optional alternative source of data for the navigator to use
  * @param height Height of the navigator. Will be in units of the given `heightUnits`.
  * @param heightUnit Units of the `height` value.
