@@ -210,6 +210,13 @@ export const render = () => {
             lineWidth: 2,
             color: 'blue',
           }}
+          navigatorOptions={{
+            boundBoxOptions: {
+              borderLineVisibility: { bottom: true },
+              borderLineOptions: { bottom: { lineWidth: 2, color: 'red' } },
+              backgroundColor: '#ff0000',
+            },
+          }}
         />
       </div>
 

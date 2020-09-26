@@ -2,7 +2,6 @@ import { CanvasDrawer } from '../../../common/drawer/types'
 import Geometry from '../types/Geometry'
 import Options from '../types/Options'
 import ChartZones from '../types/ChartZones'
-import { boundToRange } from '../../../common/helpers/math'
 import { Axis2D, Point2D, Rect } from '../../../common/types/geometry'
 import { isMouseEventInRect } from '../../../common/helpers/geometry'
 import NavigatorEventHandlers from '../types/NavigatorEventHandlers'
@@ -10,6 +9,9 @@ import NavigatorBoundSelector from '../types/NavigatorBoundSelector'
 import AxesGeometry from '../types/AxesGeometry'
 import Bound from '../types/Bound'
 import { isEscape, isR } from '../../../common/helpers/keyCode'
+import NavigatorBoundBoxOptions from '../types/NavigatorBoundBoxOptions'
+import { boundToRange } from '../../../common/helpers/math'
+import { drawXValueBoundBox } from './boundSelectorBoundBox'
 
 /* eslint-disable no-param-reassign */
 
@@ -23,31 +25,8 @@ type State = {
   lastSelectedXValueScreenEndPosition: number
 }
 
-const drawXValueBoundBox = (drawer: CanvasDrawer, axesGeometry: AxesGeometry, xScreenBound: Bound) => {
-  const px0 = xScreenBound.lower
-  const px1 = xScreenBound.upper
-  const fromLineTopPoint: Point2D = { x: px0, y: axesGeometry[Axis2D.Y].pl }
-  const fromLineBottomPoint: Point2D = { x: px0, y: axesGeometry[Axis2D.Y].pu }
-  const toLineTopPoint: Point2D = { x: px1, y: axesGeometry[Axis2D.Y].pl }
-  const toLineBottomPoint: Point2D = { x: px1, y: axesGeometry[Axis2D.Y].pu }
-  const selectedAreaRect: Rect = {
-    x: px0,
-    y: axesGeometry[Axis2D.Y].pu,
-    width: px1 - px0,
-    height: axesGeometry[Axis2D.Y].pl - axesGeometry[Axis2D.Y].pu,
-  }
-
-  // Clear any pre-existing box
-  drawer.clearRenderingSpace()
-  // Draw upper and lower bound vertical lines
-  drawer.line([fromLineTopPoint, fromLineBottomPoint], { color: 'blue', lineWidth: 1.5 })
-  drawer.line([toLineTopPoint, toLineBottomPoint], { color: 'blue', lineWidth: 1.5 })
-  // Draw translucent bound box
-  drawer.rect(selectedAreaRect, { fill: true, stroke: false, fillOptions: { color: 'rgba(0, 0, 255, 0.1)' } })
-}
-
-const convertMouseEventToBoundSelection = (e: MouseEvent, state: State, axesGeometry: AxesGeometry): Bound => {
-  const constrainedMouseDownX = boundToRange(state.mouseDownPosition.x, axesGeometry[Axis2D.X].pl, axesGeometry[Axis2D.X].pu)
+const convertMouseEventToBoundSelection = (e: MouseEvent, currentMouseDownPositionX: number, axesGeometry: AxesGeometry): Bound => {
+  const constrainedMouseDownX = boundToRange(currentMouseDownPositionX, axesGeometry[Axis2D.X].pl, axesGeometry[Axis2D.X].pu)
   const constrainedCurrentMouseX = boundToRange(e.offsetX, axesGeometry[Axis2D.X].pl, axesGeometry[Axis2D.X].pu)
 
   return {
@@ -56,9 +35,15 @@ const convertMouseEventToBoundSelection = (e: MouseEvent, state: State, axesGeom
   }
 }
 
-const drawXValueBoundBoxForMouseEvent = (e: MouseEvent, state: State, axesGeometry: AxesGeometry, drawer: CanvasDrawer) => {
-  const bound = convertMouseEventToBoundSelection(e, state, axesGeometry)
-  drawXValueBoundBox(drawer, axesGeometry, bound)
+const drawXValueBoundBoxForMouseEvent = (
+  e: MouseEvent,
+  state: State,
+  axesGeometry: AxesGeometry,
+  drawer: CanvasDrawer,
+  boundBoxOptions: NavigatorBoundBoxOptions,
+) => {
+  const bound = convertMouseEventToBoundSelection(e, state.mouseDownPosition.x, axesGeometry)
+  drawXValueBoundBox(drawer, axesGeometry, bound, boundBoxOptions)
 }
 
 const selectBound = (
@@ -84,7 +69,13 @@ const selectBound = (
  * If 'cancel' is true, then the bound selection is cancelled. This can happen, for example,
  * if the mouse is lifted up outside of the rect.
  */
-const endBoundSelection = (state: State, drawer: CanvasDrawer, axesGeometry: AxesGeometry, cancel: boolean) => {
+const endBoundSelection = (
+  state: State,
+  drawer: CanvasDrawer,
+  axesGeometry: AxesGeometry,
+  cancel: boolean,
+  boundBoxOptions: NavigatorBoundBoxOptions,
+) => {
   state.mouseDownPosition = null
   state.isSelectingBound = false
 
@@ -94,17 +85,22 @@ const endBoundSelection = (state: State, drawer: CanvasDrawer, axesGeometry: Axe
       lower: state.lastSelectedXValueScreenStartPosition,
       upper: state.lastSelectedXValueScreenEndPosition,
     }
-    drawXValueBoundBox(drawer, axesGeometry, bound)
+    drawXValueBoundBox(drawer, axesGeometry, bound, boundBoxOptions)
   }
 
   document.removeEventListener('mouseup', state.documentMouseUpHandler)
   document.removeEventListener('keydown', state.documentKeyDownHandler)
 }
 
-const onDocumentMouseUp = (state: State, drawer: CanvasDrawer, axesGeometry: AxesGeometry) => {
+const onDocumentMouseUp = (
+  state: State,
+  drawer: CanvasDrawer,
+  axesGeometry: AxesGeometry,
+  boundBoxOptions: NavigatorBoundBoxOptions,
+) => {
   // If mouse is outside canvas, then we need to handle it here. Else, the below onMouseUp function will handle it
   if (state.isMouseWithinCanvasElement === false)
-    endBoundSelection(state, drawer, axesGeometry, true)
+    endBoundSelection(state, drawer, axesGeometry, true, boundBoxOptions)
   document.removeEventListener('mouseup', state.documentMouseUpHandler)
 }
 
@@ -114,10 +110,11 @@ const resetSelectedBoundsToInitial = (
   axesGeometry: AxesGeometry,
   eventHandlers: NavigatorEventHandlers,
   initialBound: Bound,
+  boundBoxOptions: NavigatorBoundBoxOptions,
 ) => {
-  drawXValueBoundBox(drawer, axesGeometry, initialBound)
+  drawXValueBoundBox(drawer, axesGeometry, initialBound, boundBoxOptions)
   selectBound(state, axesGeometry, eventHandlers, initialBound)
-  endBoundSelection(state, drawer, axesGeometry, false)
+  endBoundSelection(state, drawer, axesGeometry, false, boundBoxOptions)
 }
 
 const onDocumentKeyDown = (
@@ -127,21 +124,28 @@ const onDocumentKeyDown = (
   axesGeometry: AxesGeometry,
   eventHandlers: NavigatorEventHandlers,
   initialBound: Bound,
+  boundBoxOptions: NavigatorBoundBoxOptions,
 ) => {
   if (isEscape(e))
-    endBoundSelection(state, drawer, axesGeometry, true)
+    endBoundSelection(state, drawer, axesGeometry, true, boundBoxOptions)
   else if (isR(e))
-    resetSelectedBoundsToInitial(state, drawer, axesGeometry, eventHandlers, initialBound)
+    resetSelectedBoundsToInitial(state, drawer, axesGeometry, eventHandlers, initialBound, boundBoxOptions)
 }
 
 /**
  * Starts a bound selection.
  */
-const startBoundSelection = (e: MouseEvent, state: State, drawer: CanvasDrawer, axesGeometry: AxesGeometry) => {
+const startBoundSelection = (
+  e: MouseEvent,
+  state: State,
+  drawer: CanvasDrawer,
+  axesGeometry: AxesGeometry,
+  boundBoxOptions: NavigatorBoundBoxOptions,
+) => {
   state.isSelectingBound = true
   state.mouseDownPosition = { x: e.offsetX, y: e.offsetY }
 
-  drawXValueBoundBoxForMouseEvent(e, state, axesGeometry, drawer)
+  drawXValueBoundBoxForMouseEvent(e, state, axesGeometry, drawer, boundBoxOptions)
 
   /* Add document mouse-up handler, which will cancel the bound selection if it occurs during selection.
    * This is because the onMouseUp handled within this component is only called for the canvas element.
@@ -156,7 +160,14 @@ const startBoundSelection = (e: MouseEvent, state: State, drawer: CanvasDrawer, 
 /**
  * Called whenever the mouse is moved within the canvas element.
  */
-const onMouseMove = (e: MouseEvent, state: State, axesGeometry: AxesGeometry, rect: Rect, drawer: CanvasDrawer): void => {
+const onMouseMove = (
+  e: MouseEvent,
+  state: State,
+  axesGeometry: AxesGeometry,
+  rect: Rect,
+  drawer: CanvasDrawer,
+  boundBoxOptions: NavigatorBoundBoxOptions,
+): void => {
   if (!state.isSelectingBound)
     return
 
@@ -166,17 +177,24 @@ const onMouseMove = (e: MouseEvent, state: State, axesGeometry: AxesGeometry, re
     return
   }
 
-  drawXValueBoundBoxForMouseEvent(e, state, axesGeometry, drawer)
+  drawXValueBoundBoxForMouseEvent(e, state, axesGeometry, drawer, boundBoxOptions)
 }
 
 /**
  * Called whenever the mouse pressed down within the canvas element.
  */
-const onMouseDown = (e: MouseEvent, state: State, rect: Rect, drawer: CanvasDrawer, axesGeometry: AxesGeometry): void => {
+const onMouseDown = (
+  e: MouseEvent,
+  state: State,
+  rect: Rect,
+  drawer: CanvasDrawer,
+  axesGeometry: AxesGeometry,
+  boundBoxOptions: NavigatorBoundBoxOptions,
+): void => {
   if (!isMouseEventInRect(e, rect))
     return
 
-  startBoundSelection(e, state, drawer, axesGeometry)
+  startBoundSelection(e, state, drawer, axesGeometry, boundBoxOptions)
 }
 
 /**
@@ -189,18 +207,19 @@ const onMouseUp = (
   axesGeometry: AxesGeometry,
   rect: Rect,
   eventHandlers: NavigatorEventHandlers,
+  boundBoxOptions: NavigatorBoundBoxOptions,
 ): void => {
   if (!state.isSelectingBound)
     return
 
   const isMouseInRect = isMouseEventInRect(e, rect)
-  const bound = convertMouseEventToBoundSelection(e, state, axesGeometry)
+  const bound = convertMouseEventToBoundSelection(e, state.mouseDownPosition.x, axesGeometry)
   const isSufficientSelection = Math.abs(bound.lower - bound.upper) > 1
   if (isMouseInRect && isSufficientSelection)
     selectBound(state, axesGeometry, eventHandlers, bound)
 
   const shouldCancel = !isMouseInRect || !isSufficientSelection
-  endBoundSelection(state, drawer, axesGeometry, shouldCancel)
+  endBoundSelection(state, drawer, axesGeometry, shouldCancel, boundBoxOptions)
 }
 
 export const drawNavigatorBoundSelector = (
@@ -218,22 +237,24 @@ export const drawNavigatorBoundSelector = (
     upper: selectedXValueBound?.upper != null ? axesGeometry[Axis2D.X].p(selectedXValueBound?.upper) : axesGeometry[Axis2D.X].pu,
   }
 
-  drawXValueBoundBox(drawer, axesGeometry, initialMouseBound)
+  const boundBoxOptions = props.navigatorOptions?.boundBoxOptions
+
+  drawXValueBoundBox(drawer, axesGeometry, initialMouseBound, boundBoxOptions)
 
   const state: State = {
     isMouseWithinCanvasElement: false,
     mouseDownPosition: null,
     isSelectingBound: false,
-    documentMouseUpHandler: () => onDocumentMouseUp(state, drawer, axesGeometry),
-    documentKeyDownHandler: kbdevnt => onDocumentKeyDown(kbdevnt, state, drawer, axesGeometry, eventHandlers, initialMouseBound),
+    documentMouseUpHandler: () => onDocumentMouseUp(state, drawer, axesGeometry, boundBoxOptions),
+    documentKeyDownHandler: kbdevnt => onDocumentKeyDown(kbdevnt, state, drawer, axesGeometry, eventHandlers, initialMouseBound, boundBoxOptions),
     lastSelectedXValueScreenStartPosition: initialMouseBound.lower,
     lastSelectedXValueScreenEndPosition: initialMouseBound.upper,
   }
 
   return {
-    onMouseMove: (e: MouseEvent) => onMouseMove(e, state, axesGeometry, rect, drawer),
-    onMouseDown: (e: MouseEvent) => onMouseDown(e, state, rect, drawer, axesGeometry),
-    onMouseUp: (e: MouseEvent) => onMouseUp(e, state, drawer, axesGeometry, rect, eventHandlers),
+    onMouseMove: (e: MouseEvent) => onMouseMove(e, state, axesGeometry, rect, drawer, boundBoxOptions),
+    onMouseDown: (e: MouseEvent) => onMouseDown(e, state, rect, drawer, axesGeometry, boundBoxOptions),
+    onMouseUp: (e: MouseEvent) => onMouseUp(e, state, drawer, axesGeometry, rect, eventHandlers, boundBoxOptions),
     onMouseLeave: () => {
       state.isMouseWithinCanvasElement = false
       if (state.isSelectingBound)
@@ -243,7 +264,7 @@ export const drawNavigatorBoundSelector = (
       state.isMouseWithinCanvasElement = true
     },
     resetBoundsToInitial: () => {
-      resetSelectedBoundsToInitial(state, drawer, axesGeometry, eventHandlers, initialMouseBound)
+      resetSelectedBoundsToInitial(state, drawer, axesGeometry, eventHandlers, initialMouseBound, boundBoxOptions)
     },
   }
 }

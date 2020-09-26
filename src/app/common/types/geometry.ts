@@ -15,12 +15,21 @@ export type RectDimensions = {
 
 export type Rect = Point2D & RectDimensions
 
-export type BoundingRect = {
-  left: number
-  right: number
-  top: number
-  bottom: number
+export type Directions2D<T extends any> = {
+  left: T
+  right: T
+  top: T
+  bottom: T
 }
+
+export type Directions2DOptional<T extends any> = {
+  left?: T
+  right?: T
+  top?: T
+  bottom?: T
+}
+
+export type BoundingRect = Directions2D<number>
 
 export type Line = [Point2D, Point2D]
 
