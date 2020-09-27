@@ -79,26 +79,33 @@ export const createGeometry = (drawer: CanvasDrawer, props: Options): Geometry =
   ))
 
   // Calculate value range in each axis of all the provided datums (of all series)
-  const allDatumsValueRange = calculateValueBoundsOfSeries(normalizedSeries)
+  const hasNavigatorGotOwnSeries = props.navigatorOptions?.series != null
+  const navigatorNormalizedSeries = hasNavigatorGotOwnSeries
+    ? mapDict(props.navigatorOptions.series, (seriesKey, datums) => normalizeDatumsErrorBarsValues(datums, props, seriesKey))
+    : normalizedSeries
+  const navigatorDatumsValueRange = calculateValueBoundsOfSeries(navigatorNormalizedSeries)
   // Create the axes value range options for the Navigator, which will be the all-datums value range
   const navigatorAxesValueRangeOptions: AxesValueRangeOptions = {
     [Axis2D.X]: {
       isUpperForced: false,
       isLowerForced: false,
-      lower: allDatumsValueRange[Axis2D.X].lower,
-      upper: allDatumsValueRange[Axis2D.X].upper,
+      lower: navigatorDatumsValueRange[Axis2D.X].lower,
+      upper: navigatorDatumsValueRange[Axis2D.X].upper,
     },
     [Axis2D.Y]: {
       isLowerForced: false,
       isUpperForced: false,
-      lower: allDatumsValueRange[Axis2D.Y].lower,
-      upper: allDatumsValueRange[Axis2D.Y].upper,
+      lower: navigatorDatumsValueRange[Axis2D.Y].lower,
+      upper: navigatorDatumsValueRange[Axis2D.Y].upper,
     },
   }
   // Create axes geometry for the Navigator
   const navigatorAxesGeometry = createAxesGeometry(drawer, props, navigatorAxesValueRangeOptions, chartZoneRects[ChartZones.NAVIGATOR])
 
-  const navigatorProcessedDatums = mapDict(focusedDatums, (seriesKey, datums) => (
+  const navigatorFocusedDatums = hasNavigatorGotOwnSeries
+    ? mapDict(navigatorNormalizedSeries, (_, datums) => calculateFocusedDatums(datums, props.datumFocusPointDeterminationMode))
+    : focusedDatums
+  const navigatorProcessedDatums = mapDict(navigatorFocusedDatums, (seriesKey, datums) => (
     calculateProcessedDatums(datums, navigatorAxesGeometry[Axis2D.X].p, navigatorAxesGeometry[Axis2D.Y].p)
   ))
 
