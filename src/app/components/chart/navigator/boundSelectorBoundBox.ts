@@ -1,5 +1,6 @@
 import { CanvasDrawer } from '../../../common/drawer/types'
 import { convertHexAndOpacityToRgba } from '../../../common/helpers/color'
+import { normalizeDirectionsObject } from '../../../common/helpers/geometry'
 import { LineOptions } from '../../../common/types/canvas'
 import { Axis2D, Directions2D, Directions2DOptional, Rect } from '../../../common/types/geometry'
 import AxesGeometry from '../types/AxesGeometry'
@@ -31,51 +32,23 @@ const drawValueBoundBoxBorderBottomPathComponent = (drawer: CanvasDrawer, rect: 
   drawer.line([{ x: rect.x, y: rect.y + rect.height }, { x: rect.x + rect.width, y: rect.y + rect.height }])
 }
 
-const isBorderLineOptionsDirectional = (borderLineOptions: LineOptions | Directions2DOptional<LineOptions>) => {
-  const _borderLineOptions = borderLineOptions as Directions2DOptional<LineOptions>
-  return _borderLineOptions?.left != null
-    || _borderLineOptions?.right != null
-    || _borderLineOptions?.top != null
-    || _borderLineOptions?.bottom != null
-}
-
 const drawBorder = (drawer: CanvasDrawer, rect: Rect, boundBoxOptions: NavigatorBoundBoxOptions) => {
   if (boundBoxOptions?.borderLineVisibility === false)
     return
 
-  const normalizedBorderLineOptions: Directions2D<LineOptions> = boundBoxOptions?.borderLineOptions == null
-    ? {
-      left: DEFAULT_BORDER_LINE_OPTIONS,
-      right: DEFAULT_BORDER_LINE_OPTIONS,
-      top: DEFAULT_BORDER_LINE_OPTIONS,
-      bottom: DEFAULT_BORDER_LINE_OPTIONS,
-    }
-    : (isBorderLineOptionsDirectional(boundBoxOptions?.borderLineOptions)
-      ? {
-        left: (boundBoxOptions?.borderLineOptions as Directions2DOptional<LineOptions>)?.left,
-        right: (boundBoxOptions?.borderLineOptions as Directions2DOptional<LineOptions>)?.right,
-        top: (boundBoxOptions?.borderLineOptions as Directions2DOptional<LineOptions>)?.top,
-        bottom: (boundBoxOptions?.borderLineOptions as Directions2DOptional<LineOptions>)?.bottom,
-      }
-      : {
-        left: (boundBoxOptions?.borderLineOptions as LineOptions),
-        right: (boundBoxOptions?.borderLineOptions as LineOptions),
-        top: (boundBoxOptions?.borderLineOptions as LineOptions),
-        bottom: (boundBoxOptions?.borderLineOptions as LineOptions),
-      }
-    )
+  const borderLineOptions: Directions2D<LineOptions> = normalizeDirectionsObject(boundBoxOptions?.borderLineOptions)
 
   const areAllBorderLinesVisible = boundBoxOptions?.borderLineVisibility === true
   const visibilityAsDirectional = boundBoxOptions?.borderLineVisibility as Directions2DOptional<LineOptions>
 
   if (areAllBorderLinesVisible || (visibilityAsDirectional != null ? visibilityAsDirectional.left : DEFAULT_BORDER_VISIBILITIES.left))
-    drawValueBoundBoxBorderLeftPathComponent(drawer, rect, normalizedBorderLineOptions.left)
+    drawValueBoundBoxBorderLeftPathComponent(drawer, rect, borderLineOptions.left ?? DEFAULT_BORDER_LINE_OPTIONS)
   if (areAllBorderLinesVisible || (visibilityAsDirectional != null ? visibilityAsDirectional.right : DEFAULT_BORDER_VISIBILITIES.right))
-    drawValueBoundBoxBorderRightPathComponent(drawer, rect, normalizedBorderLineOptions.right)
+    drawValueBoundBoxBorderRightPathComponent(drawer, rect, borderLineOptions.right ?? DEFAULT_BORDER_LINE_OPTIONS)
   if (areAllBorderLinesVisible || (visibilityAsDirectional != null ? visibilityAsDirectional.top : DEFAULT_BORDER_VISIBILITIES.top))
-    drawValueBoundBoxBorderTopPathComponent(drawer, rect, normalizedBorderLineOptions.top)
+    drawValueBoundBoxBorderTopPathComponent(drawer, rect, borderLineOptions.top ?? DEFAULT_BORDER_LINE_OPTIONS)
   if (areAllBorderLinesVisible || (visibilityAsDirectional != null ? visibilityAsDirectional.bottom : DEFAULT_BORDER_VISIBILITIES.bottom))
-    drawValueBoundBoxBorderBottomPathComponent(drawer, rect, normalizedBorderLineOptions.bottom)
+    drawValueBoundBoxBorderBottomPathComponent(drawer, rect, borderLineOptions.bottom ?? DEFAULT_BORDER_LINE_OPTIONS)
 }
 
 const drawBackground = (drawer: CanvasDrawer, rect: Rect, boundBoxOptions: NavigatorBoundBoxOptions) => {

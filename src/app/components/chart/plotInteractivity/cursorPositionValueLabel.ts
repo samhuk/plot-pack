@@ -1,9 +1,10 @@
 import { Options } from '../types/Options'
-import { Axis2D, Point2D } from '../../../common/types/geometry'
+import { Axis2D, Point2D, Rect } from '../../../common/types/geometry'
 import { createTextStyle, measureTextLineHeight, createRoundedRect } from '../../../common/helpers/canvas'
 import ProcessedDatum from '../types/ProcessedDatum'
 import AxesGeometry from '../types/AxesGeometry'
 import { formatNumber } from '../plotBase/components/axisMarkerLabels'
+import { CanvasDrawer } from '../../../common/drawer/types'
 
 const DEFAULT_FONT_FAMILY = 'Helvetica'
 const DEFAULT_FONT_SIZE = 12
@@ -67,12 +68,14 @@ const drawLabelBackgroundRect = (ctx: CanvasRenderingContext2D, rectPath: Path2D
 }
 
 const drawXAxisCursorPositionValueLabel = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   cursorPoint: Point2D,
   nearestDatum: ProcessedDatum,
   axesGeometry: AxesGeometry,
   props: Options,
 ) => {
+  const ctx = drawer.getRenderingContext()
+
   const pX = nearestDatum != null && getCursorPositionValueLabelSnapTo(props, Axis2D.X) ? nearestDatum.fpX : cursorPoint.x
   const xAxisText = formatNumber(axesGeometry[Axis2D.X].v(pX), props, Axis2D.X)
 
@@ -80,28 +83,55 @@ const drawXAxisCursorPositionValueLabel = (
   ctx.font = getCursorPositionValueLabelFont(props, Axis2D.X)
 
   const lineHeight = measureTextLineHeight(ctx)
-  const textBoxWidth = ctx.measureText(xAxisText).width
+  const textBoxWidth = drawer.measureTextWidth(xAxisText)
   const bgRectX = pX - textBoxWidth / 2 - bgRectPaddingPx
   const bgRectY = axesGeometry[Axis2D.Y].pl - lineHeight - 2 * bgRectPaddingPx
   const bgRectWidth = textBoxWidth + 2 * bgRectPaddingPx
   const bgRectHeight = lineHeight + 2 * bgRectPaddingPx
   const bgRectRadius = getCursorPositionValueLabelBorderRadius(props, Axis2D.X)
-  const bgRectBorderRadii = [bgRectRadius, bgRectRadius, 0, 0]
-  const bgRect = createRoundedRect(bgRectX, bgRectY, bgRectWidth, bgRectHeight, bgRectBorderRadii)
-  drawLabelBackgroundRect(ctx, bgRect, Axis2D.X, props)
+
+  const bgRectXRightOverrunFromAxes = Math.max(0, bgRectX + bgRectWidth - axesGeometry[Axis2D.X].pu)
+  const bgRectXLeftOverrunFromAxes = Math.max(0, axesGeometry[Axis2D.X].pl - bgRectX)
+
+  // Correct x position of bg rect if it overruns the axes
+  let correctedBgRectX = bgRectX
+  if (bgRectXLeftOverrunFromAxes > 0 && bgRectXRightOverrunFromAxes === 0)
+    correctedBgRectX = axesGeometry[Axis2D.X].pl
+  else if (bgRectXRightOverrunFromAxes > 0 && bgRectXLeftOverrunFromAxes === 0)
+    correctedBgRectX = axesGeometry[Axis2D.X].pu - bgRectWidth
+  else if (bgRectXRightOverrunFromAxes > 0 && bgRectXLeftOverrunFromAxes > 0)
+    correctedBgRectX = ((axesGeometry[Axis2D.X].pu - axesGeometry[Axis2D.X].pl) / 2) - (bgRectX / 2)
+
+  const bgRect: Rect = { x: correctedBgRectX, y: bgRectY, width: bgRectWidth, height: bgRectHeight }
+  drawer.roundedRectSimple(bgRect, {
+    fill: true,
+    stroke: true,
+    backgroundColor: getCursorPositionValueLabelBackgroundColor(props, Axis2D.X),
+    borderLineOptions: {
+      color: getCursorPositionValueLabelBorderColor(props, Axis2D.X),
+      dashPattern: [],
+      lineWidth: getCursorPositionValueLabelBorderLineWidth(props, Axis2D.X),
+      radii: { topLeft: bgRectRadius, topRight: bgRectRadius },
+    },
+  })
 
   // Create label
-  ctx.fillStyle = getCursorPositionValueLabelColor(props, Axis2D.X)
-  ctx.fillText(xAxisText, pX - textBoxWidth / 2, axesGeometry[Axis2D.Y].pl - bgRectPaddingPx - 2)
+  drawer.applyFillOptions({ color: getCursorPositionValueLabelColor(props, Axis2D.X) })
+  drawer.text(xAxisText, {
+    x: correctedBgRectX + bgRectPaddingPx,
+    y: axesGeometry[Axis2D.Y].pl - bgRectPaddingPx - drawer.measureTextHeight(xAxisText) - 2,
+  })
 }
 
 const drawYAxisCursorPositionValueLabel = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   cursorPoint: Point2D,
   nearestDatum: ProcessedDatum,
   axesGeometry: AxesGeometry,
   props: Options,
 ) => {
+  const ctx = drawer.getRenderingContext()
+
   const pY = nearestDatum != null && getCursorPositionValueLabelSnapTo(props, Axis2D.Y) ? nearestDatum.fpY : cursorPoint.y
   const yAxisText = axesGeometry[Axis2D.Y].v(pY).toFixed(2)
 
@@ -127,7 +157,7 @@ const drawYAxisCursorPositionValueLabel = (
 }
 
 export const drawCursorPositionValueLabel = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   cursorPoint: Point2D,
   nearestDatum: ProcessedDatum,
   axesGeometry: AxesGeometry,
@@ -135,7 +165,7 @@ export const drawCursorPositionValueLabel = (
   props: Options,
 ) => {
   if (axis === Axis2D.X)
-    drawXAxisCursorPositionValueLabel(ctx, cursorPoint, nearestDatum, axesGeometry, props)
+    drawXAxisCursorPositionValueLabel(drawer, cursorPoint, nearestDatum, axesGeometry, props)
   if (axis === Axis2D.Y)
-    drawYAxisCursorPositionValueLabel(ctx, cursorPoint, nearestDatum, axesGeometry, props)
+    drawYAxisCursorPositionValueLabel(drawer, cursorPoint, nearestDatum, axesGeometry, props)
 }

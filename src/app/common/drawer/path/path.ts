@@ -1,3 +1,4 @@
+import { createLinePath } from '../canvasDrawer'
 /**
  * A generalized and declarative version of Path2D.
  */
@@ -16,6 +17,8 @@ export const createPath2DFromPath = (path: Path, precreatedPath2D?: Path2D): Pat
       p.moveTo(pc.x, pc.y)
     else if (pc.type === PathComponentType.LINE_TO)
       p.lineTo(pc.x, pc.y)
+    else if (pc.type === PathComponentType.LINE)
+      createLinePath([pc.from, pc.to], p)
     else if (pc.type === PathComponentType.RECT)
       p.rect(pc.x, pc.y, pc.width, pc.height)
     else if (pc.type === PathComponentType.CIRCLE)

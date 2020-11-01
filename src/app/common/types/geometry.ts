@@ -22,11 +22,31 @@ export type Directions2D<T extends any> = {
   bottom: T
 }
 
+export type Corners2D<T extends any> = {
+  topLeft: T
+  topRight: T
+  bottomLeft: T
+  bottomRight: T
+}
+
+export type Corners2DOptional<T extends any> = {
+  topLeft?: T
+  topRight?: T
+  bottomLeft?: T
+  bottomRight?: T
+}
+
 export type Directions2DOptional<T extends any> = {
   left?: T
   right?: T
   top?: T
   bottom?: T
+}
+
+export type QuadraticCurve = {
+  fromPos: Point2D
+  cPos: Point2D
+  toPos: Point2D
 }
 
 export type BoundingRect = Directions2D<number>

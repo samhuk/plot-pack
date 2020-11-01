@@ -25,8 +25,8 @@ type CircularSector = Circle & { startAngle?: number, endAngle: number }
 
 type PathTypeToOptionsMap = {
   [PathComponentType.MOVE_TO]: Point2D
-  [PathComponentType.LINE_TO]: Point2D
-  [PathComponentType.LINE]: [Point2D, Point2D]
+  [PathComponentType.LINE_TO]: Point2D & LineOptions
+  [PathComponentType.LINE]: { from: Point2D, to: Point2D }
   [PathComponentType.QUADRATIC_CURVE_TO]: { cPos: Point2D, pos: Point2D }
   [PathComponentType.RECT]: Rect
   [PathComponentType.CIRCLE]: Circle

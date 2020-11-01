@@ -161,9 +161,9 @@ const draw = (
 
   // Draw the axis value labels at the cursor co-ordinates (next to the axes)
   if (getShouldDrawCursorPositionValueLabel(props, Axis2D.X))
-    drawCursorPositionValueLabel(ctx, cursorPoint, nearestDatumOfAllSeries, axesGeometry, Axis2D.X, props)
+    drawCursorPositionValueLabel(drawer, cursorPoint, nearestDatumOfAllSeries, axesGeometry, Axis2D.X, props)
   if (getShouldDrawCursorPositionValueLabel(props, Axis2D.Y))
-    drawCursorPositionValueLabel(ctx, cursorPoint, nearestDatumOfAllSeries, axesGeometry, Axis2D.Y, props)
+    drawCursorPositionValueLabel(drawer, cursorPoint, nearestDatumOfAllSeries, axesGeometry, Axis2D.Y, props)
 
   // Tooltip is drawn last, since that has to be on top over everything else
   if (highlightedDatums != null) {
