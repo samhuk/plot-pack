@@ -131,9 +131,9 @@ const drawSeriesData = (
   if (getShouldShowMarkers(props, seriesKey))
     drawDatumMarkers(drawer, processedDatums, axesScreenBounds, props, seriesKey)
   if (getShouldShowErrorBars(props, seriesKey, Axis2D.X))
-    drawDatumErrorBarsForDatums(drawer, processedDatums, props, seriesKey, Axis2D.X)
+    drawDatumErrorBarsForDatums(drawer, processedDatums, props, seriesKey, axesScreenBounds, Axis2D.X)
   if (getShouldShowErrorBars(props, seriesKey, Axis2D.Y))
-    drawDatumErrorBarsForDatums(drawer, processedDatums, props, seriesKey, Axis2D.Y)
+    drawDatumErrorBarsForDatums(drawer, processedDatums, props, seriesKey, axesScreenBounds, Axis2D.Y)
   if (getShouldShowConnectingLine(props, seriesKey))
     drawDatumsConnectingLine(drawer, processedDatums, axesScreenBounds, props, seriesKey)
 }

@@ -6,6 +6,8 @@ import Options from '../types/Options'
 import { CanvasDrawer } from '../../../common/drawer/types'
 import { LineOptions } from '../../../common/types/canvas'
 import { Path, PathComponentType } from '../../../common/drawer/path/types'
+import { isPositionInAxesBounds } from '../../../common/helpers/geometry'
+import AxesBound from '../types/AxesBound'
 
 const DEFAULT_LINE_OPTIONS: LineOptions = {
   lineWidth: 1.5,
@@ -197,6 +199,7 @@ export const drawDatumErrorBarsForDatums = (
   datums: ProcessedDatum[],
   props: Options,
   seriesKey: string,
+  axesScreenBounds: AxesBound,
   axis: Axis2D,
 ) => {
   const lineWidth = getLineWidth(props, seriesKey, axis)
@@ -210,7 +213,9 @@ export const drawDatumErrorBarsForDatums = (
 
   const pathCreator = createDatumErrorBarsPathCreator(axis)
 
-  datums.forEach(d => drawer.path(pathCreator(d, capSize)))
+  datums
+    .filter(d => isPositionInAxesBounds({ x: d.fpX, y: d.fpY }, axesScreenBounds))
+    .forEach(d => drawer.path(pathCreator(d, capSize)))
 }
 
 export default drawDatumErrorBarsForDatums
