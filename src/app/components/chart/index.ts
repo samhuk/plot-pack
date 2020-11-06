@@ -105,10 +105,19 @@ const createCanvasLayerDrawers = (state: State): CanvasLayerDrawers => ({
   [CanvasLayers.NAVIGATOR_ACTION_BUTTONS]: createCanvasDrawer(state.canvasLayerElements[CanvasLayers.NAVIGATOR_ACTION_BUTTONS], state.options),
 })
 
-const renderComponents = (state: State, renderNewNavigator: boolean = false): RenderedComponents => {
+const renderComponents = (state: State, renderNewNavigator: boolean = false, clearAll: boolean = false): RenderedComponents => {
   // Create canvas drawers for each canvas layer, if not already created
   if (state.canvasLayerDrawers == null)
     state.canvasLayerDrawers = createCanvasLayerDrawers(state)
+
+  // Clear all canvases, if clearAll is true
+  if (clearAll) {
+    state.canvasLayerDrawers[CanvasLayers.CHART_PLOT_BASE].clearRenderingSpace()
+    state.canvasLayerDrawers[CanvasLayers.CHART_INTERACTIVITY].clearRenderingSpace()
+    state.canvasLayerDrawers[CanvasLayers.NAVIGATOR_PLOT_BASE].clearRenderingSpace()
+    state.canvasLayerDrawers[CanvasLayers.NAVIGATOR_BOUND_SELECTOR].clearRenderingSpace()
+    state.canvasLayerDrawers[CanvasLayers.NAVIGATOR_ACTION_BUTTONS].clearRenderingSpace()
+  }
 
   // Create geometry
   const geometry = createGeometry(state.canvasLayerDrawers[CanvasLayers.CHART_PLOT_BASE], state.options)
@@ -162,8 +171,8 @@ const setXAxisValueBoundToOptions = (options: Options, bound: Bound): void => {
   options.axesOptions[Axis2D.X].valueBound = bound
 }
 
-const renderInternal = (state: State, renderNewNavigator: boolean = false): void => {
-  state.renderedComponents = renderComponents(state, renderNewNavigator)
+const renderInternal = (state: State, renderNewNavigator: boolean = false, clearAll: boolean = false): void => {
+  state.renderedComponents = renderComponents(state, renderNewNavigator, clearAll)
   const interactiveEventHandlers: InteractiveEventHandlers = {
     onMouseMove: merge(
       state.renderedComponents.chart.interactivity.onMouseMove,
@@ -198,7 +207,7 @@ const createEventHandlers = (state: State): EventHandlers => {
     onContainerResize: () => {
       // Create new options given the new container size and current options
       applyContainerRectToOptions(state.containerElement, state.inputOptions, state.options)
-      renderInternal(state, true)
+      renderInternal(state, true, true)
     },
   }
   return eventHandlers
