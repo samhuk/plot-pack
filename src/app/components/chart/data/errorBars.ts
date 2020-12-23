@@ -214,7 +214,9 @@ export const drawDatumErrorBarsForDatums = (
   const pathCreator = createDatumErrorBarsPathCreator(axis)
 
   datums
+    // Filter out datums that are out of view
     .filter(d => isPositionInAxesBounds({ x: d.fpX, y: d.fpY }, axesScreenBounds))
+    // draw each datum
     .forEach(d => drawer.path(pathCreator(d, capSize)))
 }
 

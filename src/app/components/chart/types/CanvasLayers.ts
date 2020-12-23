@@ -24,6 +24,10 @@ export enum CanvasLayers {
    * The action buttons of the navigator.
    */
   NAVIGATOR_ACTION_BUTTONS = 'navigator_action_buttons',
+  /**
+   * The annotations of the chart
+   */
+  ANNOTATIONS = 'annotations'
 }
 
 export default CanvasLayers

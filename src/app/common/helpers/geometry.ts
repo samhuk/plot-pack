@@ -46,7 +46,7 @@ export const isPositionInAxesBounds = (position: Point2D, axesBounds: AxesBound)
  * that is only visible within the provided `rect`. One could say that this is a form
  * of "projection".
  */
-export const getRectRestrictedLineBetweenTwoPoints = (point1: Point2D, point2: Point2D, rect: Rect): [Point2D, Point2D] => {
+export const getRectOccludedLineBetweenTwoPoints = (point1: Point2D, point2: Point2D, rect: Rect): [Point2D, Point2D] => {
   // Get the bounds of each axis from given rect
   const x0 = rect.x
   const x1 = rect.x + rect.width
@@ -101,7 +101,7 @@ export const getRectRestrictedLineBetweenTwoPoints = (point1: Point2D, point2: P
  * that is only visible within the rect that is defined by the given `axesBounds`.
  * One could say that this is a form of "projection".
  */
-export const getRectRestrictedLineBetweenTwoPointsUsingAxesBounds = (
+export const getRectOccludedLineBetweenTwoPointsUsingAxesBounds = (
   point1: Point2D,
   point2: Point2D,
   axesBounds: AxesBound,
@@ -113,7 +113,7 @@ export const getRectRestrictedLineBetweenTwoPointsUsingAxesBounds = (
   const y1 = axesBounds[Axis2D.Y].upper
   const rect: Rect = { x: x0, y: y0, height: y1 - y0, width: x1 - x0 }
   // Call the base function with the constructed rect
-  return getRectRestrictedLineBetweenTwoPoints(point1, point2, rect)
+  return getRectOccludedLineBetweenTwoPoints(point1, point2, rect)
 }
 
 /**

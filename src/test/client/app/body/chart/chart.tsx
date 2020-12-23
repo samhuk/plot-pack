@@ -9,6 +9,7 @@ import XAxisOrientation from '../../../../../app/components/chart/types/xAxisOri
 import YAxisOrientation from '../../../../../app/components/chart/types/yAxisOrientation'
 import DatumSnapMode from '../../../../../app/components/chart/types/DatumSnapMode'
 import { DatumHighlightAppearanceType } from '../../../../../app/components/chart/types/DatumHighlightAppearanceType'
+import AnnotationType from '../../../../../app/components/chart/types/AnnotationType'
 
 export const render = () => {
   const [height, setHeight] = useState(500)
@@ -164,6 +165,21 @@ export const render = () => {
                 padding: 10,
               },
             },
+          }}
+          annotationsOptions={{
+            annotationOptionsList: [
+              {
+                type: AnnotationType.RANGE,
+                axesValueBound: {
+                  x: { lower: -2, upper: 2 },
+                  y: { lower: -2, upper: 2 },
+                },
+                backgroundColor: '#00FF00',
+                backgroundOpacity: 0.1,
+                borderColor: 'red',
+                borderLineWidth: 3,
+              },
+            ],
           }}
           bestFitLineOptions={{
             type: BestFitLine.STRAIGHT,

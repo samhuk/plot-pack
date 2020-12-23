@@ -15,6 +15,7 @@ import ErrorBarsOptions from './ErrorBarsOptions'
 import NavigatorOptions from './NavigatorOptions'
 import TitleOptions from './TitleOptions'
 import { InputMargin } from '../../../common/rectPositioningEngine/types'
+import AnnotationsOptions from './AnnotationsOptions'
 
 /**
  * Options for the Chart
@@ -39,6 +40,7 @@ export type CommonOptions = {
   datumSnapOptions?: DatumSnapOptions
   navigatorOptions?: NavigatorOptions
   autoSetAxisBoundsToFitOnlyVisibleDatums?: boolean
+  annotationsOptions?: AnnotationsOptions
 }
 
 export default CommonOptions

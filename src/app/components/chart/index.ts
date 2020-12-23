@@ -50,6 +50,15 @@ type State = {
 
 const CONTAINER_CLASS = 'pp-chart'
 
+const CANVAS_LAYER_ELEMENT_ORDERING: CanvasLayers[] = [
+  CanvasLayers.CHART_PLOT_BASE,
+  CanvasLayers.ANNOTATIONS,
+  CanvasLayers.CHART_INTERACTIVITY,
+  CanvasLayers.NAVIGATOR_PLOT_BASE,
+  CanvasLayers.NAVIGATOR_BOUND_SELECTOR,
+  CanvasLayers.NAVIGATOR_ACTION_BUTTONS,
+]
+
 const areClientRectsEqualSize = (r1: DOMRect, r2: DOMRect): boolean => (
   r1.width === r2.width
   && r1.height === r2.height
@@ -70,6 +79,7 @@ const createCanvasLayerElements = (): CanvasLayerElements => ({
   [CanvasLayers.NAVIGATOR_PLOT_BASE]: createCanvasElement(),
   [CanvasLayers.NAVIGATOR_BOUND_SELECTOR]: createCanvasElement(),
   [CanvasLayers.NAVIGATOR_ACTION_BUTTONS]: createCanvasElement(),
+  [CanvasLayers.ANNOTATIONS]: createCanvasElement(),
 })
 
 const createContainer = (rectDimensions?: { height?: number, width?: number }) => {
@@ -99,6 +109,7 @@ const applyContainerRectToOptions = (containerElement: HTMLElement, inputOptions
 
 const createCanvasLayerDrawers = (state: State): CanvasLayerDrawers => ({
   [CanvasLayers.CHART_PLOT_BASE]: createCanvasDrawer(state.canvasLayerElements[CanvasLayers.CHART_PLOT_BASE], state.options),
+  [CanvasLayers.ANNOTATIONS]: createCanvasDrawer(state.canvasLayerElements[CanvasLayers.ANNOTATIONS], state.options),
   [CanvasLayers.CHART_INTERACTIVITY]: createCanvasDrawer(state.canvasLayerElements[CanvasLayers.CHART_INTERACTIVITY], state.options),
   [CanvasLayers.NAVIGATOR_PLOT_BASE]: createCanvasDrawer(state.canvasLayerElements[CanvasLayers.NAVIGATOR_PLOT_BASE], state.options),
   [CanvasLayers.NAVIGATOR_BOUND_SELECTOR]: createCanvasDrawer(state.canvasLayerElements[CanvasLayers.NAVIGATOR_BOUND_SELECTOR], state.options),
@@ -111,20 +122,19 @@ const renderComponents = (state: State, renderNewNavigator: boolean = false, cle
     state.canvasLayerDrawers = createCanvasLayerDrawers(state)
 
   // Clear all canvases, if clearAll is true
-  if (clearAll) {
-    state.canvasLayerDrawers[CanvasLayers.CHART_PLOT_BASE].clearRenderingSpace()
-    state.canvasLayerDrawers[CanvasLayers.CHART_INTERACTIVITY].clearRenderingSpace()
-    state.canvasLayerDrawers[CanvasLayers.NAVIGATOR_PLOT_BASE].clearRenderingSpace()
-    state.canvasLayerDrawers[CanvasLayers.NAVIGATOR_BOUND_SELECTOR].clearRenderingSpace()
-    state.canvasLayerDrawers[CanvasLayers.NAVIGATOR_ACTION_BUTTONS].clearRenderingSpace()
-  }
+  if (clearAll)
+    Object.values(state.canvasLayerDrawers).forEach(drawer => drawer.clearRenderingSpace())
 
   // Create geometry
   const geometry = createGeometry(state.canvasLayerDrawers[CanvasLayers.CHART_PLOT_BASE], state.options)
 
   // Draw the chart
   const chart = drawChart(
-    { plotBase: state.canvasLayerDrawers[CanvasLayers.CHART_PLOT_BASE], interactivity: state.canvasLayerDrawers[CanvasLayers.CHART_INTERACTIVITY] },
+    {
+      plotBase: state.canvasLayerDrawers[CanvasLayers.CHART_PLOT_BASE],
+      annotations: state.canvasLayerDrawers[CanvasLayers.ANNOTATIONS],
+      interactivity: state.canvasLayerDrawers[CanvasLayers.CHART_INTERACTIVITY],
+    },
     geometry,
     state.options,
   )
@@ -246,8 +256,8 @@ export const render = (parentContainerElement: HTMLElement, inputOptions: InputO
   state.canvasLayerElements = createCanvasLayerElements()
   state.containerElement = createContainer(state.inputOptions)
 
-  // Add canvas elements to container element
-  Object.values(state.canvasLayerElements).forEach(el => state.containerElement.appendChild(el))
+  // Add canvas elements to container element, in correct order
+  CANVAS_LAYER_ELEMENT_ORDERING.forEach(canvasLayer => state.containerElement.appendChild(state.canvasLayerElements[canvasLayer]))
   // Add container element to the "outer" container element
   parentContainerElement.appendChild(state.containerElement)
 

@@ -5,6 +5,7 @@ import { Line, CircularSector, Rect, Circle, Point2D, RectDimensions, QuadraticC
 import { createPath2DFromPath } from './path/path'
 import { Path, PathComponentType } from './path/types'
 import { normalizeCornersObject, normalizeDirectionsObject } from '../helpers/geometry'
+import { convertHexAndOpacityToRgba } from '../helpers/color'
 
 /* eslint-disable no-param-reassign */
 
@@ -240,39 +241,46 @@ const roundedRect = (
   )
   quadraticCurve(
     state,
-    { fromPos: null, cPos: { x: rightX, y }, toPos: { x: rightX, y: y + radii.topRight } },
+    { fromPos: { x: rightX - radii.topRight, y }, cPos: { x: rightX, y }, toPos: { x: rightX, y: y + radii.topRight } },
     { color: borderColor.top, dashPattern: normalizedBorderDashPattern.top, lineWidth: borderLineWidth },
   )
   line(
     state,
-    [null, { x: rightX, y: bottomY - radii.bottomRight }],
+    [{ x: rightX, y: y + radii.topRight }, { x: rightX, y: bottomY - radii.bottomRight }],
     { color: borderColor.right, dashPattern: normalizedBorderDashPattern.right, lineWidth: borderLineWidth },
   )
   quadraticCurve(
     state,
-    { fromPos: null, cPos: { x: rightX, y: bottomY }, toPos: { x: rightX - radii.bottomRight, y: bottomY } },
+    { fromPos: { x: rightX, y: bottomY - radii.bottomRight }, cPos: { x: rightX, y: bottomY }, toPos: { x: rightX - radii.bottomRight, y: bottomY } },
     { color: borderColor.right, dashPattern: normalizedBorderDashPattern.right, lineWidth: borderLineWidth },
   )
   line(
     state,
-    [null, { x: x + radii.bottomLeft, y: bottomY }],
+    [{ x: rightX - radii.bottomRight, y: bottomY }, { x: x + radii.bottomLeft, y: bottomY }],
     { color: borderColor.bottom, dashPattern: normalizedBorderDashPattern.bottom, lineWidth: borderLineWidth },
   )
   quadraticCurve(
     state,
-    { fromPos: null, cPos: { x, y: bottomY }, toPos: { x, y: bottomY - radii.bottomLeft } },
+    { fromPos: { x: x + radii.bottomLeft, y: bottomY }, cPos: { x, y: bottomY }, toPos: { x, y: bottomY - radii.bottomLeft } },
     { color: borderColor.bottom, dashPattern: normalizedBorderDashPattern.bottom, lineWidth: borderLineWidth },
   )
   line(
     state,
-    [null, { x, y: y + radii.topLeft }],
+    [{ x, y: bottomY - radii.bottomLeft }, { x, y: y + radii.topLeft }],
     { color: borderColor.left, dashPattern: normalizedBorderDashPattern.left, lineWidth: borderLineWidth },
   )
   quadraticCurve(
     state,
-    { fromPos: null, cPos: { x, y }, toPos: { x: x + radii.topLeft, y } },
+    { fromPos: { x, y: y + radii.topLeft }, cPos: { x, y }, toPos: { x: x + radii.topLeft, y } },
     { color: borderColor.left, dashPattern: normalizedBorderDashPattern.left, lineWidth: borderLineWidth },
   )
+
+  if (options.backgroundColor != null) {
+    const backgroundColor = options?.backgroundColor
+    const backgroundOpacity = options?.backgroundOpacity ?? 0.1
+    const rgba = convertHexAndOpacityToRgba(backgroundColor, backgroundOpacity)
+    rect(state, _rect, { fill: true, stroke: false, fillOptions: { color: rgba } })
+  }
 }
 
 export const createIsoscelesTrianglePath = (boundingRect: Rect): Path => ([
