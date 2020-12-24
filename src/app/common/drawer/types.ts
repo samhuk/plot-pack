@@ -54,6 +54,12 @@ type Drawer<T, R> = {
    */
   rect: (rect: Rect, drawOptions?: DrawOptions) => R
   /**
+   * Draws an occlusion border around the given unoccluded rect. This is useful
+   * for when one needs to draw within a given rect of a drawing space, and clip
+   * ("occlude") anything that is outside of the given rect.
+   */
+  occlusionBorder: (unoccludedRect: Rect) => void
+  /**
    * Draws a single-path rounded rect. This differs from `roundedRect`; this sacrifices
    * the ability to define per-side and per-corner properties for increased speed. If
    * you expect border radii to always be zero, then `.rect()`.

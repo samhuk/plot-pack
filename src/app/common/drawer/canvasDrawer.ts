@@ -39,6 +39,13 @@ const drawPath2D = (state: CanvasDrawerState, _path: Path2D, stroke: boolean = t
     state.ctx.fill(_path)
 }
 
+const clearRenderingSpace = (state: CanvasDrawerState, rectToClear: Rect) => {
+  if (rectToClear != null)
+    state.ctx.clearRect(rectToClear.x, rectToClear.y, rectToClear.width, rectToClear.height)
+  else
+    state.ctx.clearRect(0, 0, state.ctx.canvas.height, state.ctx.canvas.width)
+}
+
 export const createLinePath = (_line: Line, precreatedPath?: Path2D): Path2D => {
   const p = precreatedPath ?? new Path2D()
   if (_line[0] != null)
@@ -283,6 +290,30 @@ const roundedRect = (
   }
 }
 
+const occlusionBorder = (
+  state: CanvasDrawerState,
+  unoccludedRect: Rect,
+): void => {
+  const _topRect: Rect = { x: 0, y: 0, height: unoccludedRect.y, width: state.ctx.canvas.width }
+  const _bottomRect: Rect = {
+    x: 0,
+    y: unoccludedRect.y + unoccludedRect.height,
+    height: state.ctx.canvas.height - unoccludedRect.y - unoccludedRect.height,
+    width: state.ctx.canvas.width,
+  }
+  const _leftRect: Rect = { x: 0, y: unoccludedRect.y, height: unoccludedRect.height, width: unoccludedRect.x }
+  const _rightRect: Rect = {
+    x: unoccludedRect.x + unoccludedRect.width,
+    y: unoccludedRect.y,
+    height: unoccludedRect.height,
+    width: state.ctx.canvas.width - unoccludedRect.x - unoccludedRect.width,
+  }
+  clearRenderingSpace(state, _topRect)
+  clearRenderingSpace(state, _bottomRect)
+  clearRenderingSpace(state, _leftRect)
+  clearRenderingSpace(state, _rightRect)
+}
+
 export const createIsoscelesTrianglePath = (boundingRect: Rect): Path => ([
   { type: PathComponentType.MOVE_TO, x: boundingRect.x, y: boundingRect.y + boundingRect.height },
   { type: PathComponentType.LINE_TO, x: boundingRect.x + (boundingRect.width / 2), y: boundingRect.y },
@@ -306,13 +337,6 @@ const isoscelesTriangle = (
   const path2D = createPath2DFromPath(createIsoscelesTrianglePath(boundingRect))
   drawPath2D(state, path2D, drawOptions.stroke, drawOptions.fill)
   return path2D
-}
-
-const clearRenderingSpace = (state: CanvasDrawerState, rectToClear: Rect) => {
-  if (rectToClear != null)
-    state.ctx.clearRect(rectToClear.x, rectToClear.y, rectToClear.width, rectToClear.height)
-  else
-    state.ctx.clearRect(0, 0, state.ctx.canvas.height, state.ctx.canvas.width)
 }
 
 const text = (state: CanvasDrawerState, _text: string, position: Point2D, angle: number, textOptions: TextOptions) => {
@@ -355,6 +379,7 @@ export const createCanvasDrawer = (canvasElement: HTMLCanvasElement, rectDimensi
     rect: (_rect, drawOptions) => rect(state, _rect, drawOptions),
     roundedRectSimple: (_rect, options) => roundedRectSimple(state, _rect, options),
     roundedRect: (_rect, options) => roundedRect(state, _rect, options),
+    occlusionBorder: unoccludedRect => occlusionBorder(state, unoccludedRect),
     isoscelesTriangle: (boundingRect, drawOptions) => (
       isoscelesTriangle(state, boundingRect, drawOptions)
     ),

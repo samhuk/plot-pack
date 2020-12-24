@@ -24,6 +24,14 @@ export const render = (
     fill: options.backgroundColor != null,
     stroke: options.borderLineWidth != null && options.borderLineWidth !== 0,
   })
+
+  const _unoccludedRect: Rect = {
+    x: geometry.chartAxesGeometry.x.pl,
+    y: geometry.chartAxesGeometry.y.pu,
+    height: geometry.chartAxesGeometry.y.pl - geometry.chartAxesGeometry.y.pu,
+    width: geometry.chartAxesGeometry.x.pu - geometry.chartAxesGeometry.x.pl,
+  }
+  drawer.occlusionBorder(_unoccludedRect)
 }
 
 export default render
