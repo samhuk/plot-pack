@@ -18,6 +18,7 @@ export const render = (
 
   const rect: Rect = { x: plX, y: plY, height: puY - plY, width: puX - plX }
 
+  // TODO: Pass in correct options (background opacity, etc., when canvasDrawer drawOptions supports those parameters)
   drawer.rect(rect, {
     lineOptions: { color: options.borderColor, lineWidth: options.borderLineWidth, dashPattern: options.borderDashPattern },
     fillOptions: { color: options.backgroundColor },
