@@ -1,5 +1,6 @@
 /* eslint-disable no-bitwise, no-mixed-operators, prefer-template, no-nested-ternary */
 import { Color } from '../types/color'
+import { cssNamedColorMapToHexCode } from './cssNamedColorMap'
 
 export const colorClassMap: { [color in Color]: string } = {
   [Color.BLUE]: 'blue',
@@ -51,6 +52,25 @@ export const hexToRgb = (hex: string) => {
 }
 
 export const convertHexAndOpacityToRgba = (hex: string, opacity: number = 1) => {
+  if (hex == null)
+    return null
+
   const { r, g, b } = hexToRgb(hex)
-  return `rgba(${r}, ${g}, ${b}, ${opacity ?? 1})`
+
+  return opacity == null || opacity === 1
+    ? `rgb(${r}, ${g}, ${b})`
+    : `rgba(${r}, ${g}, ${b}, ${opacity})`
 }
+
+export const normalizeCssColorToHex = (color: string) => {
+  if (color == null || color.length < 2)
+    return null
+
+  const _color = color.trim()
+
+  return _color.charAt(0) === '#' ? _color.substring(0, 7) : cssNamedColorMapToHexCode[_color]
+}
+
+export const convertCssColorAndOpacityToRgba = (color: string, opacity: number = 1) => (
+  convertHexAndOpacityToRgba(normalizeCssColorToHex(color), opacity)
+)

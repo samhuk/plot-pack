@@ -4,9 +4,7 @@ import { mapDict, findEntryOfMaxValue, combineDicts, anyDict } from '../../../co
 import { measureTextWidth,
   measureTextLineHeight,
   createTextStyle,
-  createRoundedRect,
-  applyTextOptionsToContext,
-  applyLineOptionsToContext } from '../../../common/helpers/canvas'
+  createRoundedRect } from '../../../common/helpers/canvas'
 import ProcessedDatum from '../types/ProcessedDatum'
 import { getSize as getMarkerSize, drawStandardMarker, getShouldShowMarkers } from '../data/marker'
 import { drawConnectingLine, getShouldShowConnectingLine } from '../data/connectingLine'
@@ -20,9 +18,11 @@ import { CanvasDrawer } from '../../../common/drawer/types'
 const PREVIEW_RIGHT_MARGIN = 10
 const DEFAULT_BOX_PADDING_X = 6
 const DEFAULT_BOX_PADDING_Y = 6
-const DEFAULT_FONT_FAMILY = 'Helvetica'
-const DEFAULT_FONT_SIZE = 12
-const DEFAULT_TEXT_COLOR = 'black'
+const DEFAULT_TEXT_OPTIONS: TextOptions = {
+  color: 'black',
+  fontFamily: 'Helvetica',
+  fontSize: 12,
+}
 const DEFAULT_BORDER_LINE_WIDTH = 1
 const DEFAULT_X_VALUE_HEADER_DIVIDER_LINE_WIDTH = 1
 const DEFAULT_BORDER_LINE_COLOR = ''
@@ -57,8 +57,8 @@ const getShouldShowXValueHeaderDividerLineWidth = (props: Options) => (
 )
 
 const createTextStyleInternal = (props: Options, bold: boolean) => createTextStyle(
-  props?.tooltipOptions?.fontFamily ?? DEFAULT_FONT_FAMILY,
-  props?.tooltipOptions?.fontSize ?? DEFAULT_FONT_SIZE,
+  props?.tooltipOptions?.fontFamily ?? DEFAULT_TEXT_OPTIONS.fontFamily,
+  props?.tooltipOptions?.fontSize ?? DEFAULT_TEXT_OPTIONS.fontSize,
   bold,
 )
 
@@ -101,26 +101,9 @@ const drawSeriesPreview = (
     drawConnectingLine(ctx, { x: rect.x, y }, { x: rect.x + rect.width, y }, props, seriesKey)
 }
 
-const drawXValueHeaderText = (
-  ctx: CanvasRenderingContext2D,
-  textRect: Rect,
-  valueText: string,
-  textOptions: TextOptions,
-) => {
-  applyTextOptionsToContext(ctx, textOptions)
-  const lineHeight = measureTextLineHeight(ctx)
-
-  ctx.fillText(valueText, textRect.x, textRect.y + lineHeight)
-}
-
-const drawXValueHeaderDividerLine = (ctx: CanvasRenderingContext2D, dividerRect: Rect, lineOptions: LineOptions) => {
-  const dividerPath = new Path2D()
+const drawXValueHeaderDividerLine = (drawer: CanvasDrawer, dividerRect: Rect, lineOptions: LineOptions) => {
   const y = dividerRect.y + dividerRect.height / 2
-  dividerPath.moveTo(dividerRect.x, y)
-  dividerPath.lineTo(dividerRect.x + dividerRect.width, y)
-
-  applyLineOptionsToContext(ctx, lineOptions)
-  ctx.stroke(dividerPath)
+  drawer.line([{ x: dividerRect.x, y }, { x: dividerRect.x + dividerRect.width, y }], lineOptions)
 }
 
 const drawSeriesLabelValueText = (
@@ -136,7 +119,7 @@ const drawSeriesLabelValueText = (
   const differenceInHeight = Math.max(0, rect.height - textHeight)
   const y = rect.y + rect.height - differenceInHeight / 2
 
-  ctx.fillStyle = props?.tooltipOptions?.textColor ?? DEFAULT_TEXT_COLOR
+  ctx.fillStyle = props?.tooltipOptions?.textColor ?? DEFAULT_TEXT_OPTIONS.color
   ctx.font = createTextStyleInternal(props, false) // Series key text is not bold
   ctx.fillText(labelText, rect.x, y)
   ctx.font = createTextStyleInternal(props, true) // value is bold
@@ -144,28 +127,29 @@ const drawSeriesLabelValueText = (
 }
 
 const createTitleRow = (
-  ctx: CanvasRenderingContext2D,
-  lineHeight: number,
+  drawer: CanvasDrawer,
   text: string,
   props: Options,
-): InputRow => ({
-  margin: { bottom: 0 },
-  columnJustification: ColumnJustification.CENTER,
-  height: lineHeight,
-  width: 100,
-  widthUnits: SizeUnit.PERCENT,
-  columns: [{
-    height: 100,
-    heightUnits: SizeUnit.PERCENT,
-    width: measureTextWidth(ctx, text),
-    render: rect => {
-      drawXValueHeaderText(ctx, rect, text, props.tooltipOptions?.xValueLabelTextOptions)
-    },
-  }],
-})
+): InputRow => {
+  // Apply text options now for accurate width and height measurements
+  drawer.applyTextOptions(props.tooltipOptions?.xValueLabelTextOptions, DEFAULT_TEXT_OPTIONS)
+  return {
+    margin: { bottom: 0 },
+    columnJustification: ColumnJustification.CENTER,
+    height: drawer.measureTextHeight(),
+    width: 100,
+    widthUnits: SizeUnit.PERCENT,
+    columns: [{
+      height: 100,
+      heightUnits: SizeUnit.PERCENT,
+      width: drawer.measureTextWidth(text),
+      render: rect => drawer.text(text, rect, null, props.tooltipOptions?.xValueLabelTextOptions, DEFAULT_TEXT_OPTIONS),
+    }],
+  }
+}
 
 const createTitleDividerRow = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   height: number,
   props: Options,
 ): InputRow => ({
@@ -173,7 +157,7 @@ const createTitleDividerRow = (
   widthUnits: SizeUnit.PERCENT,
   height,
   render: rect => {
-    drawXValueHeaderDividerLine(ctx, rect, props.tooltipOptions?.xValueLabelDividerOptions)
+    drawXValueHeaderDividerLine(drawer, rect, props.tooltipOptions?.xValueLabelDividerOptions)
   },
 })
 
@@ -285,9 +269,9 @@ export const draw = (
     padding: { left: boxPaddingX, right: boxPaddingX, top: boxPaddingY, bottom: boxPaddingY },
     rows: [
       // Title row
-      shouldShowXValueTitle ? createTitleRow(ctx, lineHeight, xValueHeaderText, props) : null,
+      shouldShowXValueTitle ? createTitleRow(drawer, xValueHeaderText, props) : null,
       // divider row
-      shouldShowXValueTitleDivider ? createTitleDividerRow(ctx, xValueHeaderDividerHeight, props) : null,
+      shouldShowXValueTitleDivider ? createTitleDividerRow(drawer, xValueHeaderDividerHeight, props) : null,
       {
         columns: [
           // Series preview column (marker and connecting line)

@@ -117,17 +117,17 @@ export const createRoundedRect = (
 
 export const applyTextOptionsToContext = (
   ctx: CanvasRenderingContext2D,
-  options: TextOptions,
-  defaultFontFamily?: string,
-  defaultFontSize?: number,
-  defaultColor?: string,
+  textOptions: TextOptions,
+  fallbackTextOptions: TextOptions,
 ) => {
   ctx.lineWidth = 0.7
   ctx.font = createTextStyle(
-    options?.fontFamily ?? defaultFontFamily ?? 'Helvetica',
-    options?.fontSize ?? defaultFontSize ?? 14,
+    textOptions?.fontFamily ?? fallbackTextOptions?.fontFamily ?? 'Helvetica',
+    textOptions?.fontSize ?? fallbackTextOptions?.fontSize ?? 14,
+    textOptions?.bold ?? fallbackTextOptions?.bold ?? false,
+    textOptions?.italic ?? fallbackTextOptions?.italic ?? false,
   )
-  ctx.fillStyle = options?.color ?? defaultColor ?? 'black'
+  ctx.fillStyle = textOptions?.color ?? fallbackTextOptions?.color ?? 'black'
 }
 
 export const applyLineOptionsToContext = (

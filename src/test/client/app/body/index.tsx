@@ -1,10 +1,8 @@
 import React from 'react'
-import {
-  BrowserRouter as Router,
+import { BrowserRouter as Router,
   Switch,
   Route,
-  Link,
-} from 'react-router-dom'
+  Link } from 'react-router-dom'
 import PieChart from './pieChart'
 import Chart from './chart/chart'
 import Candlestick from './chart/candlestick'

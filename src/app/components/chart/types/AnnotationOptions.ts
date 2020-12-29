@@ -1,14 +1,10 @@
+import { RoundedRectOptions } from '../../../common/drawer/types'
 import { Point2D } from '../../../common/types/geometry'
 import AnnotationType from './AnnotationType'
 import AxesBound from './AxesBound'
 
-export type RangeAnnotationOptions = {
+export type RangeAnnotationOptions = RoundedRectOptions & {
   axesValueBound: AxesBound
-  borderDashPattern?: number[]
-  borderColor?: string
-  borderLineWidth?: number
-  backgroundColor?: string
-  backgroundOpacity?: number
 }
 
 type ValueAnnotationOptionsBase = {

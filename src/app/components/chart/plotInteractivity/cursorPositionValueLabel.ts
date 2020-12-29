@@ -1,39 +1,37 @@
 import { Options } from '../types/Options'
-import { Axis2D, Point2D, Rect } from '../../../common/types/geometry'
-import { createTextStyle, measureTextLineHeight, createRoundedRect } from '../../../common/helpers/canvas'
+import { Axis2D, Corners2DOptional, Point2D, Rect } from '../../../common/types/geometry'
 import ProcessedDatum from '../types/ProcessedDatum'
 import AxesGeometry from '../types/AxesGeometry'
 import { formatNumber } from '../plotBase/components/axisMarkerLabels'
-import { CanvasDrawer } from '../../../common/drawer/types'
+import { CanvasDrawer, RoundedRectOptions } from '../../../common/drawer/types'
+import { FillOptions, LineOptions, TextOptions } from '../../../common/types/canvas'
 
-const DEFAULT_FONT_FAMILY = 'Helvetica'
-const DEFAULT_FONT_SIZE = 12
-const DEFAULT_BACKGROUND_COLOR = '#ddd'
-const DEFAULT_BORDER_LINE_WIDTH = 1
-const DEFAULT_BORDER_COLOR = '#aaa'
-const DEFAULT_BORDER_RADIUS = 3
 const DEFAULT_PADDING = 5
-const DEFAULT_TEXT_COLOR = 'black'
+const DEFAULT_TEXT_OPTIONS: TextOptions = {
+  color: 'black',
+  fontFamily: 'Helvetica',
+  fontSize: 12,
+}
+const DEFAULT_BORDER_FILL_OPTIONS: FillOptions = { color: '#ddd', opacity: 1 }
+const DEFAULT_BORDER_LINE_OPTIONS: LineOptions = { color: '#aaa', lineWidth: 1, dashPattern: [] }
+const DEFAULT_BORDER_RADII: Corners2DOptional<number> = { topLeft: 3, topRight: 3 }
 
-const getCursorPositionValueLabelFont = (props: Options, axis: Axis2D) => createTextStyle(
-  props.axesOptions?.[axis]?.cursorPositionValueLabelOptions?.fontFamily ?? DEFAULT_FONT_FAMILY,
-  props.axesOptions?.[axis]?.cursorPositionValueLabelOptions?.fontSize ?? DEFAULT_FONT_SIZE,
-)
+const parseRoundedRectOptions = (boundBoxOptions: RoundedRectOptions): RoundedRectOptions => ({
+  ...boundBoxOptions,
+  stroke: boundBoxOptions?.stroke ?? true,
+  fill: boundBoxOptions?.fill ?? true,
+  fillOptions: {
+    color: boundBoxOptions?.fillOptions?.color ?? DEFAULT_BORDER_FILL_OPTIONS.color,
+    opacity: boundBoxOptions?.fillOptions?.opacity ?? DEFAULT_BORDER_FILL_OPTIONS.opacity,
+  },
+  borderColor: boundBoxOptions?.borderColor ?? DEFAULT_BORDER_LINE_OPTIONS.color,
+  borderDashPattern: boundBoxOptions?.borderDashPattern ?? DEFAULT_BORDER_LINE_OPTIONS.dashPattern,
+  borderLineWidth: boundBoxOptions?.borderLineWidth ?? DEFAULT_BORDER_LINE_OPTIONS.lineWidth,
+  borderRadii: boundBoxOptions?.borderRadii ?? DEFAULT_BORDER_RADII,
+})
 
-const getCursorPositionValueLabelBorderRadius = (props: Options, axis: Axis2D) => (
-  props.axesOptions?.[axis]?.cursorPositionValueLabelOptions?.borderRadius ?? DEFAULT_BORDER_RADIUS
-)
-
-const getCursorPositionValueLabelBackgroundColor = (props: Options, axis: Axis2D) => (
-  props.axesOptions?.[axis]?.cursorPositionValueLabelOptions?.backgroundColor ?? DEFAULT_BACKGROUND_COLOR
-)
-
-const getCursorPositionValueLabelBorderColor = (props: Options, axis: Axis2D) => (
-  props.axesOptions?.[axis]?.cursorPositionValueLabelOptions?.borderColor ?? DEFAULT_BORDER_COLOR
-)
-
-const getCursorPositionValueLabelBorderLineWidth = (props: Options, axis: Axis2D) => (
-  props.axesOptions?.[axis]?.cursorPositionValueLabelOptions?.borderLineWidth ?? DEFAULT_BORDER_LINE_WIDTH
+const getCursorPositionValueLabelTextOptions = (props: Options, axis: Axis2D) => (
+  props.axesOptions?.[axis]?.cursorPositionValueLabelOptions?.textOptions
 )
 
 const getCursorPositionValueLabelPadding = (props: Options, axis: Axis2D) => (
@@ -45,27 +43,13 @@ const getCursorPositionValueLabelSnapTo = (props: Options, axis: Axis2D) => (
     ?? axis === Axis2D.X
 )
 
-const getCursorPositionValueLabelColor = (props: Options, axis: Axis2D) => (
-  props.axesOptions?.[axis]?.cursorPositionValueLabelOptions?.color ?? DEFAULT_TEXT_COLOR
+const getCursorPositionValueLabelRectOptions = (props: Options, axis: Axis2D) => (
+  parseRoundedRectOptions(props.axesOptions?.[axis]?.cursorPositionValueLabelOptions?.rectOptions)
 )
 
 export const getShouldDrawCursorPositionValueLabel = (props: Options, axis: Axis2D) => (
   props.axesOptions?.[axis]?.visibilityOptions?.showCursorPositionValueLabel ?? true
 )
-
-const drawLabelBackgroundRect = (ctx: CanvasRenderingContext2D, rectPath: Path2D, axis: Axis2D, props: Options) => {
-  ctx.fillStyle = getCursorPositionValueLabelBackgroundColor(props, axis)
-  ctx.fill(rectPath)
-  const borderLineWidth = getCursorPositionValueLabelBorderLineWidth(props, axis)
-
-  if (borderLineWidth <= 0)
-    return
-
-  ctx.lineWidth = borderLineWidth
-  ctx.strokeStyle = getCursorPositionValueLabelBorderColor(props, axis)
-  ctx.setLineDash([])
-  ctx.stroke(rectPath)
-}
 
 const drawXAxisCursorPositionValueLabel = (
   drawer: CanvasDrawer,
@@ -74,21 +58,21 @@ const drawXAxisCursorPositionValueLabel = (
   axesGeometry: AxesGeometry,
   props: Options,
 ) => {
-  const ctx = drawer.getRenderingContext()
-
   const pX = nearestDatum != null && getCursorPositionValueLabelSnapTo(props, Axis2D.X) ? nearestDatum.fpX : cursorPoint.x
   const xAxisText = formatNumber(axesGeometry[Axis2D.X].v(pX), props, Axis2D.X)
 
   const bgRectPaddingPx = getCursorPositionValueLabelPadding(props, Axis2D.X)
-  ctx.font = getCursorPositionValueLabelFont(props, Axis2D.X)
 
-  const lineHeight = measureTextLineHeight(ctx)
+  // Set font now early on so we can get the line height to size the bgRect correctly
+  const textOptions = getCursorPositionValueLabelTextOptions(props, Axis2D.X)
+  drawer.applyTextOptions(textOptions, DEFAULT_TEXT_OPTIONS)
+  const lineHeight = drawer.measureTextHeight()
+
   const textBoxWidth = drawer.measureTextWidth(xAxisText)
   const bgRectX = pX - textBoxWidth / 2 - bgRectPaddingPx
   const bgRectY = axesGeometry[Axis2D.Y].pl - lineHeight - 2 * bgRectPaddingPx
   const bgRectWidth = textBoxWidth + 2 * bgRectPaddingPx
   const bgRectHeight = lineHeight + 2 * bgRectPaddingPx
-  const bgRectRadius = getCursorPositionValueLabelBorderRadius(props, Axis2D.X)
 
   const bgRectXRightOverrunFromAxes = Math.max(0, bgRectX + bgRectWidth - axesGeometry[Axis2D.X].pu)
   const bgRectXLeftOverrunFromAxes = Math.max(0, axesGeometry[Axis2D.X].pl - bgRectX)
@@ -103,24 +87,13 @@ const drawXAxisCursorPositionValueLabel = (
     correctedBgRectX = ((axesGeometry[Axis2D.X].pu - axesGeometry[Axis2D.X].pl) / 2) - (bgRectX / 2)
 
   const bgRect: Rect = { x: correctedBgRectX, y: bgRectY, width: bgRectWidth, height: bgRectHeight }
-  drawer.roundedRectSimple(bgRect, {
-    fill: true,
-    stroke: true,
-    backgroundColor: getCursorPositionValueLabelBackgroundColor(props, Axis2D.X),
-    borderLineOptions: {
-      color: getCursorPositionValueLabelBorderColor(props, Axis2D.X),
-      dashPattern: [],
-      lineWidth: getCursorPositionValueLabelBorderLineWidth(props, Axis2D.X),
-      radii: { topLeft: bgRectRadius, topRight: bgRectRadius },
-    },
-  })
+  drawer.roundedRect(bgRect, getCursorPositionValueLabelRectOptions(props, Axis2D.X))
 
   // Create label
-  drawer.applyFillOptions({ color: getCursorPositionValueLabelColor(props, Axis2D.X) })
   drawer.text(xAxisText, {
     x: correctedBgRectX + bgRectPaddingPx,
     y: axesGeometry[Axis2D.Y].pl - bgRectPaddingPx - drawer.measureTextHeight(xAxisText) - 2,
-  })
+  }, null, textOptions, DEFAULT_TEXT_OPTIONS)
 }
 
 const drawYAxisCursorPositionValueLabel = (
@@ -130,30 +103,43 @@ const drawYAxisCursorPositionValueLabel = (
   axesGeometry: AxesGeometry,
   props: Options,
 ) => {
-  const ctx = drawer.getRenderingContext()
-
   const pY = nearestDatum != null && getCursorPositionValueLabelSnapTo(props, Axis2D.Y) ? nearestDatum.fpY : cursorPoint.y
   const yAxisText = axesGeometry[Axis2D.Y].v(pY).toFixed(2)
 
   const bgRectPaddingPx = getCursorPositionValueLabelPadding(props, Axis2D.Y)
-  // Set font now early on so we can get the line height to size the bgRect correctly
-  ctx.font = getCursorPositionValueLabelFont(props, Axis2D.Y)
 
-  const lineHeight = measureTextLineHeight(ctx)
+  // Set font now early on so we can get the line height to size the bgRect correctly
+  const textOptions = getCursorPositionValueLabelTextOptions(props, Axis2D.Y)
+  drawer.applyTextOptions(textOptions, DEFAULT_TEXT_OPTIONS)
+  const lineHeight = drawer.measureTextHeight()
+
   // Create background rect
-  const textBoxWidth = ctx.measureText(yAxisText).width
+  const textBoxWidth = drawer.measureTextWidth(yAxisText)
   const bgRectX = axesGeometry[Axis2D.X].pl
   const bgRectY = pY - lineHeight / 2 - bgRectPaddingPx
   const bgRectWidth = textBoxWidth + 2 * bgRectPaddingPx
   const bgRectHeight = lineHeight + 2 * bgRectPaddingPx
-  const bgRectRadius = getCursorPositionValueLabelBorderRadius(props, Axis2D.Y)
-  const bgRectBorderRadii = [0, bgRectRadius, 0, bgRectRadius]
-  const bgRect = createRoundedRect(bgRectX, bgRectY, bgRectWidth, bgRectHeight, bgRectBorderRadii)
-  drawLabelBackgroundRect(ctx, bgRect, Axis2D.Y, props)
 
-  // Create label
-  ctx.fillStyle = getCursorPositionValueLabelColor(props, Axis2D.Y)
-  ctx.fillText(yAxisText, axesGeometry[Axis2D.X].pl + bgRectPaddingPx, pY + lineHeight / 2 - 2)
+  const bgRectYTopOverrunFromAxes = Math.max(0, axesGeometry[Axis2D.Y].pu - bgRectY)
+  const bgRectYBottomOverrunFromAxes = Math.max(0, bgRectY + bgRectHeight - axesGeometry[Axis2D.Y].pl)
+
+  // Correct y position of bg rect if it overruns the axes
+  let correctedBgRectY = bgRectY
+  if (bgRectYTopOverrunFromAxes > 0 && bgRectYBottomOverrunFromAxes === 0)
+    correctedBgRectY = axesGeometry[Axis2D.Y].pu
+  else if (bgRectYBottomOverrunFromAxes > 0 && bgRectYTopOverrunFromAxes === 0)
+    correctedBgRectY = axesGeometry[Axis2D.Y].pl - bgRectHeight
+  else if (bgRectYTopOverrunFromAxes > 0 && bgRectYBottomOverrunFromAxes > 0)
+    correctedBgRectY = ((axesGeometry[Axis2D.Y].pl - axesGeometry[Axis2D.Y].pu) / 2) - (bgRectY / 2)
+
+  const bgRect: Rect = { x: bgRectX, y: correctedBgRectY, width: bgRectWidth, height: bgRectHeight }
+  drawer.roundedRect(bgRect, getCursorPositionValueLabelRectOptions(props, Axis2D.Y))
+
+  // Draw label
+  drawer.text(yAxisText, {
+    x: axesGeometry[Axis2D.X].pl + bgRectPaddingPx,
+    y: correctedBgRectY + bgRectPaddingPx,
+  }, null, textOptions, DEFAULT_TEXT_OPTIONS)
 }
 
 export const drawCursorPositionValueLabel = (

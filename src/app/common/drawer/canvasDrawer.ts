@@ -5,7 +5,7 @@ import { Line, CircularSector, Rect, Circle, Point2D, RectDimensions, QuadraticC
 import { createPath2DFromPath } from './path/path'
 import { Path, PathComponentType } from './path/types'
 import { normalizeCornersObject, normalizeDirectionsObject } from '../helpers/geometry'
-import { convertHexAndOpacityToRgba } from '../helpers/color'
+import { convertCssColorAndOpacityToRgba } from '../helpers/color'
 
 /* eslint-disable no-param-reassign */
 
@@ -16,20 +16,39 @@ const applyLineOptions = (state: CanvasDrawerState, lineOptions: LineOptions, fa
 }
 
 const applyFillOptions = (state: CanvasDrawerState, fillOptions: FillOptions, fallbackOptions: FillOptions) => {
-  state.ctx.fillStyle = fillOptions?.color ?? fallbackOptions?.color ?? 'black'
+  state.ctx.fillStyle = convertCssColorAndOpacityToRgba(
+    fillOptions?.color ?? fallbackOptions?.color ?? 'black', // color
+    fillOptions?.opacity ?? fallbackOptions?.opacity ?? 1, // opacity
+  )
 }
 
 /* eslint-enable no-param-reassign */
 
-const applyLineAndFillOptions = (state: CanvasDrawerState, lineOptions: LineOptions, fillOptions: FillOptions) => {
+const applyLineAndFillOptions = (
+  state: CanvasDrawerState,
+  lineOptions: LineOptions,
+  fallbackLineOptions: LineOptions,
+  fillOptions: FillOptions,
+  fallbackFillOptions: FillOptions,
+) => {
   if (lineOptions != null)
-    applyLineOptions(state, lineOptions, null)
+    applyLineOptions(state, lineOptions, fallbackLineOptions)
   if (fillOptions != null)
-    applyFillOptions(state, fillOptions, null)
+    applyFillOptions(state, fillOptions, fallbackFillOptions)
+}
+
+const applyDrawOptions = (
+  state: CanvasDrawerState,
+  drawOptions: DrawOptions,
+) => {
+  if (drawOptions?.lineOptions != null)
+    applyLineOptions(state, drawOptions.lineOptions, drawOptions.fallbackLineOptions)
+  if (drawOptions?.fillOptions != null)
+    applyFillOptions(state, drawOptions.fillOptions, drawOptions.fallbackFillOptions)
 }
 
 const applyTextOptions = (state: CanvasDrawerState, textOptions: TextOptionsBase, fallbackOptions: TextOptionsBase) => {
-  applyTextOptionsToContext(state.ctx, textOptions, fallbackOptions?.fontFamily, fallbackOptions?.fontSize, fallbackOptions?.color)
+  applyTextOptionsToContext(state.ctx, textOptions, fallbackOptions)
 }
 
 const drawPath2D = (state: CanvasDrawerState, _path: Path2D, stroke: boolean = true, fill: boolean = false) => {
@@ -54,11 +73,11 @@ export const createLinePath = (_line: Line, precreatedPath?: Path2D): Path2D => 
   return p
 }
 
-const line = (state: CanvasDrawerState, _line: Line, lineOptions: LineOptions): Path2D => {
+const line = (state: CanvasDrawerState, _line: Line, lineOptions: LineOptions, fallbackLineOptions: LineOptions): Path2D => {
   if (_line == null || _line.length !== 2)
     return null
 
-  applyLineAndFillOptions(state, lineOptions, null)
+  applyLineAndFillOptions(state, lineOptions, fallbackLineOptions, null, null)
 
   if (state.ctx.lineWidth === 0)
     return null
@@ -76,11 +95,16 @@ const createQuadraticCurvePath = (curve: QuadraticCurve): Path2D => {
   return p
 }
 
-const quadraticCurve = (state: CanvasDrawerState, curve: QuadraticCurve, lineOptions: LineOptions): Path2D => {
+const quadraticCurve = (
+  state: CanvasDrawerState,
+  curve: QuadraticCurve,
+  lineOptions: LineOptions,
+  fallbackLineOptions: LineOptions,
+) : Path2D => {
   if (curve == null)
     return null
 
-  applyLineAndFillOptions(state, lineOptions, null)
+  applyLineAndFillOptions(state, lineOptions, fallbackLineOptions, null, null)
 
   if (state.ctx.lineWidth === 0)
     return null
@@ -106,7 +130,7 @@ const arc = (
 
   const _drawOptions = drawOptions ?? { }
 
-  applyLineAndFillOptions(state, _drawOptions.lineOptions, _drawOptions.fillOptions)
+  applyDrawOptions(state, drawOptions)
 
   if ((_drawOptions.stroke ?? true) && state.ctx.lineWidth === 0)
     return null
@@ -116,12 +140,11 @@ const arc = (
   return p
 }
 
-export const createCirclePath = (_circle: Circle): Path2D => {
-  const p = new Path2D()
-  const sector: CircularSector = { position: _circle.position, radius: _circle.radius, arc: { start: 0, end: 2 * Math.PI } }
-  p.arc(sector.position.x, sector.position.y, sector.radius, sector.arc.start, sector.arc.end)
-  return p
-}
+export const createCirclePath = (_circle: Circle): Path2D => createArcPath({
+  position: _circle.position,
+  radius: _circle.radius,
+  arc: { start: 0, end: 2 * Math.PI },
+})
 
 const circle = (
   state: CanvasDrawerState,
@@ -133,7 +156,7 @@ const circle = (
 
   const _drawOptions = drawOptions ?? { }
 
-  applyLineAndFillOptions(state, _drawOptions.lineOptions, _drawOptions.fillOptions)
+  applyDrawOptions(state, drawOptions)
 
   if ((_drawOptions.stroke ?? true) && state.ctx.lineWidth === 0)
     return null
@@ -153,13 +176,13 @@ const path = (
 
   const _drawOptions = drawOptions ?? { }
   // Exit if the draw options mean that nothing will be visible
-  if ((_drawOptions.stroke ?? true) && !(_drawOptions.fill ?? false) && state.ctx.lineWidth === 0)
+  if (!(_drawOptions.stroke ?? true) && !(_drawOptions.fill ?? false))
     return null
 
-  applyLineAndFillOptions(state, _drawOptions.lineOptions, _drawOptions.fillOptions)
+  applyDrawOptions(state, _drawOptions)
 
   const p = createPath2DFromPath(_path)
-  drawPath2D(state, p, _drawOptions.stroke, _drawOptions.fill)
+  drawPath2D(state, p, _drawOptions.stroke ?? true, _drawOptions.fill ?? false)
   return p
 }
 
@@ -178,7 +201,7 @@ const rect = (
     return null
 
   const _drawOptions = drawOptions ?? { }
-  applyLineAndFillOptions(state, _drawOptions.lineOptions, _drawOptions.fillOptions)
+  applyDrawOptions(state, drawOptions)
 
   if ((_drawOptions.stroke ?? true) && state.ctx.lineWidth === 0)
     return null
@@ -218,12 +241,13 @@ const roundedRectSimple = (
   if (_rect == null)
     return null
 
-  applyLineAndFillOptions(state, options.borderLineOptions, { color: options.backgroundColor })
+  applyDrawOptions(state, options)
 
   // If border radius is not defined or zero, then can just create a simple rect path, else create rounded rect path
-  const p = options.borderLineOptions?.radii == null || options.borderLineOptions.radii === 0
+  const borderRadius = options.lineOptions?.radii ?? options.fallbackLineOptions?.radii ?? 0
+  const p = borderRadius == null || borderRadius === 0
     ? createRectPath(_rect)
-    : createSingleRoundedRectPath(_rect, normalizeCornersObject(options.borderLineOptions.radii, 0))
+    : createSingleRoundedRectPath(_rect, normalizeCornersObject(borderRadius, 0))
   drawPath2D(state, p, options.stroke, options.fill)
   return p
 }
@@ -233,61 +257,135 @@ const roundedRect = (
   _rect: Rect,
   options: RoundedRectOptions,
 ) => {
-  const borderColor = normalizeDirectionsObject(options.borderColor)
-  const normalizedBorderDashPattern = normalizeDirectionsObject(options.borderDashPattern)
+  const borderColors = normalizeDirectionsObject(options.borderColor)
+  const borderDashPatterns = normalizeDirectionsObject(options.borderDashPattern)
+  const borderLineVisibilities = normalizeDirectionsObject(options.stroke)
   const borderLineWidth = options.borderLineWidth ?? 1
-  const radii = normalizeCornersObject(options.borderRadii)
+  const radii = normalizeCornersObject(options.borderRadii, 0)
   const { x, y, height, width } = _rect
   const rightX = x + width
   const bottomY = y + height
 
-  line(
-    state,
-    [{ x: x + radii.topLeft, y }, { x: rightX - radii.topRight, y }],
-    { color: borderColor.top, dashPattern: normalizedBorderDashPattern.top, lineWidth: borderLineWidth },
-  )
-  quadraticCurve(
-    state,
-    { fromPos: { x: rightX - radii.topRight, y }, cPos: { x: rightX, y }, toPos: { x: rightX, y: y + radii.topRight } },
-    { color: borderColor.top, dashPattern: normalizedBorderDashPattern.top, lineWidth: borderLineWidth },
-  )
-  line(
-    state,
-    [{ x: rightX, y: y + radii.topRight }, { x: rightX, y: bottomY - radii.bottomRight }],
-    { color: borderColor.right, dashPattern: normalizedBorderDashPattern.right, lineWidth: borderLineWidth },
-  )
-  quadraticCurve(
-    state,
-    { fromPos: { x: rightX, y: bottomY - radii.bottomRight }, cPos: { x: rightX, y: bottomY }, toPos: { x: rightX - radii.bottomRight, y: bottomY } },
-    { color: borderColor.right, dashPattern: normalizedBorderDashPattern.right, lineWidth: borderLineWidth },
-  )
-  line(
-    state,
-    [{ x: rightX - radii.bottomRight, y: bottomY }, { x: x + radii.bottomLeft, y: bottomY }],
-    { color: borderColor.bottom, dashPattern: normalizedBorderDashPattern.bottom, lineWidth: borderLineWidth },
-  )
-  quadraticCurve(
-    state,
-    { fromPos: { x: x + radii.bottomLeft, y: bottomY }, cPos: { x, y: bottomY }, toPos: { x, y: bottomY - radii.bottomLeft } },
-    { color: borderColor.bottom, dashPattern: normalizedBorderDashPattern.bottom, lineWidth: borderLineWidth },
-  )
-  line(
-    state,
-    [{ x, y: bottomY - radii.bottomLeft }, { x, y: y + radii.topLeft }],
-    { color: borderColor.left, dashPattern: normalizedBorderDashPattern.left, lineWidth: borderLineWidth },
-  )
-  quadraticCurve(
-    state,
-    { fromPos: { x, y: y + radii.topLeft }, cPos: { x, y }, toPos: { x: x + radii.topLeft, y } },
-    { color: borderColor.left, dashPattern: normalizedBorderDashPattern.left, lineWidth: borderLineWidth },
-  )
-
-  if (options.backgroundColor != null) {
-    const backgroundColor = options?.backgroundColor
-    const backgroundOpacity = options?.backgroundOpacity ?? 0.1
-    const rgba = convertHexAndOpacityToRgba(backgroundColor, backgroundOpacity)
-    rect(state, _rect, { fill: true, stroke: false, fillOptions: { color: rgba } })
+  /* eslint-disable max-len */
+  const arcs = {
+    top: {
+      left: { arc: { start: 1.25 * Math.PI, end: 1.5 * Math.PI }, position: { x: x + radii.topLeft, y: y + radii.topLeft }, radius: radii.topLeft },
+      right: { arc: { start: 1.5 * Math.PI, end: 1.75 * Math.PI }, position: { x: rightX - radii.topRight, y: y + radii.topRight }, radius: radii.topRight },
+    },
+    right: {
+      top: { arc: { start: 1.75 * Math.PI, end: 0 }, position: { x: rightX - radii.topRight, y: y + radii.topRight }, radius: radii.topRight },
+      bottom: { arc: { start: 0, end: 0.25 * Math.PI }, position: { x: rightX - radii.bottomRight, y: bottomY - radii.bottomRight }, radius: radii.bottomRight },
+    },
+    bottom: {
+      right: { arc: { start: 0.25 * Math.PI, end: 0.5 * Math.PI }, position: { x: rightX - radii.bottomRight, y: bottomY - radii.bottomRight }, radius: radii.bottomRight },
+      left: { arc: { start: 0.5 * Math.PI, end: 0.75 * Math.PI }, position: { x: x + radii.bottomLeft, y: bottomY - radii.bottomLeft }, radius: radii.bottomLeft },
+    },
+    left: {
+      bottom: { arc: { start: 0.75 * Math.PI, end: Math.PI }, position: { x: x + radii.bottomLeft, y: bottomY - radii.bottomLeft }, radius: radii.bottomLeft },
+      top: { arc: { start: Math.PI, end: 1.25 * Math.PI }, position: { x: x + radii.topLeft, y: y + radii.topLeft }, radius: radii.topLeft },
+    },
   }
+  /* eslint-enable max-len */
+
+  const lines = {
+    top: { from: { x: x + radii.topLeft, y }, to: { x: rightX - radii.topRight, y } },
+    right: { from: { x: rightX, y: y + radii.topRight }, to: { x: rightX, y: bottomY - radii.bottomRight } },
+    bottom: { from: { x: rightX - radii.bottomRight, y: bottomY }, to: { x: x + radii.bottomLeft, y: bottomY } },
+    left: { from: { x, y: bottomY - radii.bottomLeft }, to: { x, y: y + radii.topLeft } },
+  }
+
+  // Top
+  if (borderLineVisibilities.top) {
+    const isTopLeftCornerRadiusZero = arcs.top.left.radius === 0
+    const isTopRightCornerRadiusZero = arcs.top.right.radius === 0
+    if (!isTopLeftCornerRadiusZero) {
+      // Top left
+      arc(state, arcs.top.left,
+        { lineOptions: { color: borderColors.top, dashPattern: borderDashPatterns.top, lineWidth: borderLineWidth } })
+    }
+    const from = { x: lines.top.from.x - (isTopLeftCornerRadiusZero ? borderLineWidth / 2 : 0), y: lines.top.from.y }
+    const to = { x: lines.top.to.x + (isTopRightCornerRadiusZero ? borderLineWidth / 2 : 0), y: lines.top.to.y }
+    line(state, [from, to],
+      { color: borderColors.top, dashPattern: borderDashPatterns.top, lineWidth: borderLineWidth },
+      null)
+    if (!isTopRightCornerRadiusZero) {
+      // Top right
+      arc(state, arcs.top.right,
+        { lineOptions: { color: borderColors.top, dashPattern: borderDashPatterns.top, lineWidth: borderLineWidth } })
+    }
+  }
+  // Right
+  if (borderLineVisibilities.right) {
+    const isTopRightCornerRadiusZero = arcs.top.right.radius === 0
+    const isBottomRightCornerRadiusZero = arcs.bottom.right.radius === 0
+    if (!isTopRightCornerRadiusZero) {
+      // Top right
+      arc(state, arcs.right.top,
+        { lineOptions: { color: borderColors.right, dashPattern: borderDashPatterns.right, lineWidth: borderLineWidth } })
+    }
+    // Right
+    const from = { x: lines.right.from.x, y: lines.right.from.y - (isTopRightCornerRadiusZero ? borderLineWidth / 2 : 0) }
+    const to = { x: lines.right.from.x, y: lines.right.to.y + (isBottomRightCornerRadiusZero ? borderLineWidth / 2 : 0) }
+    line(state, [from, to],
+      { color: borderColors.right, dashPattern: borderDashPatterns.right, lineWidth: borderLineWidth },
+      null)
+    if (!isBottomRightCornerRadiusZero) {
+      // Bottom right
+      arc(state, arcs.right.bottom,
+        { lineOptions: { color: borderColors.right, dashPattern: borderDashPatterns.right, lineWidth: borderLineWidth } })
+    }
+  }
+  // Bottom
+  if (borderLineVisibilities.bottom) {
+    const isBottomRightCornerRadiusZero = arcs.bottom.right.radius === 0
+    const isBottomLeftCornerRadiusZero = arcs.bottom.left.radius === 0
+    if (!isBottomRightCornerRadiusZero) {
+      // Bottom right
+      arc(state, arcs.bottom.right,
+        { lineOptions: { color: borderColors.bottom, dashPattern: borderDashPatterns.bottom, lineWidth: borderLineWidth } })
+    }
+    // Bottom
+    const from = { x: lines.bottom.from.x + (isBottomRightCornerRadiusZero ? borderLineWidth / 2 : 0), y: lines.bottom.from.y }
+    const to = { x: lines.bottom.to.x - (isBottomLeftCornerRadiusZero ? borderLineWidth / 2 : 0), y: lines.bottom.to.y }
+    line(state, [from, to],
+      { color: borderColors.bottom, dashPattern: borderDashPatterns.bottom, lineWidth: borderLineWidth },
+      null)
+    if (!isBottomLeftCornerRadiusZero) {
+      // Bottom left
+      arc(state, arcs.bottom.left,
+        { lineOptions: { color: borderColors.bottom, dashPattern: borderDashPatterns.bottom, lineWidth: borderLineWidth } })
+    }
+  }
+  // Left
+  if (borderLineVisibilities.left) {
+    const isBottomLeftCornerRadiusZero = arcs.bottom.left.radius === 0
+    const isTopLeftCornerRadiusZero = arcs.top.left.radius === 0
+    if (!isBottomLeftCornerRadiusZero) {
+      // Bottom left
+      arc(state, arcs.left.bottom,
+        { lineOptions: { color: borderColors.left, dashPattern: borderDashPatterns.left, lineWidth: borderLineWidth } })
+    }
+    // Left
+    const from = { x: lines.left.from.x, y: lines.left.from.y + (isBottomLeftCornerRadiusZero ? borderLineWidth / 2 : 0) }
+    const to = { x: lines.left.from.x, y: lines.left.to.y - (isTopLeftCornerRadiusZero ? borderLineWidth / 2 : 0) }
+    line(state, [from, to],
+      { color: borderColors.left, dashPattern: borderDashPatterns.left, lineWidth: borderLineWidth },
+      null)
+    if (!isTopLeftCornerRadiusZero) {
+      // top left
+      arc(state, arcs.left.top,
+        { lineOptions: { color: borderColors.left, dashPattern: borderDashPatterns.left, lineWidth: borderLineWidth } })
+    }
+  }
+
+  // Background
+  const drawOptions = {
+    stroke: false,
+    fill: true,
+    lineOptions: { radii },
+    fillOptions: { color: options?.fillOptions?.color, opacity: options?.fillOptions?.opacity },
+  }
+  roundedRectSimple(state, _rect, drawOptions)
 }
 
 const occlusionBorder = (
@@ -329,7 +427,7 @@ const isoscelesTriangle = (
   if (boundingRect == null)
     return null
 
-  applyLineAndFillOptions(state, drawOptions.lineOptions, drawOptions.fillOptions)
+  applyDrawOptions(state, drawOptions)
 
   if ((drawOptions.stroke ?? true) && state.ctx.lineWidth === 0)
     return null
@@ -339,9 +437,15 @@ const isoscelesTriangle = (
   return path2D
 }
 
-const text = (state: CanvasDrawerState, _text: string, position: Point2D, angle: number, textOptions: TextOptions) => {
-  if (textOptions != null)
-    applyTextOptions(state, textOptions, null)
+const text = (
+  state: CanvasDrawerState,
+  _text: string,
+  position: Point2D,
+  angle: number,
+  textOptions: TextOptions,
+  fallbackTextOptions: TextOptions,
+) => {
+  applyTextOptions(state, textOptions, fallbackTextOptions)
 
   const textLineHeightMetrics = getTextLineHeightMetrics(state.ctx)
 
@@ -372,7 +476,8 @@ export const createCanvasDrawer = (canvasElement: HTMLCanvasElement, rectDimensi
     applyFillOptions: (fillOptions, fallbackOptions) => applyFillOptions(state, fillOptions, fallbackOptions),
     applyTextOptions: (textOptions, fallbackOptions) => applyTextOptions(state, textOptions, fallbackOptions),
     getRenderingContext: () => state.ctx,
-    line: (_line, lineOptions) => line(state, _line, lineOptions),
+    line: (_line, lineOptions) => line(state, _line, lineOptions, null),
+    quadraticCurve: (_quadraticCurve, lineOptions) => quadraticCurve(state, _quadraticCurve, lineOptions, null),
     arc: (sector, drawOptions) => arc(state, sector, drawOptions),
     circle: (_circle, drawOptions) => circle(state, _circle, drawOptions),
     path: (_path, drawOptions) => path(state, _path, drawOptions),
@@ -384,7 +489,7 @@ export const createCanvasDrawer = (canvasElement: HTMLCanvasElement, rectDimensi
       isoscelesTriangle(state, boundingRect, drawOptions)
     ),
     clearRenderingSpace: rectToClear => clearRenderingSpace(state, rectToClear),
-    text: (_text, position, angle, textOptions) => text(state, _text, position, angle, textOptions),
+    text: (_text, position, angle, textOptions, fallbackTextOptions) => text(state, _text, position, angle, textOptions, fallbackTextOptions),
     measureTextWidth: _text => measureTextWidth(state.ctx, _text),
     measureTextHeight: _text => measureTextLineHeight(state.ctx, _text),
     measureTextRectDimensions: _text => ({

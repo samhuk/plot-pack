@@ -1,5 +1,5 @@
-import { LineOptions } from '../../../common/types/canvas'
-import { Directions2DOptional, Rect } from '../../../common/types/geometry'
+import { RoundedRectOptions } from '../../../common/drawer/types'
+import { Rect } from '../../../common/types/geometry'
 
 /**
  * Options for the x-value bound box that is drawn. These will customize the behavior
@@ -14,11 +14,7 @@ import { Directions2DOptional, Rect } from '../../../common/types/geometry'
  * @param isCustomRenderingComplementary If true, the provided custom `render` function will complement the
  * default bound box rendering. If false, no default bound box rendering will occur.
  */
-export type NavigatorBoundBoxOptions = {
-  backgroundOpacity?: number;
-  backgroundColor?: string;
-  borderLineVisibility?: boolean | Directions2DOptional<boolean>
-  borderLineOptions?: LineOptions | Directions2DOptional<LineOptions>
+export type NavigatorBoundBoxOptions = RoundedRectOptions & {
   render?: (ctx: CanvasRenderingContext2D, boundBoxRect: Rect) => void
   isCustomRenderingComplementary?: boolean
 }

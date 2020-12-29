@@ -29,8 +29,7 @@ export const drawTitle = (drawer: CanvasDrawer, textRect: Rect, props: Options) 
   if (text == null)
     return
 
-  applyTitleTextOptionsToDrawer(drawer, props)
-  drawer.text(text, textRect)
+  drawer.text(text, textRect, null, getTitleOptions(props), DEFAULT_TEXT_OPTIONS)
 }
 
 export default drawTitle

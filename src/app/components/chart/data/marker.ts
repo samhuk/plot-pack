@@ -35,7 +35,7 @@ export const getShouldShowCustomMarkers = (props: Options, seriesKey: string) =>
 ) != null
 
 const createDotMarkerPath = (x: number, y: number, size: number): Path => [
-  { type: PathComponentType.CIRCLE, x, y, radius: size / 2 },
+  { type: PathComponentType.CIRCLE, position: { x, y }, radius: size / 2 },
 ]
 
 const createSquareMarkerPath = (x: number, y: number, size: number): Path => {

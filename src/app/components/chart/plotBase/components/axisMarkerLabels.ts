@@ -1,6 +1,5 @@
 import Options from '../../types/Options'
 import { Axis2D, Point2D } from '../../../../common/types/geometry'
-import { measureTextWidth, measureTextLineHeight, applyTextOptionsToContext } from '../../../../common/helpers/canvas'
 import { formatNumber as formatNumberMath } from '../../../../common/helpers/math'
 import AxesGeometry from '../../types/AxesGeometry'
 import { getMarkerLineLength } from './axisMarkerLines'
@@ -9,10 +8,13 @@ import YAxisMarkerOrientation from '../../types/YAxisMarkerOrientation'
 import { determineXAxisMarkerPositioning, determineYAxisMarkerPositioning } from '../geometry/axisMarkerPositioning'
 import AxisMarkerLabel from '../../types/AxisMarkerLabel'
 import { CanvasDrawer } from '../../../../common/drawer/types'
+import { TextOptions } from '../../../../common/types/canvas'
 
-const DEFAULT_FONT_FAMILY = 'Helvetica'
-const DEFAULT_FONT_SIZE = 9
-const DEFAULT_COLOR = 'black'
+const DEFALT_TEXT_OPTIONS: TextOptions = {
+  color: 'black',
+  fontFamily: 'Helvetica',
+  fontSize: 9,
+}
 
 export const getShouldShowAxisMarkerLabels = (props: Options, axis: Axis2D) => (
   props.axesOptions?.[axis]?.visibilityOptions?.showAxisMarkerLabels
@@ -80,11 +82,10 @@ const createAxisMarkerLabels = (
   axis: Axis2D,
   props: Options,
 ): AxisMarkerLabel[] => {
-  const ctx = drawer.getRenderingContext()
-  applyTextOptionsToContext(ctx, props.axesOptions?.[axis]?.markerLabelOptions, DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE, DEFAULT_COLOR)
+  drawer.applyTextOptions(props.axesOptions?.[axis]?.markerLabelOptions, DEFALT_TEXT_OPTIONS)
 
   const { orthogonalScreenPosition } = axesGeometry[axis]
-  const lineHeight = measureTextLineHeight(ctx)
+  const lineHeight = drawer.measureTextHeight()
   const markerLineLength = getMarkerLineLength(props, axis)
   const markerPosition = axis === Axis2D.X ? getXAxisMarkerOrientation(props) : getYAxisMarkerOrientation(props)
 
@@ -92,7 +93,7 @@ const createAxisMarkerLabels = (
   for (let i = 0; i < axesGeometry[axis].numGridLines; i += 1) {
     const value = axesGeometry[axis].vlGrid + axesGeometry[axis].dvGrid * i
     const text = formatNumber(value, props, axis)
-    const textWidth = measureTextWidth(ctx, text)
+    const textWidth = drawer.measureTextWidth(text)
     const offsetVector = calculateMarkerLabelOffsetVector(axesGeometry, markerPosition, markerLineLength, lineHeight, textWidth, axis)
     const parallelScreenPosition = axesGeometry[axis].p(value)
     const pX = axis === Axis2D.X ? parallelScreenPosition + offsetVector.x : orthogonalScreenPosition + offsetVector.x

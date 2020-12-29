@@ -1,24 +1,33 @@
-import { Rect, Line, Circle, CircularSector, Point2D, RectDimensions, Directions2DOptional, Corners2DOptional } from '../types/geometry'
+import { Rect,
+  Line,
+  Circle,
+  CircularSector,
+  Point2D,
+  RectDimensions,
+  Directions2DOptional,
+  Corners2DOptional,
+  QuadraticCurve } from '../types/geometry'
 import { LineOptions, FillOptions, TextOptions as TextOptionsBase } from '../types/canvas'
 import { Path } from './path/types'
 
 export type DrawOptions = {
   lineOptions?: LineOptions
+  fallbackLineOptions?: LineOptions
   fillOptions?: FillOptions
+  fallbackFillOptions?: FillOptions
   stroke?: boolean
   fill?: boolean
 }
 
 export type TextOptions = TextOptionsBase
 
-export type RoundedRectSimpleOptions = {
-  borderLineOptions?: LineOptions & {
+export type RoundedRectSimpleOptions = DrawOptions & {
+  lineOptions?: {
     radii?: number | Corners2DOptional<number>,
   }
-  backgroundColor?: string
-  backgroundOpacity?: number
-  stroke?: boolean
-  fill?: boolean
+  fallbackLineOptions?: {
+    radii?: number | Corners2DOptional<number>,
+  }
 }
 
 export type RoundedRectOptions = {
@@ -26,9 +35,8 @@ export type RoundedRectOptions = {
   borderColor?: string | Directions2DOptional<string>
   borderLineWidth?: number
   borderRadii?: number | Corners2DOptional<number>
-  backgroundColor?: string
-  backgroundOpacity?: number
-  stroke?: boolean
+  fillOptions?: FillOptions
+  stroke?: boolean | Directions2DOptional<boolean>
   fill?: boolean
 }
 
@@ -43,12 +51,16 @@ type Drawer<T, R> = {
    * @param position The top-left position of the text
    * @param angle The angle of rotation of the text.
    */
-  text: (text: string, position: Point2D, angle?: number, textOptions?: TextOptions) => void
+  text: (text: string, position: Point2D, angle?: number, textOptions?: TextOptions, fallbackTextOptions?: TextOptions) => void
   // -- Draw shape commands
   /**
    * Draws a line between the given two points.
    */
   line: (line: Line, lineOptions?: LineOptions) => R
+  /**
+   * Draws a quadratic curve for the given QuadraticCurve
+   */
+  quadraticCurve: (quadraticCurve: QuadraticCurve, drawOptions?: LineOptions) => R
   /**
    * Draws a rectangle for the given Rect.
    */

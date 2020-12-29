@@ -1,5 +1,5 @@
 import { LineOptions, FillOptions } from '../../types/canvas'
-import { Point2D, Rect } from '../../types/geometry'
+import { Circle, CircularSector, Point2D, Rect } from '../../types/geometry'
 
 export type DrawOptions = {
   lineOptions?: LineOptions
@@ -18,10 +18,6 @@ export enum PathComponentType {
   ARC = 'arc',
   ISOSCELES_TRIANGLE = 'isos_tri',
 }
-
-type Circle = Point2D & { radius: number }
-
-type CircularSector = Circle & { startAngle?: number, endAngle: number }
 
 type PathTypeToOptionsMap = {
   [PathComponentType.MOVE_TO]: Point2D

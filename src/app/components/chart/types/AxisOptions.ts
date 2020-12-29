@@ -8,6 +8,7 @@ import XAxisMarkerOrientation from './XAxixMarkerOrientation'
 import YAxisMarkerOrientation from './YAxisMarkerOrientation'
 import AxisMarkerLineOptions from './AxisMarkerLineOptions'
 import AxesLabelOptions from './AxesLabelOptions'
+import { RoundedRectOptions } from '../../../common/drawer/types'
 
 /**
  * Options to customize the rendering and behavior of an axis.
@@ -32,13 +33,8 @@ export type AxisOptions = {
   }
   cursorPositionValueLabelOptions?: {
     snapToNearestDatum?: boolean
-    fontFamily?: string
-    fontSize?: number
-    color?: string
-    backgroundColor?: string
-    borderColor?: string
-    borderLineWidth?: number
-    borderRadius?: number
+    rectOptions: RoundedRectOptions,
+    textOptions: TextOptions
     padding?: number
   }
 }

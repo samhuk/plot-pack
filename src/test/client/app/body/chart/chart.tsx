@@ -156,12 +156,16 @@ export const render = () => {
               },
               cursorPositionValueLabelOptions: {
                 snapToNearestDatum: true,
-                fontSize: 20,
-                color: 'red',
-                backgroundColor: 'white',
-                borderColor: 'blue',
-                borderLineWidth: 3,
-                borderRadius: 15,
+                textOptions: {
+                  fontSize: 20,
+                  color: 'red',
+                },
+                rectOptions: {
+                  fillOptions: { color: 'white' },
+                  borderColor: 'blue',
+                  borderRadii: { topLeft: 10, topRight: 10 },
+                  borderLineWidth: 5,
+                },
                 padding: 10,
               },
             },
@@ -171,13 +175,19 @@ export const render = () => {
               {
                 type: AnnotationType.RANGE,
                 axesValueBound: {
-                  x: { lower: -2, upper: 2 },
-                  y: { lower: -2, upper: 2 },
+                  x: { lower: 0, upper: 12 },
+                  y: { lower: 0, upper: 16 },
                 },
-                backgroundColor: '#00FF00',
-                backgroundOpacity: 0.1,
-                borderColor: 'red',
+                stroke: true,
+                fill: true,
+                fillOptions: {
+                  color: 'green',
+                  opacity: 0.2,
+                },
+                borderDashPattern: { top: [5, 5], right: [3, 3] },
+                borderColor: { top: 'red', right: 'green', bottom: 'blue', left: 'purple' },
                 borderLineWidth: 3,
+                borderRadii: { topLeft: 20, topRight: 10, bottomLeft: 5, bottomRight: 15 },
               },
             ],
           }}
@@ -205,6 +215,8 @@ export const render = () => {
             borderLineColor: '#999',
             xValueLabelTextOptions: {
               color: 'white',
+              fontSize: 18,
+              fontFamily: 'Impact',
             },
             xValueLabelDividerOptions: {
               color: 'white',
@@ -228,9 +240,11 @@ export const render = () => {
           }}
           navigatorOptions={{
             boundBoxOptions: {
-              borderLineVisibility: { bottom: true },
-              borderLineOptions: { bottom: { lineWidth: 2, color: 'red' } },
-              backgroundColor: '#ff0000',
+              stroke: { bottom: true },
+              borderColor: 'red',
+              fillOptions: {
+                color: 'red',
+              },
             },
           }}
         />
