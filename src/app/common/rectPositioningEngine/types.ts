@@ -25,6 +25,18 @@ export type Margin = { left?: number, right?: number, top?: number, bottom?: num
 
 export type Padding = { left?: number, right?: number, top?: number, bottom?: number }
 
+export type ElementOptionsBase = {
+  id?: string
+  render?: (rect: Rect, index: number) => void
+}
+
+export type InputElementOptions = ElementOptionsBase & {
+  width?: number | string
+  height?: number | string
+  margin?: InputMargin
+  padding?: InputPadding
+}
+
 /**
  * Base options for a row or column.
  *
@@ -38,29 +50,27 @@ export type Padding = { left?: number, right?: number, top?: number, bottom?: nu
  * of the element.
  * @param padding The padding of this element. This padding will not effect the rect that
  * is supplied to the render method, but rather will pad any child elements of this element.
+ * @param render Function to call when the element's rendering rect has been calculated.
  */
-export type ElementOptions = {
-  id?: string
+export type ElementOptions = ElementOptionsBase & {
   width?: number
   height?: number
   widthUnits?: SizeUnit
   heightUnits?: SizeUnit
-  margin?: InputMargin
-  padding?: InputPadding
+  margin?: Margin
+  padding?: Padding
 }
 
-export type ColumnOptions = ElementOptions & {
+export type ColumnOptionsBase<BaseElementOptions> = BaseElementOptions & {
   numRows?: number
   evenlyFillAvailableWidth?: boolean
   rowJustification?: RowJustification
-  render?: (rect: Rect, index: number) => void
 }
 
-export type RowOptions = ElementOptions & {
+export type RowOptionsBase<BaseElementOptions> = BaseElementOptions & {
   numColumns?: number
   evenlyFillAvailableHeight?: boolean
   columnJustification?: ColumnJustification
-  render?: (rect: Rect, index: number) => void
 }
 
 /**
@@ -80,7 +90,7 @@ export type RowOptions = ElementOptions & {
  * i.e. top, center, or bottom.
  * @param render Function to call when the column's rendering rect has been calculated.
  */
-export type InputColumn = ColumnOptions & {
+export type InputColumn = ColumnOptionsBase<InputElementOptions> & {
   rows?: InputRow[]
   rowTemplate?: InputRow
 }
@@ -100,21 +110,20 @@ export type InputColumn = ColumnOptions & {
  * @param rowJustification If the total width of the child columns is less than the width of
  * this row, then the columns will be justified horizontally according to the column justification,
  * i.e. left, center, or right.
- * @param render Function to call when the row's rendering rect has been calculated.
  */
-export type InputRow = RowOptions & {
+export type InputRow = RowOptionsBase<InputElementOptions> & {
   columns?: InputColumn[]
   columnTemplate?: InputColumn
 }
 
-export type Column = ColumnOptions & {
+export type Column = ColumnOptionsBase<ElementOptions> & {
   rows: Row[]
   rowTemplate: Row
   boundingHeight: number
   boundingWidth: number
 }
 
-export type Row = RowOptions & {
+export type Row = RowOptionsBase<ElementOptions> & {
   columns: Column[]
   columnTemplate: Column
   boundingHeight: number

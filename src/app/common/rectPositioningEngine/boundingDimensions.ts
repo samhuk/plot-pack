@@ -1,13 +1,13 @@
 /**
  * Responsible for measuring the bounding dimensions (i.e. width and height) of columns and rows.
  */
-import { Row, Column, InputColumn, InputRow, SizeUnit } from './types'
+import { Row, Column, SizeUnit } from './types'
 import { getHorizontalPadding, getVerticalPadding } from './padding'
 import { getHorizontalMargin, getVerticalMargin } from './margin'
 
 /* eslint-disable no-use-before-define */
 
-const getBoundingDimensionsOfColumnTemplates = (columnTemplate: InputColumn, numColumns: number) => {
+const getBoundingDimensionsOfColumnTemplates = (columnTemplate: Column, numColumns: number) => {
   let width = 0
   let height = 0
 
@@ -21,7 +21,7 @@ const getBoundingDimensionsOfColumnTemplates = (columnTemplate: InputColumn, num
   return { width, height }
 }
 
-const getBoundingDimensionsOfRowTemplates = (rowTemplate: InputRow, numRows: number) => {
+const getBoundingDimensionsOfRowTemplates = (rowTemplate: Row, numRows: number) => {
   let width = 0
   let height = 0
 
@@ -35,7 +35,7 @@ const getBoundingDimensionsOfRowTemplates = (rowTemplate: InputRow, numRows: num
   return { width, height }
 }
 
-const getBoundingDimensionsOfColumns = (columns: InputColumn[]) => {
+const getBoundingDimensionsOfColumns = (columns: Column[]) => {
   let width = 0
   let height = 0
 
@@ -49,7 +49,7 @@ const getBoundingDimensionsOfColumns = (columns: InputColumn[]) => {
   return { width, height }
 }
 
-const getBoundingDimensionsOfRows = (rows: InputRow[]) => {
+const getBoundingDimensionsOfRows = (rows: Row[]) => {
   let width = 0
   let height = 0
 
@@ -63,7 +63,7 @@ const getBoundingDimensionsOfRows = (rows: InputRow[]) => {
   return { width, height }
 }
 
-const getBoundingDimensionsOfRow = (row: InputRow): { height: number, width: number } => {
+const getBoundingDimensionsOfRow = (row: Row): { height: number, width: number } => {
   if (row == null)
     return { width: 0, height: 0 }
 
@@ -88,7 +88,7 @@ const getBoundingDimensionsOfRow = (row: InputRow): { height: number, width: num
   return { width, height }
 }
 
-const getBoundingDimensionsOfColumn = (column: InputColumn): { height: number, width: number } => {
+const getBoundingDimensionsOfColumn = (column: Column): { height: number, width: number } => {
   if (column == null)
     return { width: 0, height: 0 }
 
@@ -118,7 +118,6 @@ const getBoundingDimensionsOfColumn = (column: InputColumn): { height: number, w
  * This is useful if you need to know the bounding dimensions of the given input column before
  * rendering, which is common when rendering dialogs, tooltips, dropdowns, etc..
  */
-export const sizeInputColumn = (column: InputColumn): Column => {
+export const setColumnBoundingDimensions = (column: Column): void => {
   getBoundingDimensionsOfColumn(column)
-  return column as Column
 }

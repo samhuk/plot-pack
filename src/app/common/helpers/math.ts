@@ -2,6 +2,33 @@ import Bound from '../../components/chart/types/Bound'
 import { Point2D } from '../types/geometry'
 import { NumberFormatNotation } from '../types/math'
 
+const DECIMAL_NUMBER_WITH_SUFFIX_REGEX = new RegExp(/([0-9]+)?(\.[0-9]+)?(.*)/g)
+
+/**
+ * @example
+ * '100%' -> { value: 100, suffix: string }
+ * '65px' -> { value: 65, suffix: 'px' }
+ * '72.5%' -> { value: 72.5, suffix: '%' }
+ * '.5%' -> { value: 0.5, suffix: '%' }
+ * '.5' -> { value: 0.5, suffix: null }
+ */
+export const parseDecimalNumberString = (value: string): { value: number, suffix: string } => {
+  if (value == null)
+    return null
+
+  DECIMAL_NUMBER_WITH_SUFFIX_REGEX.lastIndex = 0
+  const matches = DECIMAL_NUMBER_WITH_SUFFIX_REGEX.exec(value.trim())
+  if (matches == null)
+    return null
+
+  const integerPart = matches[1] != null ? parseInt(matches[0]) : 0
+  const decimalPart = matches[2] != null ? parseInt(matches[1].substring(1)) : 0
+  const suffix = matches[3] != null ? matches[3].trimStart() : null
+  const _value = integerPart + (decimalPart === 0 ? 0 : decimalPart * (10 ** -(Math.floor(Math.log10(decimalPart)) + 1)))
+
+  return { value: _value, suffix }
+}
+
 export const boundToRange = (x: number, bound1: number, bound2: number) => {
   const lowerBound = Math.min(bound1, bound2)
   const upperBound = Math.max(bound1, bound2)

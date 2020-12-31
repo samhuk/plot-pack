@@ -1,10 +1,10 @@
 import { CanvasDrawer } from '../../../common/drawer/types'
-import { InputColumn, SizeUnit, Column } from '../../../common/rectPositioningEngine/types'
-import { sizeInputColumn } from '../../../common/rectPositioningEngine/boundingDimensions'
+import { InputColumn, Column } from '../../../common/rectPositioningEngine/types'
 import { RectDimensions, Rect, Point2D } from '../../../common/types/geometry'
 import { renderColumn } from '../../../common/rectPositioningEngine/rendering'
 import { createRoundedRectPath } from '../../../common/drawer/path/shapes'
 import { isMouseEventInRect } from '../../../common/helpers/geometry'
+import { parseInputColumn } from '../../../common/rectPositioningEngine/elementParsing'
 
 /* eslint-disable no-param-reassign */
 
@@ -89,9 +89,7 @@ const mapButtonToColumn = (
     },
     rows: [{
       height: textRectDimensions.height,
-      heightUnits: SizeUnit.PX,
       width: textRectDimensions.width,
-      widthUnits: SizeUnit.PX,
       render: rect => {
         options.drawer.text(button.text, rect, null, { color: 'black', fontSize: 12, fontFamily: 'Helvetica' })
       },
@@ -117,7 +115,7 @@ export const drawButtonList = (options: Options): DrawnButtonList => {
   }
 
   // Get the bounding dimensions of the column
-  const column = sizeInputColumn(inputColumn)
+  const column = parseInputColumn(inputColumn)
 
   // Construct the container rect
   const containerDimensions: RectDimensions = {

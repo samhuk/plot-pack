@@ -1,14 +1,14 @@
 import Options from '../types/Options'
 import { getTitle, applyTitleTextOptionsToDrawer, getTitleMargin } from '../title'
 import { CanvasDrawer } from '../../../common/drawer/types'
-import { InputRow, SizeUnit, ColumnJustification, InputColumn, RowJustification } from '../../../common/rectPositioningEngine/types'
-import { measureTextLineHeight, measureTextWidth } from '../../../common/helpers/canvas'
+import { InputRow, ColumnJustification, InputColumn, RowJustification } from '../../../common/rectPositioningEngine/types'
 import ChartZones from '../types/ChartZones'
 import { getAxisLabelText, applyAxisLabelTextOptionsToDrawer, getAxisLabelMargin } from '../plotBase/components/axisLabels'
 import { Axis2D } from '../../../common/types/geometry'
 import { DEFAULT_NAVIGATOR_HEIGHT_PX } from '../navigator'
 import ChartZoneRects from '../types/ChartZoneRects'
 import { renderInputColumn } from '../../../common/rectPositioningEngine/rendering'
+import { createDimensionValue } from '../../../common/rectPositioningEngine/elementParsing'
 
 const DEFAULT_GRAPH_MARGIN = 10
 
@@ -18,21 +18,15 @@ const createTitleRow = (drawer: CanvasDrawer, props: Options): InputRow => {
     return null
 
   applyTitleTextOptionsToDrawer(drawer, props)
-  const titleTextHeight = measureTextLineHeight(drawer.getRenderingContext())
-  const titleTextWidth = measureTextWidth(drawer.getRenderingContext(), titleText)
   return {
-    height: titleTextHeight,
-    heightUnits: SizeUnit.PX,
-    width: 100,
-    widthUnits: SizeUnit.PERCENT,
+    height: drawer.measureTextHeight(),
+    width: '100%',
     margin: getTitleMargin(props),
     columnJustification: ColumnJustification.CENTER,
     columns: [{
       id: ChartZones.TITLE_BAR,
-      height: 100,
-      heightUnits: SizeUnit.PERCENT,
-      width: titleTextWidth,
-      widthUnits: SizeUnit.PX,
+      height: '100%',
+      width: drawer.measureTextWidth(titleText),
     }],
   }
 }
@@ -43,22 +37,16 @@ const createYAxisLabelColumn = (drawer: CanvasDrawer, props: Options): InputColu
     return null
 
   applyAxisLabelTextOptionsToDrawer(drawer, Axis2D.Y, props)
-  const labelTextHeight = measureTextLineHeight(drawer.getRenderingContext())
-  const labelTextWidth = measureTextWidth(drawer.getRenderingContext(), labelText)
 
   return {
-    width: labelTextHeight,
-    widthUnits: SizeUnit.PX,
-    height: 100,
-    heightUnits: SizeUnit.PERCENT,
+    width: drawer.measureTextHeight(),
+    height: '100%',
     margin: getAxisLabelMargin(props, Axis2D.Y),
     rowJustification: RowJustification.CENTER,
     rows: [{
       id: ChartZones.Y_AXIS_TITLE,
-      width: 100,
-      widthUnits: SizeUnit.PERCENT,
-      height: labelTextWidth,
-      heightUnits: SizeUnit.PX,
+      width: '100%',
+      height: drawer.measureTextWidth(labelText),
     }],
   }
 }
@@ -68,8 +56,7 @@ const getChartMargin = (props: Options) => props.chartMargin ?? DEFAULT_GRAPH_MA
 const createChartPlotBaseColumn = (props: Options): InputColumn => ({
   id: ChartZones.CHART_PLOT_BASE,
   evenlyFillAvailableWidth: true,
-  height: 100,
-  heightUnits: SizeUnit.PERCENT,
+  height: '100%',
   margin: getChartMargin(props),
 })
 
@@ -79,22 +66,16 @@ const createXAxisLabelRow = (drawer: CanvasDrawer, props: Options): InputRow => 
     return null
 
   applyAxisLabelTextOptionsToDrawer(drawer, Axis2D.X, props)
-  const labelTextHeight = measureTextLineHeight(drawer.getRenderingContext())
-  const labelTextWidth = measureTextWidth(drawer.getRenderingContext(), labelText)
 
   return {
-    height: labelTextHeight,
-    heightUnits: SizeUnit.PX,
-    width: 100,
-    widthUnits: SizeUnit.PERCENT,
+    height: drawer.measureTextHeight(),
+    width: '100%',
     columnJustification: ColumnJustification.CENTER,
     margin: getAxisLabelMargin(props, Axis2D.X),
     columns: [{
       id: ChartZones.X_AXIS_TITLE,
-      height: 100,
-      heightUnits: SizeUnit.PERCENT,
-      width: labelTextWidth,
-      widthUnits: SizeUnit.PX,
+      height: '100%',
+      width: drawer.measureTextWidth(labelText),
     }],
   }
 }
@@ -104,16 +85,14 @@ const createNavigatorRow = (props: Options): InputRow => {
     return null
 
   return {
-    height: props.navigatorOptions?.height ?? DEFAULT_NAVIGATOR_HEIGHT_PX,
-    heightUnits: props.navigatorOptions?.height != null ? (props.navigatorOptions?.heightUnit ?? SizeUnit.PX) : SizeUnit.PX,
-    width: 100,
-    widthUnits: SizeUnit.PERCENT,
+    height: props.navigatorOptions?.height != null
+      ? createDimensionValue(props.navigatorOptions.height, props.navigatorOptions.heightUnit)
+      : DEFAULT_NAVIGATOR_HEIGHT_PX,
+    width: '100%',
     padding: 5,
     columns: [{
-      width: 100,
-      widthUnits: SizeUnit.PERCENT,
-      height: 100,
-      heightUnits: SizeUnit.PERCENT,
+      width: '100%',
+      height: '100%',
       id: ChartZones.NAVIGATOR,
     }],
   }
@@ -129,25 +108,20 @@ const createCanvasRectEngineColumn = (drawer: CanvasDrawer, props: Options): Inp
   return {
     height: props.height,
     width: props.width,
-    widthUnits: SizeUnit.PX,
     rows: [
       {
-        width: 100,
-        widthUnits: SizeUnit.PERCENT,
+        width: '100%',
         evenlyFillAvailableHeight: true,
         id: ChartZones.CHART,
         columns: [{
-          width: 100,
-          widthUnits: SizeUnit.PERCENT,
-          height: 100,
-          heightUnits: SizeUnit.PERCENT,
+          width: '100%',
+          height: '100%',
           rows: [
             // -- Title
             titleRow,
             {
               evenlyFillAvailableHeight: true,
-              width: 100,
-              widthUnits: SizeUnit.PERCENT,
+              width: '100%',
               columns: [
                 // -- LHS y-axis label column
                 yAxisLabelColumn,

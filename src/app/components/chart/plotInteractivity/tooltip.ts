@@ -10,9 +10,9 @@ import { getSize as getMarkerSize, drawStandardMarker, getShouldShowMarkers } fr
 import { drawConnectingLine, getShouldShowConnectingLine } from '../data/connectingLine'
 import { formatNumber } from '../plotBase/components/axisMarkerLabels'
 import { TextOptions, LineOptions } from '../../../common/types/canvas'
-import { sizeInputColumn } from '../../../common/rectPositioningEngine/boundingDimensions'
+import { parseInputColumn } from '../../../common/rectPositioningEngine/elementParsing'
 import { renderColumn } from '../../../common/rectPositioningEngine/rendering'
-import { ColumnJustification, InputColumn, InputRow, SizeUnit } from '../../../common/rectPositioningEngine/types'
+import { ColumnJustification, InputColumn, InputRow } from '../../../common/rectPositioningEngine/types'
 import { CanvasDrawer } from '../../../common/drawer/types'
 
 const PREVIEW_RIGHT_MARGIN = 10
@@ -137,11 +137,9 @@ const createTitleRow = (
     margin: { bottom: 0 },
     columnJustification: ColumnJustification.CENTER,
     height: drawer.measureTextHeight(),
-    width: 100,
-    widthUnits: SizeUnit.PERCENT,
+    width: '100%',
     columns: [{
-      height: 100,
-      heightUnits: SizeUnit.PERCENT,
+      height: '100%',
       width: drawer.measureTextWidth(text),
       render: rect => drawer.text(text, rect, null, props.tooltipOptions?.xValueLabelTextOptions, DEFAULT_TEXT_OPTIONS),
     }],
@@ -153,8 +151,7 @@ const createTitleDividerRow = (
   height: number,
   props: Options,
 ): InputRow => ({
-  width: 100, // Full width of the box
-  widthUnits: SizeUnit.PERCENT,
+  width: '100%', // Full width of the box
   height,
   render: rect => {
     drawXValueHeaderDividerLine(drawer, rect, props.tooltipOptions?.xValueLabelDividerOptions)
@@ -300,7 +297,7 @@ export const draw = (
     ],
   }
 
-  const column = sizeInputColumn(inputColumn)
+  const column = parseInputColumn(inputColumn)
 
   const { boundingWidth, boundingHeight } = column
 
