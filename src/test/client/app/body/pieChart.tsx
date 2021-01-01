@@ -10,7 +10,6 @@ export const render = () => {
   const [utilityBills, setUtilityBills] = useState<string>('10')
   const [groceriesLabel, setGroceriesLabel] = useState<string>('Groceries')
 
-
   return (
     <div className="pie-chart">
       <h2>Pie Chart</h2>
