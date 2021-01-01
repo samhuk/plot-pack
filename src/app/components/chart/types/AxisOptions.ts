@@ -33,8 +33,8 @@ export type AxisOptions = {
   }
   cursorPositionValueLabelOptions?: {
     snapToNearestDatum?: boolean
-    rectOptions: RoundedRectOptions,
-    textOptions: TextOptions
+    rectOptions?: RoundedRectOptions,
+    textOptions?: TextOptions
     padding?: number
   }
 }

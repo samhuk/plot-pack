@@ -1,10 +1,38 @@
 import { RoundedRectOptions } from '../../../common/drawer/types'
+import { TextOptions } from '../../../common/types/canvas'
 import { Point2D } from '../../../common/types/geometry'
 import AnnotationType from './AnnotationType'
 import AxesBound from './AxesBound'
 
-export type RangeAnnotationOptions = RoundedRectOptions & {
+export enum RectVerticalAlign {
+  TOP_OUTSIDE = 'top_outside',
+  TOP_INSIDE = 'top_inside',
+  CENTER = 'center',
+  BOTTOM_INSIDE = 'bottom_inside',
+  BOTTOM_OUTSIDE = 'bottom_outside',
+}
+
+export enum RectHorizontalAlign {
+  LEFT_OUTSIDE = 'left_outside',
+  LEFT_INSIDE = 'left_inside',
+  CENTER = 'center',
+  RIGHT_INSIDE = 'right_inside',
+  RIGHT_OUTSIDE = 'right_outside',
+}
+
+export type RangeAnnotationLabelOptions = {
+  text?: string
+  textOptions?: TextOptions
+  verticalAlign?: RectVerticalAlign
+  horizontalAlign?: RectHorizontalAlign
+  offsetX?: number
+  offsetY?: number
+}
+
+export type RangeAnnotationOptions = {
   axesValueBound: AxesBound
+  rectOptions?: RoundedRectOptions
+  labelOptions?: RangeAnnotationLabelOptions
 }
 
 type ValueAnnotationOptionsBase = {

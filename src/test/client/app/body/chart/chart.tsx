@@ -10,6 +10,7 @@ import YAxisOrientation from '../../../../../app/components/chart/types/yAxisOri
 import DatumSnapMode from '../../../../../app/components/chart/types/DatumSnapMode'
 import { DatumHighlightAppearanceType } from '../../../../../app/components/chart/types/DatumHighlightAppearanceType'
 import AnnotationType from '../../../../../app/components/chart/types/AnnotationType'
+import { RectHorizontalAlign, RectVerticalAlign } from '../../../../../app/components/chart/types/AnnotationOptions'
 
 export const render = () => {
   const [height, setHeight] = useState(500)
@@ -178,16 +179,40 @@ export const render = () => {
                   x: { lower: 0, upper: 12 },
                   y: { lower: 0, upper: 16 },
                 },
-                stroke: true,
-                fill: true,
-                fillOptions: {
-                  color: 'green',
-                  opacity: 0.2,
+                rectOptions: {
+                  stroke: true,
+                  fill: true,
+                  fillOptions: {
+                    color: 'green',
+                    opacity: 0.2,
+                  },
+                  borderDashPattern: { top: [5, 5], right: [3, 3] },
+                  borderColor: { top: 'red', right: 'green', bottom: 'blue', left: 'purple' },
+                  borderLineWidth: 3,
+                  borderRadii: { topLeft: 20, topRight: 10, bottomLeft: 5, bottomRight: 15 },
                 },
-                borderDashPattern: { top: [5, 5], right: [3, 3] },
-                borderColor: { top: 'red', right: 'green', bottom: 'blue', left: 'purple' },
-                borderLineWidth: 3,
-                borderRadii: { topLeft: 20, topRight: 10, bottomLeft: 5, bottomRight: 15 },
+                labelOptions: {
+                  text: 'A range annotation!',
+                  horizontalAlign: RectHorizontalAlign.CENTER,
+                  verticalAlign: RectVerticalAlign.TOP_INSIDE,
+                  offsetY: 10,
+                  textOptions: {
+                    fontSize: 16,
+                    fontFamily: 'Tahoma',
+                    color: 'purple',
+                    italic: true,
+                  },
+                },
+              },
+              {
+                type: AnnotationType.RANGE,
+                axesValueBound: {
+                  x: null,
+                  y: { lower: -6, upper: -3 },
+                },
+                labelOptions: {
+                  text: 'A',
+                },
               },
             ],
           }}

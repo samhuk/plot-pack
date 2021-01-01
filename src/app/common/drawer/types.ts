@@ -81,7 +81,7 @@ type Drawer<T, R> = {
    * Draws a multi-path rounded rect. This differs from `roundedRectSimple`; this sacrifices
    * speed for the ability to define per-side and per-corner properties.
    */
-  roundedRect: (rect: Rect, roundedRectOptions: RoundedRectOptions) => void
+  roundedRect: (rect: Rect, roundedRectOptions: RoundedRectOptions, fallbackRoundedRectOptions: RoundedRectOptions) => void
   /**
    * Draws a circle for the given Circle
    */
@@ -94,8 +94,8 @@ type Drawer<T, R> = {
   path: (drawerPath: Path, drawOptions?: DrawOptions) => R
   clearRenderingSpace: (rectToClear?: Rect) => void
   // -- Style modifiers
-  applyLineOptions: (lineOptions?: LineOptions, defaultOptions?: LineOptions) => void
-  applyFillOptions: (fillOptions?: FillOptions, defaultOptions?: FillOptions) => void
+  applyLineOptions: (lineOptions?: LineOptions, fallbackOptions?: LineOptions) => void
+  applyFillOptions: (fillOptions?: FillOptions, fallbackOptions?: FillOptions) => void
   applyTextOptions: (textOptions?: TextOptionsBase, fallbackOptions?: TextOptionsBase) => void
   // -- Misc
   getRenderingContext: () => T

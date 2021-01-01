@@ -1,10 +1,10 @@
 import { Options } from '../types/Options'
-import { Axis2D, Corners2DOptional, Point2D, Rect } from '../../../common/types/geometry'
+import { Axis2D, Point2D, Rect } from '../../../common/types/geometry'
 import ProcessedDatum from '../types/ProcessedDatum'
 import AxesGeometry from '../types/AxesGeometry'
 import { formatNumber } from '../plotBase/components/axisMarkerLabels'
 import { CanvasDrawer, RoundedRectOptions } from '../../../common/drawer/types'
-import { FillOptions, LineOptions, TextOptions } from '../../../common/types/canvas'
+import { TextOptions } from '../../../common/types/canvas'
 
 const DEFAULT_PADDING = 5
 const DEFAULT_TEXT_OPTIONS: TextOptions = {
@@ -12,23 +12,15 @@ const DEFAULT_TEXT_OPTIONS: TextOptions = {
   fontFamily: 'Helvetica',
   fontSize: 12,
 }
-const DEFAULT_BORDER_FILL_OPTIONS: FillOptions = { color: '#ddd', opacity: 1 }
-const DEFAULT_BORDER_LINE_OPTIONS: LineOptions = { color: '#aaa', lineWidth: 1, dashPattern: [] }
-const DEFAULT_BORDER_RADII: Corners2DOptional<number> = { topLeft: 3, topRight: 3 }
-
-const parseRoundedRectOptions = (boundBoxOptions: RoundedRectOptions): RoundedRectOptions => ({
-  ...boundBoxOptions,
-  stroke: boundBoxOptions?.stroke ?? true,
-  fill: boundBoxOptions?.fill ?? true,
-  fillOptions: {
-    color: boundBoxOptions?.fillOptions?.color ?? DEFAULT_BORDER_FILL_OPTIONS.color,
-    opacity: boundBoxOptions?.fillOptions?.opacity ?? DEFAULT_BORDER_FILL_OPTIONS.opacity,
-  },
-  borderColor: boundBoxOptions?.borderColor ?? DEFAULT_BORDER_LINE_OPTIONS.color,
-  borderDashPattern: boundBoxOptions?.borderDashPattern ?? DEFAULT_BORDER_LINE_OPTIONS.dashPattern,
-  borderLineWidth: boundBoxOptions?.borderLineWidth ?? DEFAULT_BORDER_LINE_OPTIONS.lineWidth,
-  borderRadii: boundBoxOptions?.borderRadii ?? DEFAULT_BORDER_RADII,
-})
+const DEFAULT_ROUNDED_RECT_OPTIONS: RoundedRectOptions = {
+  stroke: true,
+  fill: true,
+  fillOptions: { color: '#ddd', opacity: 1 },
+  borderColor: '#aaa',
+  borderDashPattern: [],
+  borderLineWidth: 1,
+  borderRadii: { topLeft: 3, topRight: 3 },
+}
 
 const getCursorPositionValueLabelTextOptions = (props: Options, axis: Axis2D) => (
   props.axesOptions?.[axis]?.cursorPositionValueLabelOptions?.textOptions
@@ -44,7 +36,7 @@ const getCursorPositionValueLabelSnapTo = (props: Options, axis: Axis2D) => (
 )
 
 const getCursorPositionValueLabelRectOptions = (props: Options, axis: Axis2D) => (
-  parseRoundedRectOptions(props.axesOptions?.[axis]?.cursorPositionValueLabelOptions?.rectOptions)
+  props.axesOptions?.[axis]?.cursorPositionValueLabelOptions?.rectOptions
 )
 
 export const getShouldDrawCursorPositionValueLabel = (props: Options, axis: Axis2D) => (
@@ -87,7 +79,7 @@ const drawXAxisCursorPositionValueLabel = (
     correctedBgRectX = ((axesGeometry[Axis2D.X].pu - axesGeometry[Axis2D.X].pl) / 2) - (bgRectX / 2)
 
   const bgRect: Rect = { x: correctedBgRectX, y: bgRectY, width: bgRectWidth, height: bgRectHeight }
-  drawer.roundedRect(bgRect, getCursorPositionValueLabelRectOptions(props, Axis2D.X))
+  drawer.roundedRect(bgRect, getCursorPositionValueLabelRectOptions(props, Axis2D.X), DEFAULT_ROUNDED_RECT_OPTIONS)
 
   // Create label
   drawer.text(xAxisText, {
@@ -133,7 +125,7 @@ const drawYAxisCursorPositionValueLabel = (
     correctedBgRectY = ((axesGeometry[Axis2D.Y].pl - axesGeometry[Axis2D.Y].pu) / 2) - (bgRectY / 2)
 
   const bgRect: Rect = { x: bgRectX, y: correctedBgRectY, width: bgRectWidth, height: bgRectHeight }
-  drawer.roundedRect(bgRect, getCursorPositionValueLabelRectOptions(props, Axis2D.Y))
+  drawer.roundedRect(bgRect, getCursorPositionValueLabelRectOptions(props, Axis2D.Y), DEFAULT_ROUNDED_RECT_OPTIONS)
 
   // Draw label
   drawer.text(yAxisText, {

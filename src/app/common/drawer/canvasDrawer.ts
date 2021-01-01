@@ -256,12 +256,13 @@ const roundedRect = (
   state: CanvasDrawerState,
   _rect: Rect,
   options: RoundedRectOptions,
+  fallbackOptions: RoundedRectOptions,
 ) => {
-  const borderColors = normalizeDirectionsObject(options.borderColor)
-  const borderDashPatterns = normalizeDirectionsObject(options.borderDashPattern)
-  const borderLineVisibilities = normalizeDirectionsObject(options.stroke)
-  const borderLineWidth = options.borderLineWidth ?? 1
-  const radii = normalizeCornersObject(options.borderRadii, 0)
+  const borderColors = normalizeDirectionsObject(options?.borderColor ?? fallbackOptions?.borderColor, 'black')
+  const borderDashPatterns = normalizeDirectionsObject(options?.borderDashPattern ?? fallbackOptions?.borderDashPattern, [])
+  const borderLineVisibilities = normalizeDirectionsObject(options?.stroke ?? fallbackOptions?.stroke)
+  const borderLineWidth = options?.borderLineWidth ?? fallbackOptions?.borderLineWidth ?? 1
+  const radii = normalizeCornersObject(options?.borderRadii ?? fallbackOptions?.borderRadii, 0)
   const { x, y, height, width } = _rect
   const rightX = x + width
   const bottomY = y + height
@@ -379,13 +380,18 @@ const roundedRect = (
   }
 
   // Background
-  const drawOptions = {
-    stroke: false,
-    fill: true,
-    lineOptions: { radii },
-    fillOptions: { color: options?.fillOptions?.color, opacity: options?.fillOptions?.opacity },
+  if (options?.fill ?? fallbackOptions?.fill ?? true) {
+    const drawOptions = {
+      stroke: false,
+      fill: true,
+      lineOptions: { radii },
+      fillOptions: {
+        color: options?.fillOptions?.color ?? fallbackOptions?.fillOptions?.color ?? 'black',
+        opacity: options?.fillOptions?.opacity ?? fallbackOptions?.fillOptions?.opacity ?? 0.05,
+      },
+    }
+    roundedRectSimple(state, _rect, drawOptions)
   }
-  roundedRectSimple(state, _rect, drawOptions)
 }
 
 const occlusionBorder = (
@@ -483,7 +489,7 @@ export const createCanvasDrawer = (canvasElement: HTMLCanvasElement, rectDimensi
     path: (_path, drawOptions) => path(state, _path, drawOptions),
     rect: (_rect, drawOptions) => rect(state, _rect, drawOptions),
     roundedRectSimple: (_rect, options) => roundedRectSimple(state, _rect, options),
-    roundedRect: (_rect, options) => roundedRect(state, _rect, options),
+    roundedRect: (_rect, options, fallbackOptions) => roundedRect(state, _rect, options, fallbackOptions),
     occlusionBorder: unoccludedRect => occlusionBorder(state, unoccludedRect),
     isoscelesTriangle: (boundingRect, drawOptions) => (
       isoscelesTriangle(state, boundingRect, drawOptions)
