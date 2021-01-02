@@ -30,8 +30,8 @@ const DEFAULT_OPTIONS: AnnotationOptions<AnnotationType.RANGE> = {
         opacity: 0.6,
       },
       borderRadii: { bottomLeft: 3, bottomRight: 3 },
-      padding: 3
-    }
+      padding: 3,
+    },
   },
   rectOptions: {
     borderColor: 'grey',
@@ -107,7 +107,7 @@ const determineLabelPosition = (
 const drawLabel = (
   drawer: CanvasDrawer,
   rangeRect: Rect,
-  labelOptions: RangeAnnotationLabelOptions
+  labelOptions: RangeAnnotationLabelOptions,
 ) => {
   // Apply text options now for accurate text dimension measurements
   drawer.applyTextOptions(labelOptions.textOptions, DEFAULT_OPTIONS.labelOptions.textOptions)
