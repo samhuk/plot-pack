@@ -24,5 +24,14 @@ export const render = (drawer: CanvasDrawer, geometry: Geometry, options: Annota
 
   drawer.clearRenderingSpace()
 
+  // Draw each annotation
   options.annotationOptionsList.forEach(annotationOptions => renderAnnotation(drawer, geometry, annotationOptions))
+
+  // Draw occlusion border
+  drawer.occlusionBorder({
+    x: geometry.chartAxesGeometry.x.pl,
+    y: geometry.chartAxesGeometry.y.pu,
+    height: geometry.chartAxesGeometry.y.pl - geometry.chartAxesGeometry.y.pu,
+    width: geometry.chartAxesGeometry.x.pu - geometry.chartAxesGeometry.x.pl,
+  })
 }

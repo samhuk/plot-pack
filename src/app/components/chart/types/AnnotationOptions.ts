@@ -1,4 +1,5 @@
 import { RoundedRectOptions } from '../../../common/drawer/types'
+import { InputPadding } from '../../../common/rectPositioningEngine/types'
 import { TextOptions } from '../../../common/types/canvas'
 import { Point2D } from '../../../common/types/geometry'
 import AnnotationType from './AnnotationType'
@@ -27,6 +28,10 @@ export type RangeAnnotationLabelOptions = {
   horizontalAlign?: RectHorizontalAlign
   offsetX?: number
   offsetY?: number
+  showBackgroundRect?: boolean
+  backgroundRectOptions?: RoundedRectOptions & {
+    padding?: InputPadding
+  }
 }
 
 export type RangeAnnotationOptions = {

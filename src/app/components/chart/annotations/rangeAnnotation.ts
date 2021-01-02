@@ -1,6 +1,7 @@
 import { CanvasDrawer } from '../../../common/drawer/types'
+import { getNormalizedPadding } from '../../../common/rectPositioningEngine/padding'
 import { Point2D, Rect } from '../../../common/types/geometry'
-import AnnotationOptions, { RectVerticalAlign, RectHorizontalAlign } from '../types/AnnotationOptions'
+import AnnotationOptions, { RectVerticalAlign, RectHorizontalAlign, RangeAnnotationLabelOptions } from '../types/AnnotationOptions'
 import AnnotationType from '../types/AnnotationType'
 import Geometry from '../types/Geometry'
 
@@ -12,13 +13,25 @@ const DEFAULT_OPTIONS: AnnotationOptions<AnnotationType.RANGE> = {
     horizontalAlign: RectHorizontalAlign.CENTER,
     verticalAlign: RectVerticalAlign.TOP_INSIDE,
     offsetX: 0,
-    offsetY: 10,
+    offsetY: 4,
     textOptions: {
       fontFamily: 'Helvetica',
       fontSize: 12,
       color: 'black',
       bold: true,
     },
+    showBackgroundRect: true,
+    backgroundRectOptions: {
+      borderColor: 'grey',
+      fill: true,
+      stroke: { left: true, bottom: true, right: true },
+      fillOptions: {
+        color: 'white',
+        opacity: 0.6,
+      },
+      borderRadii: { bottomLeft: 3, bottomRight: 3 },
+      padding: 3
+    }
   },
   rectOptions: {
     borderColor: 'grey',
@@ -91,6 +104,44 @@ const determineLabelPosition = (
     + (offsetY ?? 0),
 })
 
+const drawLabel = (
+  drawer: CanvasDrawer,
+  rangeRect: Rect,
+  labelOptions: RangeAnnotationLabelOptions
+) => {
+  // Apply text options now for accurate text dimension measurements
+  drawer.applyTextOptions(labelOptions.textOptions, DEFAULT_OPTIONS.labelOptions.textOptions)
+  const textWidth = drawer.measureTextWidth(labelOptions.text)
+  const textHeight = drawer.measureTextHeight(labelOptions.text)
+  const vAlign = labelOptions.verticalAlign ?? DEFAULT_OPTIONS.labelOptions.verticalAlign
+  const hAlign = labelOptions.horizontalAlign ?? DEFAULT_OPTIONS.labelOptions.horizontalAlign
+  const offsetX = labelOptions.offsetX ?? DEFAULT_OPTIONS.labelOptions.offsetX
+  const offsetY = labelOptions.offsetY ?? DEFAULT_OPTIONS.labelOptions.offsetY
+  const labelPosition = determineLabelPosition(rangeRect, textWidth, textHeight, vAlign, hAlign, offsetX, offsetY)
+
+  // Optionally draw background
+  if (labelOptions.showBackgroundRect ?? DEFAULT_OPTIONS.labelOptions.showBackgroundRect) {
+    const padding = labelOptions.backgroundRectOptions?.padding ?? DEFAULT_OPTIONS.labelOptions.backgroundRectOptions.padding
+    const normalizedPadding = getNormalizedPadding(padding)
+    const textRect = {
+      x: labelPosition.x - normalizedPadding.left,
+      y: labelPosition.y - normalizedPadding.top,
+      width: textWidth + (normalizedPadding.left + normalizedPadding.right),
+      height: textHeight + (normalizedPadding.top + normalizedPadding.bottom),
+    }
+    drawer.roundedRect(textRect, labelOptions.backgroundRectOptions, DEFAULT_OPTIONS.labelOptions.backgroundRectOptions)
+  }
+
+  // Draw label
+  drawer.text(
+    labelOptions.text,
+    labelPosition,
+    null,
+    labelOptions.textOptions,
+    DEFAULT_OPTIONS.labelOptions.textOptions,
+  )
+}
+
 export const render = (
   drawer: CanvasDrawer,
   geometry: Geometry,
@@ -109,32 +160,12 @@ export const render = (
 
   const rangeRect: Rect = { x: plX, y: plY, height: puY - plY, width: puX - plX }
 
+  // The actual range rect
   drawer.roundedRect(rangeRect, options.rectOptions, DEFAULT_OPTIONS.rectOptions)
 
-  if (options?.labelOptions?.text != null) {
-    drawer.applyTextOptions(options.labelOptions.textOptions, DEFAULT_OPTIONS.labelOptions.textOptions)
-    const labelTextWidth = drawer.measureTextWidth(options.labelOptions.text)
-    const labelTextHeight = drawer.measureTextHeight(options.labelOptions.text)
-    const vAlign = options.labelOptions.verticalAlign ?? DEFAULT_OPTIONS.labelOptions.verticalAlign
-    const hAlign = options.labelOptions.horizontalAlign ?? DEFAULT_OPTIONS.labelOptions.horizontalAlign
-    const offsetX = options.labelOptions.offsetX ?? DEFAULT_OPTIONS.labelOptions.offsetX
-    const offsetY = options.labelOptions.offsetY ?? DEFAULT_OPTIONS.labelOptions.offsetY
-    const labelPosition = determineLabelPosition(rangeRect, labelTextWidth, labelTextHeight, vAlign, hAlign, offsetX, offsetY)
-    drawer.text(
-      options.labelOptions.text,
-      labelPosition,
-      null,
-      options.labelOptions.textOptions,
-      DEFAULT_OPTIONS.labelOptions.textOptions,
-    )
-  }
-
-  drawer.occlusionBorder({
-    x: geometry.chartAxesGeometry.x.pl,
-    y: geometry.chartAxesGeometry.y.pu,
-    height: geometry.chartAxesGeometry.y.pl - geometry.chartAxesGeometry.y.pu,
-    width: geometry.chartAxesGeometry.x.pu - geometry.chartAxesGeometry.x.pl,
-  })
+  // Label and it's background
+  if (options?.labelOptions?.text != null)
+    drawLabel(drawer, rangeRect, options?.labelOptions)
 }
 
 export default render

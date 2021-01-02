@@ -208,10 +208,10 @@ export const render = () => {
                 type: AnnotationType.RANGE,
                 axesValueBound: {
                   x: null,
-                  y: { lower: -6, upper: -3 },
+                  y: { lower: -10, upper: -3 },
                 },
                 labelOptions: {
-                  text: 'A',
+                  text: 'Y-Axis sink region',
                 },
               },
             ],
