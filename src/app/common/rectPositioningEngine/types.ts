@@ -30,9 +30,11 @@ export type ElementOptionsBase = {
   render?: (rect: Rect, index: number) => void
 }
 
+export type InputDimensionValue = number | string
+
 export type InputElementOptions = ElementOptionsBase & {
-  width?: number | string
-  height?: number | string
+  width?: InputDimensionValue
+  height?: InputDimensionValue
   margin?: InputMargin
   padding?: InputPadding
 }

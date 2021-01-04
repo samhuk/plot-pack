@@ -2,7 +2,7 @@ import { parseDecimalNumberString } from '../helpers/math'
 import { setColumnBoundingDimensions } from './boundingDimensions'
 import { getNormalizedMargin } from './margin'
 import { getNormalizedPadding } from './padding'
-import { Column, ColumnJustification, InputColumn, InputRow, Row, RowJustification, SizeUnit } from './types'
+import { Column, ColumnJustification, InputColumn, InputDimensionValue, InputRow, Row, RowJustification, SizeUnit } from './types'
 
 /* eslint-disable no-use-before-define */
 
@@ -11,7 +11,7 @@ const sizeUnitStringToSizeUnitMap: { [sizeUnitString: string]: SizeUnit } = {
   '%': SizeUnit.PERCENT,
 }
 
-const normalizeDimensionValue = (dimensionValue: number | string): { value: number, sizeUnit: SizeUnit } => {
+const normalizeDimensionValue = (dimensionValue: InputDimensionValue): { value: number, sizeUnit: SizeUnit } => {
   if (dimensionValue == null)
     return null
 

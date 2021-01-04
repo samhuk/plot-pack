@@ -471,6 +471,22 @@ const text = (
     state.ctx.restore()
 }
 
+const _measureTextWidth = (state: CanvasDrawerState, _text: string, textOptions: TextOptions, fallbackTextOptions: TextOptions) =>
+{
+  if (textOptions != null && fallbackTextOptions != null)
+    applyTextOptionsToContext(state.ctx, textOptions, fallbackTextOptions)
+
+  return measureTextWidth(state.ctx, _text)
+}
+
+const _measureTextHeight = (state: CanvasDrawerState, _text: string, textOptions: TextOptions, fallbackTextOptions: TextOptions) =>
+{
+  if (textOptions != null && fallbackTextOptions != null)
+    applyTextOptionsToContext(state.ctx, textOptions, fallbackTextOptions)
+
+  return measureTextLineHeight(state.ctx, _text)
+}
+
 export const createCanvasDrawer = (canvasElement: HTMLCanvasElement, rectDimensions: RectDimensions): CanvasDrawer => {
   const state: CanvasDrawerState = {
     ctx: get2DContext(canvasElement, rectDimensions.width, rectDimensions.height),
@@ -482,7 +498,7 @@ export const createCanvasDrawer = (canvasElement: HTMLCanvasElement, rectDimensi
     applyFillOptions: (fillOptions, fallbackOptions) => applyFillOptions(state, fillOptions, fallbackOptions),
     applyTextOptions: (textOptions, fallbackOptions) => applyTextOptions(state, textOptions, fallbackOptions),
     getRenderingContext: () => state.ctx,
-    line: (_line, lineOptions) => line(state, _line, lineOptions, null),
+    line: (_line, lineOptions, fallbackLineOptions) => line(state, _line, lineOptions, fallbackLineOptions),
     quadraticCurve: (_quadraticCurve, lineOptions) => quadraticCurve(state, _quadraticCurve, lineOptions, null),
     arc: (sector, drawOptions) => arc(state, sector, drawOptions),
     circle: (_circle, drawOptions) => circle(state, _circle, drawOptions),
@@ -496,8 +512,8 @@ export const createCanvasDrawer = (canvasElement: HTMLCanvasElement, rectDimensi
     ),
     clearRenderingSpace: rectToClear => clearRenderingSpace(state, rectToClear),
     text: (_text, position, angle, textOptions, fallbackTextOptions) => text(state, _text, position, angle, textOptions, fallbackTextOptions),
-    measureTextWidth: _text => measureTextWidth(state.ctx, _text),
-    measureTextHeight: _text => measureTextLineHeight(state.ctx, _text),
+    measureTextWidth: (_text, textOptions, fallbackTextOptions) => _measureTextWidth(state, _text, textOptions, fallbackTextOptions),
+    measureTextHeight: (_text, textOptions, fallbackTextOptions) => _measureTextHeight(state, _text, textOptions, fallbackTextOptions),
     measureTextRectDimensions: _text => ({
       width: measureTextWidth(state.ctx, _text),
       height: measureTextLineHeight(state.ctx, _text),

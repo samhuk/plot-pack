@@ -56,7 +56,7 @@ type Drawer<T, R> = {
   /**
    * Draws a line between the given two points.
    */
-  line: (line: Line, lineOptions?: LineOptions) => R
+  line: (line: Line, lineOptions?: LineOptions, fallbackLineOptions?: LineOptions) => R
   /**
    * Draws a quadratic curve for the given QuadraticCurve
    */
@@ -99,8 +99,8 @@ type Drawer<T, R> = {
   applyTextOptions: (textOptions?: TextOptionsBase, fallbackOptions?: TextOptionsBase) => void
   // -- Misc
   getRenderingContext: () => T
-  measureTextWidth: (text: string) => number,
-  measureTextHeight: (text?: string) => number,
+  measureTextWidth: (text: string, textOptions?: TextOptions, fallbackTextOptions?: TextOptions) => number,
+  measureTextHeight: (text?: string, textOptions?: TextOptions, fallbackTextOptions?: TextOptions) => number,
   measureTextRectDimensions: (text: string) => RectDimensions,
 }
 

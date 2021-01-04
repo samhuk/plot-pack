@@ -1,89 +1,101 @@
 import { Point2D, Rect, Axis2D } from '../../../common/types/geometry'
 import Options from '../types/Options'
-import { mapDict, findEntryOfMaxValue, combineDicts, anyDict } from '../../../common/helpers/dict'
-import { measureTextWidth,
-  measureTextLineHeight,
-  createTextStyle,
-  createRoundedRect } from '../../../common/helpers/canvas'
+import { mapDict, combineDicts, anyDict } from '../../../common/helpers/dict'
 import ProcessedDatum from '../types/ProcessedDatum'
 import { getSize as getMarkerSize, drawStandardMarker, getShouldShowMarkers } from '../data/marker'
 import { drawConnectingLine, getShouldShowConnectingLine } from '../data/connectingLine'
 import { formatNumber } from '../plotBase/components/axisMarkerLabels'
-import { TextOptions, LineOptions } from '../../../common/types/canvas'
 import { parseInputColumn } from '../../../common/rectPositioningEngine/elementParsing'
 import { renderColumn } from '../../../common/rectPositioningEngine/rendering'
-import { ColumnJustification, InputColumn, InputRow } from '../../../common/rectPositioningEngine/types'
+import { ColumnJustification, InputColumn, InputRow, Margin, RowJustification } from '../../../common/rectPositioningEngine/types'
 import { CanvasDrawer } from '../../../common/drawer/types'
+import TooltipOptions from '../types/TooltipOptions'
 
-const PREVIEW_RIGHT_MARGIN = 10
-const DEFAULT_BOX_PADDING_X = 6
-const DEFAULT_BOX_PADDING_Y = 6
-const DEFAULT_TEXT_OPTIONS: TextOptions = {
-  color: 'black',
-  fontFamily: 'Helvetica',
-  fontSize: 12,
+const DEFAULT_OPTIONS: TooltipOptions = {
+  positioningOptions: {
+    xDistanceFromMarker: 10,
+  },
+  xValueOptions: {
+    color: 'black',
+    fontFamily: 'Helvetica',
+    fontSize: 14,
+    margin: 0,
+    textHorizontalAlign: ColumnJustification.CENTER,
+    bold: true,
+  },
+  xValueDividerOptions: {
+    lineWidth: 1,
+    color: 'grey',
+    dashPattern: [],
+    margin: { top: 5, bottom: 5 },
+  },
+  yDataRowOptions: {
+    verticalSpacing: 5,
+  },
+  ySeriesPreviewOptions: {
+    width: 20,
+    marginRight: 10,
+  },
+  yLabelOptions: {
+    color: 'black',
+    fontFamily: 'Helvetica',
+    fontSize: 12,
+    bold: true,
+    marginRight: 7,
+  },
+  yValueOptions: {
+    color: 'black',
+    fontFamily: 'Helvetica',
+    fontSize: 12,
+  },
+  rectOptions: {
+    borderColor: '#ccc',
+    borderDashPattern: [],
+    borderLineWidth: 1,
+    borderRadii: 3,
+    fill: true,
+    fillOptions: {
+      color: '#f0f0f0',
+      opacity: 1,
+    },
+    stroke: true,
+    padding: 5,
+  },
+  visibilityOptions: {
+    showYSeriesPreviewColumn: true,
+    showXValue: false,
+    showXValueDivider: false,
+  },
 }
-const DEFAULT_BORDER_LINE_WIDTH = 1
-const DEFAULT_X_VALUE_HEADER_DIVIDER_LINE_WIDTH = 1
-const DEFAULT_BORDER_LINE_COLOR = ''
-const DEFAULT_BORDER_RADIUS = 3
-const DEFAULT_BACKGROUND_COLOR = '#f0f0f0'
-const DEFAULT_TOOLTIP_MARGIN_FROM_MARKER = 10
 
 export const getShouldDrawTooltip = (props: Options) => (
   props.visibilityOptions?.showTooltip ?? true
 )
 
-const getSeriesPreviewWidth = (lineHeight: number) => Math.max(10, 1.5 * lineHeight)
-
 const getShouldShowMarkerPreview = (props: Options, seriesKey: string) => (
-  getShouldShowMarkers(props, seriesKey) && (props?.tooltipOptions?.visibilityOptions?.showSeriesStylePreview ?? true)
+  (props?.tooltipOptions?.visibilityOptions?.showYSeriesPreviewColumn ?? DEFAULT_OPTIONS.visibilityOptions.showYSeriesPreviewColumn)
+  && getShouldShowMarkers(props, seriesKey)
 )
 
 const getShouldShowConnectingLinePreview = (props: Options, seriesKey: string) => (
-  getShouldShowConnectingLine(props, seriesKey) && (props?.tooltipOptions?.visibilityOptions?.showSeriesStylePreview ?? true)
+  (props?.tooltipOptions?.visibilityOptions?.showYSeriesPreviewColumn ?? DEFAULT_OPTIONS.visibilityOptions.showYSeriesPreviewColumn)
+  && getShouldShowConnectingLine(props, seriesKey)
 )
 
-const getShouldShowXValueTitle = (props: Options) => (
-  props?.tooltipOptions?.visibilityOptions?.showXValueTitle ?? false
-)
-
-const getShouldShowXValueHeaderDivider = (props: Options) => (
-  props?.tooltipOptions?.visibilityOptions?.showXValueTitleDivider ?? false
-)
-
-const getShouldShowXValueHeaderDividerLineWidth = (props: Options) => (
-  props.tooltipOptions?.xValueLabelDividerOptions?.lineWidth ?? DEFAULT_X_VALUE_HEADER_DIVIDER_LINE_WIDTH
-)
-
-const createTextStyleInternal = (props: Options, bold: boolean) => createTextStyle(
-  props?.tooltipOptions?.fontFamily ?? DEFAULT_TEXT_OPTIONS.fontFamily,
-  props?.tooltipOptions?.fontSize ?? DEFAULT_TEXT_OPTIONS.fontSize,
-  bold,
-)
-
-const determineTooltipBoxXCoord = (canvasWidth: number, boxWidth: number, x: number) => {
+const determineTooltipBoxXCoord = (canvasWidth: number, boxWidth: number, x: number, tooltipOptions: TooltipOptions) => {
+  // TODO: TAKE THE VALUE FROM OPTIONS
+  const xDistanceFromMarker = tooltipOptions?.positioningOptions?.xDistanceFromMarker ?? DEFAULT_OPTIONS.positioningOptions.xDistanceFromMarker
   // Try placing on RHS
-  let prospectiveBoxX = x + DEFAULT_TOOLTIP_MARGIN_FROM_MARKER
+  let prospectiveBoxX = x + xDistanceFromMarker
   // Determine if the box is overflowing on the RHS
   const rhsOverflow = Math.max(0, prospectiveBoxX + boxWidth - canvasWidth)
   // If not overflowing, remain on RHS, else try placing on LHS
-  prospectiveBoxX = rhsOverflow === 0 ? prospectiveBoxX : x - DEFAULT_TOOLTIP_MARGIN_FROM_MARKER - boxWidth
+  prospectiveBoxX = rhsOverflow === 0 ? prospectiveBoxX : x - xDistanceFromMarker - boxWidth
   // If not overflowing, remain on LHS, else place in the middle
   return prospectiveBoxX > 0 ? prospectiveBoxX : x - (boxWidth / 2)
 }
 
-const drawBox = (ctx: CanvasRenderingContext2D, boxRect: Rect, props: Options) => {
-  const borderRadius = props?.tooltipOptions?.borderRadius ?? DEFAULT_BORDER_RADIUS
-  const boxPath = createRoundedRect(boxRect.x, boxRect.y, boxRect.width, boxRect.height, borderRadius)
-  ctx.lineWidth = props?.tooltipOptions?.borderLineWidth ?? DEFAULT_BORDER_LINE_WIDTH
-  ctx.strokeStyle = props?.tooltipOptions?.borderLineColor ?? DEFAULT_BORDER_LINE_COLOR
-  ctx.fillStyle = props?.tooltipOptions?.backgroundColor ?? DEFAULT_BACKGROUND_COLOR
-  ctx.stroke(boxPath)
-  ctx.fill(boxPath)
-}
-
-const drawSeriesPreview = (
+const drawYSeriesPreview = (
   drawer: CanvasDrawer,
   shouldDrawMarkerPreview: boolean,
   shouldDrawConnectingLinePreview: boolean,
@@ -101,111 +113,149 @@ const drawSeriesPreview = (
     drawConnectingLine(ctx, { x: rect.x, y }, { x: rect.x + rect.width, y }, props, seriesKey)
 }
 
-const drawXValueHeaderDividerLine = (drawer: CanvasDrawer, dividerRect: Rect, lineOptions: LineOptions) => {
-  const y = dividerRect.y + dividerRect.height / 2
-  drawer.line([{ x: dividerRect.x, y }, { x: dividerRect.x + dividerRect.width, y }], lineOptions)
-}
-
-const drawSeriesLabelValueText = (
-  ctx: CanvasRenderingContext2D,
-  rect: Rect,
-  labelText: string,
-  valueText: string,
-  labelTextWidth: number,
-  props: Options,
-) => {
-  // Calculate y coordinate, vertically centered in rect
-  const textHeight = measureTextLineHeight(ctx, labelText)
-  const differenceInHeight = Math.max(0, rect.height - textHeight)
-  const y = rect.y + rect.height - differenceInHeight / 2
-
-  ctx.fillStyle = props?.tooltipOptions?.textColor ?? DEFAULT_TEXT_OPTIONS.color
-  ctx.font = createTextStyleInternal(props, false) // Series key text is not bold
-  ctx.fillText(labelText, rect.x, y)
-  ctx.font = createTextStyleInternal(props, true) // value is bold
-  ctx.fillText(valueText, rect.x + labelTextWidth, y)
-}
-
-const createTitleRow = (
+const createXValueRow = (
   drawer: CanvasDrawer,
-  text: string,
   props: Options,
+  nearestDatumOfAllSeries: ProcessedDatum,
 ): InputRow => {
+  if (!(props.tooltipOptions?.visibilityOptions?.showXValue ?? DEFAULT_OPTIONS.visibilityOptions.showXValue))
+    return null
+
+  const text = formatNumber(nearestDatumOfAllSeries.fvX, props, Axis2D.X)
   // Apply text options now for accurate width and height measurements
-  drawer.applyTextOptions(props.tooltipOptions?.xValueLabelTextOptions, DEFAULT_TEXT_OPTIONS)
+  drawer.applyTextOptions(props.tooltipOptions?.xValueOptions, DEFAULT_OPTIONS.xValueOptions)
   return {
-    margin: { bottom: 0 },
-    columnJustification: ColumnJustification.CENTER,
-    height: drawer.measureTextHeight(),
+    margin: props.tooltipOptions?.xValueOptions?.margin ?? DEFAULT_OPTIONS.xValueOptions.margin,
+    columnJustification: props.tooltipOptions?.xValueOptions?.textHorizontalAlign ?? DEFAULT_OPTIONS.xValueOptions.textHorizontalAlign,
     width: '100%',
     columns: [{
-      height: '100%',
+      height: drawer.measureTextHeight(text),
       width: drawer.measureTextWidth(text),
-      render: rect => drawer.text(text, rect, null, props.tooltipOptions?.xValueLabelTextOptions, DEFAULT_TEXT_OPTIONS),
+      render: rect => drawer.text(text, rect, null, props.tooltipOptions?.xValueOptions, DEFAULT_OPTIONS.xValueOptions),
     }],
   }
 }
 
-const createTitleDividerRow = (
+const createXValueDividerRow = (
   drawer: CanvasDrawer,
-  height: number,
   props: Options,
-): InputRow => ({
-  width: '100%', // Full width of the box
-  height,
-  render: rect => {
-    drawXValueHeaderDividerLine(drawer, rect, props.tooltipOptions?.xValueLabelDividerOptions)
-  },
-})
+): InputRow => {
+  if (!(props.tooltipOptions?.visibilityOptions?.showXValueDivider ?? DEFAULT_OPTIONS.visibilityOptions.showXValueDivider))
+    return
 
-const createSeriesPreviewColumn = (
+  return {
+    width: '100%',
+    height: props.tooltipOptions?.xValueDividerOptions?.lineWidth ?? DEFAULT_OPTIONS.xValueDividerOptions.lineWidth,
+    margin: props.tooltipOptions?.xValueDividerOptions?.margin ?? DEFAULT_OPTIONS.xValueDividerOptions.margin,
+    render: rect => {
+      const y = rect.y + rect.height / 2
+      drawer.line([{ x: rect.x, y }, { x: rect.x + rect.width, y }], props.tooltipOptions?.xValueDividerOptions, DEFAULT_OPTIONS.xValueDividerOptions)
+    }
+  }
+}
+
+const createYSeriesPreviewColumn = (
   drawer: CanvasDrawer,
-  width: number,
-  height: number,
-  shouldDrawMarkerPreviews: { [seriesKey: string]: boolean },
-  shouldDrawConnectingLinePreviews: { [seriesKey: string]: boolean },
   props: Options,
   seriesKeys: string[],
-): InputColumn => ({
-  width,
-  margin: { right: PREVIEW_RIGHT_MARGIN },
-  rowTemplate: {
-    height,
-    render: (rect, i) => {
-      const seriesKey = seriesKeys[i]
-      drawSeriesPreview(
-        drawer,
-        shouldDrawMarkerPreviews[seriesKey],
-        shouldDrawConnectingLinePreviews[seriesKey],
-        rect,
-        props,
-        seriesKey,
-      )
-    },
-  },
-  numRows: seriesKeys.length,
-})
+  yDataRowMaxTextHeights: { [seriesKey: string]: number },
+): InputColumn => {
+  // Get "should draw X" values ahead of time to not have to recalculate them all
+  const shouldDrawMarkerPreviews = mapDict(yDataRowMaxTextHeights, seriesKey => getShouldShowMarkerPreview(props, seriesKey))
+  const shouldDrawConnectingLinePreviews = mapDict(yDataRowMaxTextHeights, seriesKey => getShouldShowConnectingLinePreview(props, seriesKey))
 
-const createSeriesLabelValueColumn = (
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
+  // Determine if we have to draw at least one preview. If not, then return null column
+  const shouldDrawAtleastOneYSeriesPreview = anyDict(
+    combineDicts(shouldDrawMarkerPreviews, shouldDrawConnectingLinePreviews, (_, should1, should2) => should1 || should2),
+    (_, shouldDrawSomeKindOfPreview) => shouldDrawSomeKindOfPreview,
+  )
+
+  if (!shouldDrawAtleastOneYSeriesPreview)
+    return null
+
+  const render = (rect: Rect, seriesKey: string) => {
+    const shouldDrawMarker = shouldDrawMarkerPreviews[seriesKey]
+    const shouldDrawConnectingLine = shouldDrawConnectingLinePreviews[seriesKey]
+    drawYSeriesPreview(drawer, shouldDrawMarker, shouldDrawConnectingLine, rect, props, seriesKey)
+  }
+
+  const verticalSpacing = props.tooltipOptions?.yDataRowOptions?.verticalSpacing ?? DEFAULT_OPTIONS.yDataRowOptions.verticalSpacing
+
+  return {
+    rows: seriesKeys.map((seriesKey, i) => ({
+      margin: { bottom: i !== seriesKeys.length - 1 ? verticalSpacing : 0 },
+      columns: [{
+        height: yDataRowMaxTextHeights[seriesKey],
+        width: props.tooltipOptions?.ySeriesPreviewOptions?.width ?? DEFAULT_OPTIONS.ySeriesPreviewOptions.width,
+        margin: {
+          left: props.tooltipOptions?.ySeriesPreviewOptions?.marginLeft ?? DEFAULT_OPTIONS.ySeriesPreviewOptions.marginLeft,
+          right: props.tooltipOptions?.ySeriesPreviewOptions?.marginRight ?? DEFAULT_OPTIONS.ySeriesPreviewOptions.marginRight
+        },
+        render: rect => render(rect, seriesKeys[i]),
+      }],
+    }))
+  }
+}
+
+const createYLabelColumn = (
+  drawer: CanvasDrawer,
   labelTexts: { [seriesKey: string]: string },
-  valueTexts: { [seriesKey: string]: string },
-  labelTextWidths: { [seriesKey: string]: number },
-  props: Options,
+  options: TooltipOptions,
   seriesKeys: string[],
-): InputColumn => ({
-  width,
-  rowTemplate: {
-    height,
-    render: (rect, i) => {
-      const seriesKey = seriesKeys[i]
-      drawSeriesLabelValueText(ctx, rect, labelTexts[seriesKey], valueTexts[seriesKey], labelTextWidths[seriesKey], props)
-    },
-  },
-  numRows: seriesKeys.length,
-})
+  yDataRowMaxTextHeights: { [seriesKey: string]: number },
+): InputColumn => {
+  drawer.applyTextOptions(options?.yLabelOptions, DEFAULT_OPTIONS.yLabelOptions)
+  const render = (rect: Rect, seriesKey: string) => drawer.text(labelTexts[seriesKey], rect, null, options?.yLabelOptions, DEFAULT_OPTIONS.yLabelOptions)
+  const verticalSpacing = options?.yDataRowOptions?.verticalSpacing ?? DEFAULT_OPTIONS.yDataRowOptions.verticalSpacing
+  return {
+    rows: seriesKeys.map((seriesKey, i) => ({
+      margin: { bottom: i !== seriesKeys.length - 1 ? verticalSpacing : 0 },
+      columns: [{
+        height: yDataRowMaxTextHeights[seriesKey],
+        width: drawer.measureTextWidth(labelTexts[seriesKey]),
+        margin: {
+          left: options?.yLabelOptions?.marginLeft ?? DEFAULT_OPTIONS.yLabelOptions.marginLeft,
+          right: options?.yLabelOptions?.marginRight ?? DEFAULT_OPTIONS.yLabelOptions.marginRight
+        },
+        rowJustification: RowJustification.CENTER,
+        rows: [{
+          height: drawer.measureTextHeight(labelTexts[seriesKey]),
+          render: rect => render(rect, seriesKeys[i])
+        }]
+      }],
+    }))
+  }
+}
+
+const createYValueColumn = (
+  drawer: CanvasDrawer,
+  valueTexts: { [seriesKey: string]: string },
+  options: TooltipOptions,
+  seriesKeys: string[],
+  yDataRowMaxTextHeights: { [seriesKey: string]: number },
+): InputColumn => {  
+  drawer.applyTextOptions(options?.yValueOptions, DEFAULT_OPTIONS.yValueOptions)
+  const render = (rect: Rect, seriesKey: string) => drawer.text(valueTexts[seriesKey], rect, null, options?.yValueOptions, DEFAULT_OPTIONS.yValueOptions)
+  const verticalSpacing = options?.yDataRowOptions?.verticalSpacing ?? DEFAULT_OPTIONS.yDataRowOptions.verticalSpacing
+  return {
+    rows: seriesKeys.map((seriesKey, i) => ({
+      margin: { bottom: i !== seriesKeys.length - 1 ? verticalSpacing : 0 },
+      columns: [{
+        height: yDataRowMaxTextHeights[seriesKey],
+        width: drawer.measureTextWidth(valueTexts[seriesKey]),
+        margin: {
+          left: options?.yValueOptions?.marginLeft ?? DEFAULT_OPTIONS.yValueOptions.marginLeft,
+          right: options?.yValueOptions?.marginRight ?? DEFAULT_OPTIONS.yValueOptions.marginRight
+        },
+        rowJustification: RowJustification.CENTER,
+        rows: [{
+          height: drawer.measureTextHeight(valueTexts[seriesKey]),
+          render: rect => render(rect, seriesKeys[i])
+        }]
+      }],
+    }))
+  }
+}
 
 export const draw = (
   drawer: CanvasDrawer,
@@ -214,84 +264,42 @@ export const draw = (
   nearestDatumOfAllSeries: ProcessedDatum,
   props: Options,
 ) => {
-  const ctx = drawer.getRenderingContext()
-  const numSeries = Object.keys(highlightedDatums).length
+  if (highlightedDatums == null)
+    return
+
+  const seriesKeys = Object.keys(highlightedDatums)
+  const numSeries = seriesKeys.length
   if (numSeries === 0)
     return
 
-  // Set font early such that we can measure text according to the preferences
-  ctx.font = createTextStyleInternal(props, true)
-  const lineVerticalPadding = 5
-  // Measure maximum line height
-  const lineHeight = measureTextLineHeight(ctx) + lineVerticalPadding
-
   // Create series key label texts and widths
-  const labelTexts = mapDict(highlightedDatums, seriesKey => `${seriesKey}:  `)
+  const yLabelTexts = mapDict(highlightedDatums, seriesKey => `${seriesKey}:`)
   // Create value texts and widths
-  const valueTexts = mapDict(highlightedDatums, (_, { fvY }) => formatNumber(fvY, props, Axis2D.Y))
-  // Create x value text and width
-  const xValueHeaderText = formatNumber(nearestDatumOfAllSeries.fvX, props, Axis2D.X)
-  // Get "should draw preview marker" value ahead of time to not have to recalculate them all
-  const shouldDrawMarkerPreviews = mapDict(highlightedDatums, seriesKey => getShouldShowMarkerPreview(props, seriesKey))
-  const shouldDrawConnectingLinePreviews = mapDict(highlightedDatums, seriesKey => getShouldShowConnectingLinePreview(props, seriesKey))
+  const yValueTexts = mapDict(highlightedDatums, (_, { fvY }) => formatNumber(fvY, props, Axis2D.Y))
 
-  /* Determine if we have to draw at least one preview.
-   * (If so, then we must ensure that the series text is padded sufficiently from the left)
-   */
-  const shouldDrawAtleastOnePreview = anyDict(
-    combineDicts(shouldDrawMarkerPreviews, shouldDrawConnectingLinePreviews, (_, should1, should2) => should1 || should2),
-    (_, shouldDrawSomeKindOfPreview) => shouldDrawSomeKindOfPreview,
-  )
-
-  const seriesPreviewWidth = getSeriesPreviewWidth(lineHeight)
-
-  const boxPaddingX = props?.tooltipOptions?.boxPaddingX ?? DEFAULT_BOX_PADDING_X
-  const boxPaddingY = props?.tooltipOptions?.boxPaddingY ?? DEFAULT_BOX_PADDING_Y
-
-  const shouldShowXValueTitle = getShouldShowXValueTitle(props)
-  const shouldShowXValueTitleDivider = getShouldShowXValueHeaderDivider(props)
-  const xValueHeaderDividerHeight = shouldShowXValueTitleDivider ? (2 * boxPaddingY) + getShouldShowXValueHeaderDividerLineWidth(props) : 0
-
-  // Calculate width of each series line component
-  const labelTextWidths = mapDict(labelTexts, (_, text) => measureTextWidth(ctx, text))
-  const valueTextWidths = mapDict(valueTexts, (_, value) => measureTextWidth(ctx, value))
-  // Calculate width of each series line
-  const seriesTextLineWidths = combineDicts(labelTextWidths, valueTextWidths, (_, w1, w2) => w1 + w2)
-  const maximumSeriesTextLineWidth = findEntryOfMaxValue(seriesTextLineWidths).value
+  drawer.applyTextOptions(props.tooltipOptions?.yLabelOptions, DEFAULT_OPTIONS.yLabelOptions)
+  const yLabelTextHeights = mapDict(yLabelTexts, (seriesKey) => drawer.measureTextHeight(yLabelTexts[seriesKey]))
+  drawer.applyTextOptions(props.tooltipOptions?.yValueOptions, DEFAULT_OPTIONS.yValueOptions)
+  const yValueTextHeights = mapDict(yValueTexts, (seriesKey) => drawer.measureTextHeight(yValueTexts[seriesKey]))
+  const yDataRowMaxTextHeights = mapDict(yLabelTexts, seriesKey => Math.max(yLabelTextHeights[seriesKey], yValueTextHeights[seriesKey]))
 
   const inputColumn: InputColumn = {
-    render: rect => {
-      drawBox(ctx, rect, props)
-    },
-    padding: { left: boxPaddingX, right: boxPaddingX, top: boxPaddingY, bottom: boxPaddingY },
+    render: rect => drawer.roundedRect(rect, props.tooltipOptions?.rectOptions, DEFAULT_OPTIONS.rectOptions),
+    padding: props.tooltipOptions?.rectOptions?.padding ?? DEFAULT_OPTIONS.rectOptions.padding,
     rows: [
       // Title row
-      shouldShowXValueTitle ? createTitleRow(drawer, xValueHeaderText, props) : null,
+      createXValueRow(drawer, props, nearestDatumOfAllSeries),
       // divider row
-      shouldShowXValueTitleDivider ? createTitleDividerRow(drawer, xValueHeaderDividerHeight, props) : null,
+      createXValueDividerRow(drawer, props),
+      // Y data section (table)
       {
         columns: [
-          // Series preview column (marker and connecting line)
-          shouldDrawAtleastOnePreview ? createSeriesPreviewColumn(
-            drawer,
-            seriesPreviewWidth,
-            lineHeight,
-            shouldDrawMarkerPreviews,
-            shouldDrawConnectingLinePreviews,
-            props,
-            Object.keys(highlightedDatums),
-          ) : null,
-          // Series label and value column
-          createSeriesLabelValueColumn(
-            ctx,
-            maximumSeriesTextLineWidth,
-            lineHeight,
-            labelTexts,
-            valueTexts,
-            labelTextWidths,
-            props,
-            Object.keys(highlightedDatums),
-          ),
+          // Y series preview column (marker and connecting line)
+          createYSeriesPreviewColumn(drawer, props, seriesKeys, yDataRowMaxTextHeights),
+          // Y label (i.e. series key/"name") column
+          createYLabelColumn(drawer, yLabelTexts, props.tooltipOptions, seriesKeys, yDataRowMaxTextHeights),
+          // Y value column
+          createYValueColumn(drawer, yValueTexts, props.tooltipOptions, seriesKeys, yDataRowMaxTextHeights)
         ],
       },
     ],
@@ -302,7 +310,7 @@ export const draw = (
   const { boundingWidth, boundingHeight } = column
 
   const tooltipBoxPosition: Point2D = {
-    x: determineTooltipBoxXCoord(props.width, boundingWidth, nearestDatumOfAllSeries.fpX),
+    x: determineTooltipBoxXCoord(props.width, boundingWidth, nearestDatumOfAllSeries.fpX, props.tooltipOptions),
     /* Position vertically centered relative to cursor position,
      * ensuring that it doesn't overflow at the top (negative y position)
      */

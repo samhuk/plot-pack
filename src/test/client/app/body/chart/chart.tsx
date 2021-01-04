@@ -45,6 +45,14 @@ export const render = () => {
   for (let i = 1; i < 1000; i += 1)
     data4.push({ x: i, y: (data4[i - 2]?.y ?? 0) + (1 / i) })
 
+  const data5: Point2D[] = []
+  for (let i = 1; i < 1000; i += 1)
+    data5.push({ x: i, y: Math.exp(i / 500) })
+
+  const data6: Point2D[] = []
+  for (let i = 1; i < 1000; i += 1)
+    data6.push({ x: i, y: i / 500 })
+
   const randomData1: Point2D[] = []
   for (let i = 1; i < 50; i += 1)
     randomData1.push({ x: Math.random(), y: Math.random() })
@@ -228,25 +236,35 @@ export const render = () => {
           }}
           tooltipOptions={{
             visibilityOptions: {
-              showXValueTitle: true,
-              showXValueTitleDivider: true,
+              showXValue: true,
+              showXValueDivider: true,
+              showYSeriesPreviewColumn: true
             },
-            boxPaddingX: null,
-            boxPaddingY: null,
-            fontSize: 14,
-            borderRadius: 10,
-            backgroundColor: '#333',
-            textColor: 'white',
-            borderLineColor: '#999',
-            xValueLabelTextOptions: {
-              color: 'white',
-              fontSize: 18,
-              fontFamily: 'Impact',
+            rectOptions: {
+              borderColor: 'pink',
+              borderLineWidth: 8,
+              borderRadii: 8,
+              fillOptions: {
+                color: 'yellow',
+              },
+              padding: 30,
             },
-            xValueLabelDividerOptions: {
-              color: 'white',
-              dashPattern: [],
+            xValueOptions: {
+              color: 'teal',
+              fontSize: 22,
             },
+            xValueDividerOptions: {
+              color: 'red',
+              lineWidth: 5,
+              dashPattern: [2, 2],
+            },
+            yDataRowOptions: {
+              verticalSpacing: 10,
+            },
+            yLabelOptions: {
+              color: 'purple',
+              fontSize: 20,
+            }
           }}
           markerOptions={{
             lineWidth: 1,
@@ -283,6 +301,8 @@ export const render = () => {
           series={{
             1: data3,
             2: data4,
+            3: data5,
+            4: data6,
           }}
           seriesOptions={{
             1: {
@@ -297,12 +317,35 @@ export const render = () => {
                 lineWidth: 2,
               },
             },
+            3: {
+              connectingLineOptions: {
+                color: 'green',
+                lineWidth: 2,
+              },
+            },
+            4: {
+              connectingLineOptions: {
+                color: 'purple',
+                lineWidth: 2,
+              },
+            },
+          }}
+          tooltipOptions={{
+            visibilityOptions: {
+              showXValue: true,
+              showXValueDivider: true,
+            }
           }}
           visibilityOptions={{
             showMarkers: false,
             showConnectingLine: true,
             showStraightLineOfBestFit: false,
-            showDatumHighlight: false,
+            showDatumHighlight: true,
+          }}
+          datumHighlightOptions={{
+            color: 'black',
+            type: DatumHighlightAppearanceType.CIRCLE,
+            lineWidth: 1,
           }}
         />
       </div>
