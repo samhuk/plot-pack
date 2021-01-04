@@ -238,7 +238,7 @@ export const render = () => {
             visibilityOptions: {
               showXValue: true,
               showXValueDivider: true,
-              showYSeriesPreviewColumn: true
+              showYSeriesPreviewColumn: true,
             },
             rectOptions: {
               borderColor: 'pink',
@@ -264,7 +264,7 @@ export const render = () => {
             yLabelOptions: {
               color: 'purple',
               fontSize: 20,
-            }
+            },
           }}
           markerOptions={{
             lineWidth: 1,
@@ -334,7 +334,7 @@ export const render = () => {
             visibilityOptions: {
               showXValue: true,
               showXValueDivider: true,
-            }
+            },
           }}
           visibilityOptions={{
             showMarkers: false,

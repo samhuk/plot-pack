@@ -7,14 +7,12 @@ import { drawConnectingLine, getShouldShowConnectingLine } from '../data/connect
 import { formatNumber } from '../plotBase/components/axisMarkerLabels'
 import { parseInputColumn } from '../../../common/rectPositioningEngine/elementParsing'
 import { renderColumn } from '../../../common/rectPositioningEngine/rendering'
-import { ColumnJustification, InputColumn, InputRow, Margin, RowJustification } from '../../../common/rectPositioningEngine/types'
+import { ColumnJustification, InputColumn, InputRow, RowJustification } from '../../../common/rectPositioningEngine/types'
 import { CanvasDrawer } from '../../../common/drawer/types'
 import TooltipOptions from '../types/TooltipOptions'
 
 const DEFAULT_OPTIONS: TooltipOptions = {
-  positioningOptions: {
-    xDistanceFromMarker: 10,
-  },
+  positioningOptions: { xDistanceFromMarker: 10 },
   xValueOptions: {
     color: 'black',
     fontFamily: 'Helvetica',
@@ -29,9 +27,7 @@ const DEFAULT_OPTIONS: TooltipOptions = {
     dashPattern: [],
     margin: { top: 5, bottom: 5 },
   },
-  yDataRowOptions: {
-    verticalSpacing: 5,
-  },
+  yDataRowOptions: { verticalSpacing: 5 },
   ySeriesPreviewOptions: {
     width: 20,
     marginRight: 10,
@@ -141,7 +137,7 @@ const createXValueDividerRow = (
   props: Options,
 ): InputRow => {
   if (!(props.tooltipOptions?.visibilityOptions?.showXValueDivider ?? DEFAULT_OPTIONS.visibilityOptions.showXValueDivider))
-    return
+    return null
 
   return {
     width: '100%',
@@ -150,7 +146,7 @@ const createXValueDividerRow = (
     render: rect => {
       const y = rect.y + rect.height / 2
       drawer.line([{ x: rect.x, y }, { x: rect.x + rect.width, y }], props.tooltipOptions?.xValueDividerOptions, DEFAULT_OPTIONS.xValueDividerOptions)
-    }
+    },
   }
 }
 
@@ -189,11 +185,11 @@ const createYSeriesPreviewColumn = (
         width: props.tooltipOptions?.ySeriesPreviewOptions?.width ?? DEFAULT_OPTIONS.ySeriesPreviewOptions.width,
         margin: {
           left: props.tooltipOptions?.ySeriesPreviewOptions?.marginLeft ?? DEFAULT_OPTIONS.ySeriesPreviewOptions.marginLeft,
-          right: props.tooltipOptions?.ySeriesPreviewOptions?.marginRight ?? DEFAULT_OPTIONS.ySeriesPreviewOptions.marginRight
+          right: props.tooltipOptions?.ySeriesPreviewOptions?.marginRight ?? DEFAULT_OPTIONS.ySeriesPreviewOptions.marginRight,
         },
         render: rect => render(rect, seriesKeys[i]),
       }],
-    }))
+    })),
   }
 }
 
@@ -205,7 +201,9 @@ const createYLabelColumn = (
   yDataRowMaxTextHeights: { [seriesKey: string]: number },
 ): InputColumn => {
   drawer.applyTextOptions(options?.yLabelOptions, DEFAULT_OPTIONS.yLabelOptions)
-  const render = (rect: Rect, seriesKey: string) => drawer.text(labelTexts[seriesKey], rect, null, options?.yLabelOptions, DEFAULT_OPTIONS.yLabelOptions)
+  const render = (rect: Rect, seriesKey: string) => (
+    drawer.text(labelTexts[seriesKey], rect, null, options?.yLabelOptions, DEFAULT_OPTIONS.yLabelOptions)
+  )
   const verticalSpacing = options?.yDataRowOptions?.verticalSpacing ?? DEFAULT_OPTIONS.yDataRowOptions.verticalSpacing
   return {
     rows: seriesKeys.map((seriesKey, i) => ({
@@ -215,15 +213,15 @@ const createYLabelColumn = (
         width: drawer.measureTextWidth(labelTexts[seriesKey]),
         margin: {
           left: options?.yLabelOptions?.marginLeft ?? DEFAULT_OPTIONS.yLabelOptions.marginLeft,
-          right: options?.yLabelOptions?.marginRight ?? DEFAULT_OPTIONS.yLabelOptions.marginRight
+          right: options?.yLabelOptions?.marginRight ?? DEFAULT_OPTIONS.yLabelOptions.marginRight,
         },
         rowJustification: RowJustification.CENTER,
         rows: [{
           height: drawer.measureTextHeight(labelTexts[seriesKey]),
-          render: rect => render(rect, seriesKeys[i])
-        }]
+          render: rect => render(rect, seriesKeys[i]),
+        }],
       }],
-    }))
+    })),
   }
 }
 
@@ -233,9 +231,11 @@ const createYValueColumn = (
   options: TooltipOptions,
   seriesKeys: string[],
   yDataRowMaxTextHeights: { [seriesKey: string]: number },
-): InputColumn => {  
+): InputColumn => {
   drawer.applyTextOptions(options?.yValueOptions, DEFAULT_OPTIONS.yValueOptions)
-  const render = (rect: Rect, seriesKey: string) => drawer.text(valueTexts[seriesKey], rect, null, options?.yValueOptions, DEFAULT_OPTIONS.yValueOptions)
+  const render = (rect: Rect, seriesKey: string) => (
+    drawer.text(valueTexts[seriesKey], rect, null, options?.yValueOptions, DEFAULT_OPTIONS.yValueOptions)
+  )
   const verticalSpacing = options?.yDataRowOptions?.verticalSpacing ?? DEFAULT_OPTIONS.yDataRowOptions.verticalSpacing
   return {
     rows: seriesKeys.map((seriesKey, i) => ({
@@ -245,15 +245,15 @@ const createYValueColumn = (
         width: drawer.measureTextWidth(valueTexts[seriesKey]),
         margin: {
           left: options?.yValueOptions?.marginLeft ?? DEFAULT_OPTIONS.yValueOptions.marginLeft,
-          right: options?.yValueOptions?.marginRight ?? DEFAULT_OPTIONS.yValueOptions.marginRight
+          right: options?.yValueOptions?.marginRight ?? DEFAULT_OPTIONS.yValueOptions.marginRight,
         },
         rowJustification: RowJustification.CENTER,
         rows: [{
           height: drawer.measureTextHeight(valueTexts[seriesKey]),
-          render: rect => render(rect, seriesKeys[i])
-        }]
+          render: rect => render(rect, seriesKeys[i]),
+        }],
       }],
-    }))
+    })),
   }
 }
 
@@ -278,9 +278,9 @@ export const draw = (
   const yValueTexts = mapDict(highlightedDatums, (_, { fvY }) => formatNumber(fvY, props, Axis2D.Y))
 
   drawer.applyTextOptions(props.tooltipOptions?.yLabelOptions, DEFAULT_OPTIONS.yLabelOptions)
-  const yLabelTextHeights = mapDict(yLabelTexts, (seriesKey) => drawer.measureTextHeight(yLabelTexts[seriesKey]))
+  const yLabelTextHeights = mapDict(yLabelTexts, seriesKey => drawer.measureTextHeight(yLabelTexts[seriesKey]))
   drawer.applyTextOptions(props.tooltipOptions?.yValueOptions, DEFAULT_OPTIONS.yValueOptions)
-  const yValueTextHeights = mapDict(yValueTexts, (seriesKey) => drawer.measureTextHeight(yValueTexts[seriesKey]))
+  const yValueTextHeights = mapDict(yValueTexts, seriesKey => drawer.measureTextHeight(yValueTexts[seriesKey]))
   const yDataRowMaxTextHeights = mapDict(yLabelTexts, seriesKey => Math.max(yLabelTextHeights[seriesKey], yValueTextHeights[seriesKey]))
 
   const inputColumn: InputColumn = {
@@ -299,7 +299,7 @@ export const draw = (
           // Y label (i.e. series key/"name") column
           createYLabelColumn(drawer, yLabelTexts, props.tooltipOptions, seriesKeys, yDataRowMaxTextHeights),
           // Y value column
-          createYValueColumn(drawer, yValueTexts, props.tooltipOptions, seriesKeys, yDataRowMaxTextHeights)
+          createYValueColumn(drawer, yValueTexts, props.tooltipOptions, seriesKeys, yDataRowMaxTextHeights),
         ],
       },
     ],

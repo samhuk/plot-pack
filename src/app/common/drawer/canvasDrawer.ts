@@ -471,16 +471,14 @@ const text = (
     state.ctx.restore()
 }
 
-const _measureTextWidth = (state: CanvasDrawerState, _text: string, textOptions: TextOptions, fallbackTextOptions: TextOptions) =>
-{
+const _measureTextWidth = (state: CanvasDrawerState, _text: string, textOptions: TextOptions, fallbackTextOptions: TextOptions) => {
   if (textOptions != null && fallbackTextOptions != null)
     applyTextOptionsToContext(state.ctx, textOptions, fallbackTextOptions)
 
   return measureTextWidth(state.ctx, _text)
 }
 
-const _measureTextHeight = (state: CanvasDrawerState, _text: string, textOptions: TextOptions, fallbackTextOptions: TextOptions) =>
-{
+const _measureTextHeight = (state: CanvasDrawerState, _text: string, textOptions: TextOptions, fallbackTextOptions: TextOptions) => {
   if (textOptions != null && fallbackTextOptions != null)
     applyTextOptionsToContext(state.ctx, textOptions, fallbackTextOptions)
 
