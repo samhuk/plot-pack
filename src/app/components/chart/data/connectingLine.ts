@@ -7,7 +7,7 @@ import { LineOptions } from '../../../common/types/canvas'
 import AxesBound from '../types/AxesBound'
 import { getRectOccludedLineBetweenTwoPointsUsingAxesBounds } from '../../../common/helpers/geometry'
 
-const DEFAULT_CONNECTING_LINE_LINE_OPTIONS: LineOptions = {
+const DEFAULT_LINE_OPTIONS: LineOptions = {
   color: 'black',
   lineWidth: 2,
   dashPattern: [],
@@ -25,36 +25,14 @@ export const getShouldShowConnectingLine = (props: Options, seriesKey: string) =
     ?? false
 )
 
-const getConnectingLineLineWidth = (props: Options, seriesKey: string) => (
-  props.seriesOptions?.[seriesKey]?.connectingLineOptions?.lineWidth
-    ?? props.connectingLineOptions?.lineWidth
-    ?? DEFAULT_CONNECTING_LINE_LINE_OPTIONS.lineWidth
-)
-
-const getConnectingLineColor = (props: Options, seriesKey: string) => (
-  props.seriesOptions?.[seriesKey]?.connectingLineOptions?.color
-    ?? props.connectingLineOptions?.color
-    ?? DEFAULT_CONNECTING_LINE_LINE_OPTIONS.color
-)
-
 export const drawConnectingLine = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   fromPosition: Point2D,
   toPosition: Point2D,
   props: Options,
   seriesKey: string,
 ) => {
-  const lineWidth = getConnectingLineLineWidth(props, seriesKey)
-  if (lineWidth < 0)
-    return
-
-  ctx.strokeStyle = getConnectingLineColor(props, seriesKey)
-  ctx.lineWidth = lineWidth
-
-  const path = new Path2D()
-  path.moveTo(fromPosition.x, fromPosition.y)
-  path.lineTo(toPosition.x, toPosition.y)
-  ctx.stroke(path)
+  drawer.line([fromPosition, toPosition], props.seriesOptions?.[seriesKey]?.connectingLineOptions, DEFAULT_LINE_OPTIONS)
 }
 
 export const createDatumsConnectingLinePath = (
@@ -92,17 +70,11 @@ export const drawDatumsConnectingLine = (
   props: Options,
   seriesKey: string,
 ) => {
-  const lineWidth = getConnectingLineLineWidth(props, seriesKey)
-  if (lineWidth != null && lineWidth < 0)
-    return
-
-  drawer.applyLineOptions({
-    color: getConnectingLineColor(props, seriesKey),
-    lineWidth,
-  }, DEFAULT_CONNECTING_LINE_LINE_OPTIONS)
-
-  const path = createDatumsConnectingLinePath(datumScreenFocusPoints, axesScreenBounds)
-  drawer.path(path)
+  drawer.path(
+    createDatumsConnectingLinePath(datumScreenFocusPoints, axesScreenBounds),
+    { lineOptions: props.seriesOptions?.[seriesKey]?.connectingLineOptions },
+    { lineOptions: DEFAULT_LINE_OPTIONS },
+  )
 }
 
 export default drawDatumsConnectingLine

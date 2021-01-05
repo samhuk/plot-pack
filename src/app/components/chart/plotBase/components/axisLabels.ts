@@ -27,12 +27,9 @@ const drawAxisLabel = (drawer: CanvasDrawer, textRect: Rect, axis: Axis2D, props
   if (text == null || text.length === 0)
     return
 
-  applyAxisLabelTextOptionsToDrawer(drawer, axis, props)
-
-  if (axis === Axis2D.X)
-    drawer.text(text, textRect)
-  else
-    drawer.text(text, { x: textRect.x, y: textRect.y + textRect.height }, -Math.PI / 2)
+  const _textRect = axis === Axis2D.X ? textRect : { x: textRect.x, y: textRect.y + textRect.height }
+  const textAngle = axis === Axis2D.X ? 0 : -Math.PI / 2
+  drawer.text(text, _textRect, textAngle, props.axesOptions?.[axis]?.labelOptions, DEFAULT_LABEL_TEXT_OPTIONS)
 }
 
 export const drawAxesLabels = (drawer: CanvasDrawer, xAxisLabelTextRect: Rect, yAxisLabelTextRect: Rect, props: Options) => {

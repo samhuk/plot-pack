@@ -55,6 +55,14 @@ const DEFAULT_OPTIONS: TooltipOptions = {
       opacity: 1,
     },
     stroke: true,
+    shadow: true,
+    shadowOptions: {
+      offsetX: 3,
+      offsetY: 3,
+      blurDistance: 5,
+      opacity: 0.8,
+      color: 'black',
+    },
     padding: 5,
   },
   visibilityOptions: {
@@ -99,14 +107,13 @@ const drawYSeriesPreview = (
   props: Options,
   seriesKey: string,
 ) => {
-  const ctx = drawer.getRenderingContext()
   const y = rect.y + rect.height / 2 // Vertically centered
   if (shouldDrawMarkerPreview) {
     const markerSize = Math.min(rect.height, getMarkerSize(props, seriesKey)) // limit height to rect height
     drawStandardMarker(drawer, rect.x + rect.width / 2, y, props, seriesKey, markerSize)
   }
   if (shouldDrawConnectingLinePreview)
-    drawConnectingLine(ctx, { x: rect.x, y }, { x: rect.x + rect.width, y }, props, seriesKey)
+    drawConnectingLine(drawer, { x: rect.x, y }, { x: rect.x + rect.width, y }, props, seriesKey)
 }
 
 const createXValueRow = (

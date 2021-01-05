@@ -40,7 +40,7 @@ const calculateXAxisMarkerLabelOffsetVector = (
   const { shouldPlaceBelow, shouldHorizontallyCenter } = determineXAxisMarkerPositioning(axesGeometry, markerPosition)
   return {
     x: shouldHorizontallyCenter ? -textWidth / 2 : 2,
-    y: (shouldPlaceBelow ? 1 : -1) * (markerLineLength + lineHeight + 2),
+    y: (shouldPlaceBelow ? 1 : -1) * (markerLineLength + 2),
   }
 }
 
@@ -54,7 +54,7 @@ const calculateYAxisMarkerLabelOffsetVector = (
   const { shouldPlaceLeft, shouldVerticallyCenter } = determineYAxisMarkerPositioning(axesGeometry, markerPosition)
   return {
     x: shouldPlaceLeft ? -(textWidth + markerLineLength + 5) : markerLineLength + 5,
-    y: shouldVerticallyCenter ? lineHeight / 2 - 2 : -lineHeight + 2,
+    y: shouldVerticallyCenter ? -(lineHeight / 2) : -lineHeight - 2,
   }
 }
 
@@ -119,6 +119,5 @@ export const drawAxisMarkerLabels = (
   props: Options,
 ) => {
   const axisMarkerLabels = createAxisMarkerLabels(drawer, axesGeometry, axis, props)
-  const ctx = drawer.getRenderingContext()
-  axisMarkerLabels.forEach(l => ctx.fillText(l.text, l.textRect.x, l.textRect.y))
+  axisMarkerLabels.forEach(l => drawer.text(l.text, l.textRect))
 }

@@ -9,7 +9,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint --ext .jsx --ext .js,.ts,.tsx src/",
-    "lint:fix": "eslint --ext .jsx --ext .js,.ts,.tsx src/ --fix",
+    "lint-fix": "eslint --ext .jsx --ext .js,.ts,.tsx src/ --fix",
     "start": "env-cmd -e debug nodemon --exec babel-node ./src/test/server/app.js",
     "build-webpack": "npm run lint && rm -rf ./build && env-cmd -e build webpack --progress --config ./src/webpack.production.js",
     "build-tsc": "npm run lint && rm -rf ./build && env-cmd -e build tsc -b \"tsconfig.production.json\" --verbose"

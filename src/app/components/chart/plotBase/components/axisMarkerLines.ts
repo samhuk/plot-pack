@@ -75,6 +75,9 @@ export const drawAxisAxisMarkerLines = (
   props: Options,
   axis: Axis2D,
 ) => {
-  drawer.applyLineOptions(props?.axesOptions?.[axis]?.markerLineOptions, DEFAULT_LINE_OPTIONS)
-  drawer.path(createPath(props, axesGeometry, axis))
+  drawer.path(
+    createPath(props, axesGeometry, axis),
+    { lineOptions: props.axesOptions?.[axis]?.gridLineOptions },
+    { lineOptions: DEFAULT_LINE_OPTIONS },
+  )
 }

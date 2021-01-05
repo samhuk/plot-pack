@@ -247,7 +247,17 @@ export const render = () => {
               fillOptions: {
                 color: 'yellow',
               },
+              fill: true,
+              stroke: true,
               padding: 30,
+              shadow: true,
+              shadowOptions: {
+                color: 'black',
+                opacity: 1,
+                blurDistance: 10,
+                offsetX: 10,
+                offsetY: 10,
+              },
             },
             xValueOptions: {
               color: 'teal',

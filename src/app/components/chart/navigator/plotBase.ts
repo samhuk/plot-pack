@@ -1,7 +1,6 @@
 import Options from '../types/Options'
 import { CanvasDrawer } from '../../../common/drawer/types'
 import PositionedDatumValueFocusPoint from '../types/PositionedDatumValueFocusPoint'
-import { Path } from '../../../common/drawer/path/types'
 import { createDatumsConnectingLinePath } from '../data/connectingLine'
 import { Axis2D, Rect } from '../../../common/types/geometry'
 import { drawAxisLine } from '../plotBase/components/axisLines'
@@ -20,20 +19,17 @@ const DEFAULT_CONNECTING_LINE_LINE_OPTIONS: LineOptions = {
   dashPattern: [],
 }
 
-const getConnectingLineDashPattern = (props: Options, seriesKey: string) => (
-  props.navigatorOptions?.seriesOptions?.[seriesKey]?.connectingLineOptions?.dashPattern
-    ?? props.navigatorOptions?.connectingLineOptions?.dashPattern
-)
-
-const getConnectingLineLineWidth = (props: Options, seriesKey: string) => (
-  props.navigatorOptions?.seriesOptions?.[seriesKey]?.connectingLineOptions?.lineWidth
-    ?? props.navigatorOptions?.connectingLineOptions?.lineWidth
-)
-
-const getConnectingLineColor = (props: Options, seriesKey: string) => (
-  props.navigatorOptions?.seriesOptions?.[seriesKey]?.connectingLineOptions?.color
+const getConnectingLineLineOptions = (props: Options, seriesKey: string): LineOptions => ({
+  color: props.navigatorOptions?.seriesOptions?.[seriesKey]?.connectingLineOptions?.color
     ?? props.navigatorOptions?.connectingLineOptions?.color
-)
+    ?? props.seriesOptions?.[seriesKey]?.connectingLineOptions?.color,
+  lineWidth: props.navigatorOptions?.seriesOptions?.[seriesKey]?.connectingLineOptions?.lineWidth
+    ?? props.navigatorOptions?.connectingLineOptions?.lineWidth
+    ?? 1.2, // the navigator is typically quite small, so thick lines can become obstructive
+  dashPattern: props.navigatorOptions?.seriesOptions?.[seriesKey]?.connectingLineOptions?.dashPattern
+    ?? props.navigatorOptions?.connectingLineOptions?.dashPattern
+    ?? props.seriesOptions?.[seriesKey]?.connectingLineOptions?.dashPattern,
+})
 
 const drawConnectingLineForSeries = (
   drawer: CanvasDrawer,
@@ -42,12 +38,11 @@ const drawConnectingLineForSeries = (
   seriesKey: string,
   props: Options,
 ) => {
-  const path: Path = createDatumsConnectingLinePath(positionedDatumValueFocusPoints, axesScreenBounds)
-  const color = getConnectingLineColor(props, seriesKey)
-  const lineWidth = getConnectingLineLineWidth(props, seriesKey)
-  const dashPattern = getConnectingLineDashPattern(props, seriesKey)
-  drawer.applyLineOptions({ color, lineWidth, dashPattern }, DEFAULT_CONNECTING_LINE_LINE_OPTIONS)
-  drawer.path(path)
+  drawer.path(
+    createDatumsConnectingLinePath(positionedDatumValueFocusPoints, axesScreenBounds),
+    { lineOptions: getConnectingLineLineOptions(props, seriesKey) },
+    { lineOptions: DEFAULT_CONNECTING_LINE_LINE_OPTIONS },
+  )
 }
 
 const drawConnectingLineForAllSeries = (

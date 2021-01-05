@@ -12,11 +12,11 @@ import { Path } from './path/types'
 
 export type DrawOptions = {
   lineOptions?: LineOptions
-  fallbackLineOptions?: LineOptions
   fillOptions?: FillOptions
-  fallbackFillOptions?: FillOptions
+  shadowOptions?: ShadowOptions
   stroke?: boolean
   fill?: boolean
+  shadow?: boolean
 }
 
 export type TextOptions = TextOptionsBase
@@ -25,9 +25,14 @@ export type RoundedRectSimpleOptions = DrawOptions & {
   lineOptions?: {
     radii?: number | Corners2DOptional<number>,
   }
-  fallbackLineOptions?: {
-    radii?: number | Corners2DOptional<number>,
-  }
+}
+
+export type ShadowOptions = {
+  offsetX?: number
+  offsetY?: number
+  color?: string
+  opacity?: number
+  blurDistance?: number
 }
 
 export type RoundedRectOptions = {
@@ -35,9 +40,11 @@ export type RoundedRectOptions = {
   borderColor?: string | Directions2DOptional<string>
   borderLineWidth?: number
   borderRadii?: number | Corners2DOptional<number>
+  shadowOptions?: ShadowOptions
   fillOptions?: FillOptions
   stroke?: boolean | Directions2DOptional<boolean>
   fill?: boolean
+  shadow?: boolean
 }
 
 /**
@@ -60,11 +67,11 @@ type Drawer<T, R> = {
   /**
    * Draws a quadratic curve for the given QuadraticCurve
    */
-  quadraticCurve: (quadraticCurve: QuadraticCurve, drawOptions?: LineOptions) => R
+  quadraticCurve: (quadraticCurve: QuadraticCurve, drawOptions?: LineOptions, fallbackDrawOptions?: DrawOptions) => R
   /**
    * Draws a rectangle for the given Rect.
    */
-  rect: (rect: Rect, drawOptions?: DrawOptions) => R
+  rect: (rect: Rect, drawOptions?: DrawOptions, fallbackDrawOptions?: DrawOptions) => R
   /**
    * Draws an occlusion border around the given unoccluded rect. This is useful
    * for when one needs to draw within a given rect of a drawing space, and clip
@@ -76,22 +83,22 @@ type Drawer<T, R> = {
    * the ability to define per-side and per-corner properties for increased speed. If
    * you expect border radii to always be zero, then `.rect()`.
    */
-  roundedRectSimple: (rect: Rect, roundedRectOptions: RoundedRectSimpleOptions) => R
+  roundedRectSimple: (rect: Rect, options: RoundedRectSimpleOptions, fallbackOptions: RoundedRectSimpleOptions) => R
   /**
    * Draws a multi-path rounded rect. This differs from `roundedRectSimple`; this sacrifices
    * speed for the ability to define per-side and per-corner properties.
    */
-  roundedRect: (rect: Rect, roundedRectOptions: RoundedRectOptions, fallbackRoundedRectOptions: RoundedRectOptions) => void
+  roundedRect: (rect: Rect, options: RoundedRectOptions, fallbackOptions: RoundedRectOptions) => void
   /**
    * Draws a circle for the given Circle
    */
-  circle: (circle: Circle, drawOptions?: DrawOptions) => R
+  circle: (circle: Circle, drawOptions?: DrawOptions, fallbackDrawOptions?: DrawOptions) => R
   /**
    * Draws an arc (i.e. part of a circle) given the CircularSector
    */
-  arc: (sector: CircularSector, drawOptions?: DrawOptions) => R
-  isoscelesTriangle: (boundingRect: Rect, drawOptions?: DrawOptions) => R
-  path: (drawerPath: Path, drawOptions?: DrawOptions) => R
+  arc: (sector: CircularSector, drawOptions?: DrawOptions, fallbackDrawOptions?: DrawOptions) => R
+  isoscelesTriangle: (boundingRect: Rect, drawOptions?: DrawOptions, fallbackDrawOptions?: DrawOptions) => R
+  path: (drawerPath: Path, drawOptions?: DrawOptions, fallbackDrawOptions?: DrawOptions) => R
   clearRenderingSpace: (rectToClear?: Rect) => void
   // -- Style modifiers
   applyLineOptions: (lineOptions?: LineOptions, fallbackOptions?: LineOptions) => void

@@ -25,6 +25,5 @@ const createLine = (axesGeometry: AxesGeometry, axis: Axis2D): Line => {
 }
 
 export const drawAxisLine = (drawer: CanvasDrawer, axesGeometry: AxesGeometry, props: Options, axis: Axis2D) => {
-  drawer.applyLineOptions(props.axesOptions?.[Axis2D.X]?.lineOptions, DEFAULT_LINE_OPTIONS)
-  drawer.line(createLine(axesGeometry, axis))
+  drawer.line(createLine(axesGeometry, axis), props.axesOptions?.[Axis2D.X]?.lineOptions, DEFAULT_LINE_OPTIONS)
 }

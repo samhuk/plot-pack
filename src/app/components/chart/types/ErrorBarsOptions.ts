@@ -1,10 +1,9 @@
+import { LineOptions } from '../../../common/types/canvas'
 import ErrorBarsMode from './ErrorBarsMode'
 
-export type ErrorBarsOptions = {
+export type ErrorBarsOptions = LineOptions & {
   mode: ErrorBarsMode
   capSize?: number
-  color?: string
-  lineWidth?: number
 }
 
 export default ErrorBarsOptions

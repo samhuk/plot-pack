@@ -1,4 +1,4 @@
-import { CanvasDrawer, CanvasDrawerState, DrawOptions, RoundedRectOptions, RoundedRectSimpleOptions, TextOptions } from './types'
+import { CanvasDrawer, CanvasDrawerState, DrawOptions, RoundedRectOptions, RoundedRectSimpleOptions, ShadowOptions, TextOptions } from './types'
 import { get2DContext, applyTextOptionsToContext, getTextLineHeightMetrics, measureTextWidth, measureTextLineHeight } from '../helpers/canvas'
 import { LineOptions, FillOptions, TextOptions as TextOptionsBase } from '../types/canvas'
 import { Line, CircularSector, Rect, Circle, Point2D, RectDimensions, QuadraticCurve, Corners2DOptional } from '../types/geometry'
@@ -10,52 +10,85 @@ import { convertCssColorAndOpacityToRgba } from '../helpers/color'
 /* eslint-disable no-param-reassign */
 
 const applyLineOptions = (state: CanvasDrawerState, lineOptions: LineOptions, fallbackOptions: LineOptions) => {
+  if (lineOptions == null && fallbackOptions == null)
+    return
+
   state.ctx.lineWidth = lineOptions?.lineWidth ?? fallbackOptions?.lineWidth ?? 1
   state.ctx.setLineDash(lineOptions?.dashPattern ?? fallbackOptions?.dashPattern ?? [])
   state.ctx.strokeStyle = lineOptions?.color ?? fallbackOptions?.color ?? 'black'
 }
 
 const applyFillOptions = (state: CanvasDrawerState, fillOptions: FillOptions, fallbackOptions: FillOptions) => {
+  if (fillOptions == null && fallbackOptions == null)
+    return
+
   state.ctx.fillStyle = convertCssColorAndOpacityToRgba(
     fillOptions?.color ?? fallbackOptions?.color ?? 'black', // color
     fillOptions?.opacity ?? fallbackOptions?.opacity ?? 1, // opacity
   )
 }
 
-/* eslint-enable no-param-reassign */
+const resetShadowOptions = (state: CanvasDrawerState) => {
+  state.ctx.shadowOffsetX = 0
+  state.ctx.shadowOffsetX = 0
+  state.ctx.shadowColor = convertCssColorAndOpacityToRgba('black', 0)
+  state.ctx.shadowBlur = 0
+}
 
-const applyLineAndFillOptions = (
-  state: CanvasDrawerState,
-  lineOptions: LineOptions,
-  fallbackLineOptions: LineOptions,
-  fillOptions: FillOptions,
-  fallbackFillOptions: FillOptions,
-) => {
-  if (lineOptions != null)
-    applyLineOptions(state, lineOptions, fallbackLineOptions)
-  if (fillOptions != null)
-    applyFillOptions(state, fillOptions, fallbackFillOptions)
+const applyShadowOptions = (state: CanvasDrawerState, shadowOptions: ShadowOptions, fallbackOptions: ShadowOptions) => {
+  if (shadowOptions == null && fallbackOptions == null)
+    return
+
+  state.ctx.shadowOffsetX = shadowOptions?.offsetX ?? fallbackOptions?.offsetX ?? 0
+  state.ctx.shadowOffsetY = shadowOptions?.offsetX ?? fallbackOptions?.offsetY ?? 0
+  state.ctx.shadowColor = convertCssColorAndOpacityToRgba(
+    shadowOptions?.color ?? fallbackOptions?.color ?? 'black', // color
+    shadowOptions?.opacity ?? fallbackOptions?.opacity ?? 0, // opacity
+  )
+  state.ctx.shadowBlur = shadowOptions?.blurDistance ?? fallbackOptions?.blurDistance ?? 0
 }
 
 const applyDrawOptions = (
   state: CanvasDrawerState,
   drawOptions: DrawOptions,
+  fallbackDrawOptions: DrawOptions,
 ) => {
-  if (drawOptions?.lineOptions != null)
-    applyLineOptions(state, drawOptions.lineOptions, drawOptions.fallbackLineOptions)
-  if (drawOptions?.fillOptions != null)
-    applyFillOptions(state, drawOptions.fillOptions, drawOptions.fallbackFillOptions)
+  applyLineOptions(state, drawOptions?.lineOptions, fallbackDrawOptions?.lineOptions)
+  applyFillOptions(state, drawOptions?.fillOptions, fallbackDrawOptions?.fillOptions)
+  if (drawOptions?.shadow ?? fallbackDrawOptions?.shadow)
+    applyShadowOptions(state, drawOptions?.shadowOptions, fallbackDrawOptions?.shadowOptions)
+  else
+    resetShadowOptions(state)
 }
 
 const applyTextOptions = (state: CanvasDrawerState, textOptions: TextOptionsBase, fallbackOptions: TextOptionsBase) => {
+  if (textOptions == null && fallbackOptions == null)
+    return
   applyTextOptionsToContext(state.ctx, textOptions, fallbackOptions)
 }
 
-const drawPath2D = (state: CanvasDrawerState, _path: Path2D, stroke: boolean = true, fill: boolean = false) => {
-  if (stroke ?? true) // stroke by default
+const drawPath2D = (state: CanvasDrawerState, _path: Path2D, stroke: boolean = true, fill: boolean = false, shadow: boolean = false) => {
+  const _stroke = stroke ?? true // stroke by default
+  const _fill = fill ?? false // don't fill by default
+  const _shadow = shadow ?? false // don't shadow by default
+
+  const isDrawingAll = _shadow && _stroke && _fill
+
+  const _previousCtxShadowColor = state.ctx.shadowColor
+  if (_stroke)
     state.ctx.stroke(_path)
-  if (fill ?? false) // don't fill by default
+
+  /* If we are drawing a shadow, line, and fill, then make shadow color transparent in-between
+   * drawing the line and the fill to prevent redrawing it when we go to draw the fill
+   */
+  if (isDrawingAll)
+    state.ctx.shadowColor = 'rgba(0,0,0,0)'
+
+  if (_fill)
     state.ctx.fill(_path)
+
+  if (isDrawingAll)
+    state.ctx.shadowColor = _previousCtxShadowColor
 }
 
 const clearRenderingSpace = (state: CanvasDrawerState, rectToClear: Rect) => {
@@ -77,7 +110,7 @@ const line = (state: CanvasDrawerState, _line: Line, lineOptions: LineOptions, f
   if (_line == null || _line.length !== 2)
     return null
 
-  applyLineAndFillOptions(state, lineOptions, fallbackLineOptions, null, null)
+  applyLineOptions(state, lineOptions, fallbackLineOptions)
 
   if (state.ctx.lineWidth === 0)
     return null
@@ -104,7 +137,7 @@ const quadraticCurve = (
   if (curve == null)
     return null
 
-  applyLineAndFillOptions(state, lineOptions, fallbackLineOptions, null, null)
+  applyLineOptions(state, lineOptions, fallbackLineOptions)
 
   if (state.ctx.lineWidth === 0)
     return null
@@ -124,13 +157,14 @@ const arc = (
   state: CanvasDrawerState,
   sector: CircularSector,
   drawOptions: DrawOptions,
+  fallbackDrawOptions: DrawOptions,
 ): Path2D => {
   if (sector == null)
     return null
 
   const _drawOptions = drawOptions ?? { }
 
-  applyDrawOptions(state, drawOptions)
+  applyDrawOptions(state, drawOptions, fallbackDrawOptions)
 
   if ((_drawOptions.stroke ?? true) && state.ctx.lineWidth === 0)
     return null
@@ -150,13 +184,14 @@ const circle = (
   state: CanvasDrawerState,
   _circle: Circle,
   drawOptions: DrawOptions,
+  fallbackDrawOptions: DrawOptions,
 ): Path2D => {
   if (_circle == null)
     return null
 
   const _drawOptions = drawOptions ?? { }
 
-  applyDrawOptions(state, drawOptions)
+  applyDrawOptions(state, drawOptions, fallbackDrawOptions)
 
   if ((_drawOptions.stroke ?? true) && state.ctx.lineWidth === 0)
     return null
@@ -170,19 +205,23 @@ const path = (
   state: CanvasDrawerState,
   _path: Path,
   drawOptions: DrawOptions,
+  fallbackDrawOptions: DrawOptions,
 ): Path2D => {
   if (_path == null || _path.length < 1)
     return null
 
   const _drawOptions = drawOptions ?? { }
+
+  const stroke = _drawOptions.stroke ?? true
+  const fill = _drawOptions.fill ?? false
   // Exit if the draw options mean that nothing will be visible
-  if (!(_drawOptions.stroke ?? true) && !(_drawOptions.fill ?? false))
+  if (!stroke && !fill)
     return null
 
-  applyDrawOptions(state, _drawOptions)
+  applyDrawOptions(state, _drawOptions, fallbackDrawOptions)
 
   const p = createPath2DFromPath(_path)
-  drawPath2D(state, p, _drawOptions.stroke ?? true, _drawOptions.fill ?? false)
+  drawPath2D(state, p, stroke, fill)
   return p
 }
 
@@ -196,12 +235,13 @@ const rect = (
   state: CanvasDrawerState,
   _rect: Rect,
   drawOptions: DrawOptions,
+  fallbackDrawOptions: DrawOptions,
 ): Path2D => {
   if (_rect == null)
     return null
 
   const _drawOptions = drawOptions ?? { }
-  applyDrawOptions(state, drawOptions)
+  applyDrawOptions(state, drawOptions, fallbackDrawOptions)
 
   if ((_drawOptions.stroke ?? true) && state.ctx.lineWidth === 0)
     return null
@@ -237,18 +277,19 @@ const roundedRectSimple = (
   state: CanvasDrawerState,
   _rect: Rect,
   options: RoundedRectSimpleOptions,
+  fallbackOptions: RoundedRectSimpleOptions,
 ): Path2D => {
   if (_rect == null)
     return null
 
-  applyDrawOptions(state, options)
+  applyDrawOptions(state, options, fallbackOptions)
 
   // If border radius is not defined or zero, then can just create a simple rect path, else create rounded rect path
-  const borderRadius = options.lineOptions?.radii ?? options.fallbackLineOptions?.radii ?? 0
+  const borderRadius = options?.lineOptions?.radii ?? fallbackOptions?.lineOptions?.radii ?? 0
   const p = borderRadius == null || borderRadius === 0
     ? createRectPath(_rect)
     : createSingleRoundedRectPath(_rect, normalizeCornersObject(borderRadius, 0))
-  drawPath2D(state, p, options.stroke, options.fill)
+  drawPath2D(state, p, options?.stroke, options?.fill, options?.shadow)
   return p
 }
 
@@ -266,6 +307,42 @@ const roundedRect = (
   const { x, y, height, width } = _rect
   const rightX = x + width
   const bottomY = y + height
+
+  const shouldDrawBackground = options?.fill ?? fallbackOptions?.fill ?? true
+
+  // Background
+  if (shouldDrawBackground) {
+    const drawOptions: RoundedRectSimpleOptions = {
+      stroke: false,
+      fill: true,
+      shadow: options?.shadow,
+      lineOptions: { radii },
+      fillOptions: options?.fillOptions,
+      shadowOptions: options?.shadowOptions,
+    }
+    const fallbackDrawOptions: RoundedRectSimpleOptions = {
+      shadow: fallbackOptions?.shadow,
+      lineOptions: { radii },
+      fillOptions: fallbackOptions?.fillOptions,
+      shadowOptions: fallbackOptions?.shadowOptions,
+    }
+    roundedRectSimple(state, _rect, drawOptions, fallbackDrawOptions)
+  }
+
+  // Alternative way of drawing the shadow in-case a background wasn't drawn
+  if (!shouldDrawBackground) {
+    const drawOptions: RoundedRectSimpleOptions = {
+      stroke: true,
+      lineOptions: { lineWidth: 1, color: 'black', radii },
+      fill: false,
+      shadow: true,
+      shadowOptions: options?.shadowOptions,
+    }
+    const fallbackDrawOptions: RoundedRectSimpleOptions = { shadowOptions: fallbackOptions?.shadowOptions }
+    roundedRectSimple(state, _rect, drawOptions, fallbackDrawOptions)
+  }
+
+  resetShadowOptions(state)
 
   /* eslint-disable max-len */
   const arcs = {
@@ -302,7 +379,7 @@ const roundedRect = (
     if (!isTopLeftCornerRadiusZero) {
       // Top left
       arc(state, arcs.top.left,
-        { lineOptions: { color: borderColors.top, dashPattern: borderDashPatterns.top, lineWidth: borderLineWidth } })
+        { lineOptions: { color: borderColors.top, dashPattern: borderDashPatterns.top, lineWidth: borderLineWidth } }, null)
     }
     const from = { x: lines.top.from.x - (isTopLeftCornerRadiusZero ? borderLineWidth / 2 : 0), y: lines.top.from.y }
     const to = { x: lines.top.to.x + (isTopRightCornerRadiusZero ? borderLineWidth / 2 : 0), y: lines.top.to.y }
@@ -312,7 +389,7 @@ const roundedRect = (
     if (!isTopRightCornerRadiusZero) {
       // Top right
       arc(state, arcs.top.right,
-        { lineOptions: { color: borderColors.top, dashPattern: borderDashPatterns.top, lineWidth: borderLineWidth } })
+        { lineOptions: { color: borderColors.top, dashPattern: borderDashPatterns.top, lineWidth: borderLineWidth } }, null)
     }
   }
   // Right
@@ -322,7 +399,7 @@ const roundedRect = (
     if (!isTopRightCornerRadiusZero) {
       // Top right
       arc(state, arcs.right.top,
-        { lineOptions: { color: borderColors.right, dashPattern: borderDashPatterns.right, lineWidth: borderLineWidth } })
+        { lineOptions: { color: borderColors.right, dashPattern: borderDashPatterns.right, lineWidth: borderLineWidth } }, null)
     }
     // Right
     const from = { x: lines.right.from.x, y: lines.right.from.y - (isTopRightCornerRadiusZero ? borderLineWidth / 2 : 0) }
@@ -333,7 +410,7 @@ const roundedRect = (
     if (!isBottomRightCornerRadiusZero) {
       // Bottom right
       arc(state, arcs.right.bottom,
-        { lineOptions: { color: borderColors.right, dashPattern: borderDashPatterns.right, lineWidth: borderLineWidth } })
+        { lineOptions: { color: borderColors.right, dashPattern: borderDashPatterns.right, lineWidth: borderLineWidth } }, null)
     }
   }
   // Bottom
@@ -343,7 +420,7 @@ const roundedRect = (
     if (!isBottomRightCornerRadiusZero) {
       // Bottom right
       arc(state, arcs.bottom.right,
-        { lineOptions: { color: borderColors.bottom, dashPattern: borderDashPatterns.bottom, lineWidth: borderLineWidth } })
+        { lineOptions: { color: borderColors.bottom, dashPattern: borderDashPatterns.bottom, lineWidth: borderLineWidth } }, null)
     }
     // Bottom
     const from = { x: lines.bottom.from.x + (isBottomRightCornerRadiusZero ? borderLineWidth / 2 : 0), y: lines.bottom.from.y }
@@ -354,7 +431,7 @@ const roundedRect = (
     if (!isBottomLeftCornerRadiusZero) {
       // Bottom left
       arc(state, arcs.bottom.left,
-        { lineOptions: { color: borderColors.bottom, dashPattern: borderDashPatterns.bottom, lineWidth: borderLineWidth } })
+        { lineOptions: { color: borderColors.bottom, dashPattern: borderDashPatterns.bottom, lineWidth: borderLineWidth } }, null)
     }
   }
   // Left
@@ -364,7 +441,7 @@ const roundedRect = (
     if (!isBottomLeftCornerRadiusZero) {
       // Bottom left
       arc(state, arcs.left.bottom,
-        { lineOptions: { color: borderColors.left, dashPattern: borderDashPatterns.left, lineWidth: borderLineWidth } })
+        { lineOptions: { color: borderColors.left, dashPattern: borderDashPatterns.left, lineWidth: borderLineWidth } }, null)
     }
     // Left
     const from = { x: lines.left.from.x, y: lines.left.from.y + (isBottomLeftCornerRadiusZero ? borderLineWidth / 2 : 0) }
@@ -375,22 +452,8 @@ const roundedRect = (
     if (!isTopLeftCornerRadiusZero) {
       // top left
       arc(state, arcs.left.top,
-        { lineOptions: { color: borderColors.left, dashPattern: borderDashPatterns.left, lineWidth: borderLineWidth } })
+        { lineOptions: { color: borderColors.left, dashPattern: borderDashPatterns.left, lineWidth: borderLineWidth } }, null)
     }
-  }
-
-  // Background
-  if (options?.fill ?? fallbackOptions?.fill ?? true) {
-    const drawOptions = {
-      stroke: false,
-      fill: true,
-      lineOptions: { radii },
-      fillOptions: {
-        color: options?.fillOptions?.color ?? fallbackOptions?.fillOptions?.color ?? 'black',
-        opacity: options?.fillOptions?.opacity ?? fallbackOptions?.fillOptions?.opacity ?? 0.05,
-      },
-    }
-    roundedRectSimple(state, _rect, drawOptions)
   }
 }
 
@@ -429,11 +492,12 @@ const isoscelesTriangle = (
   state: CanvasDrawerState,
   boundingRect: Rect,
   drawOptions: DrawOptions,
+  fallbackDrawOptions: DrawOptions,
 ): Path2D => {
   if (boundingRect == null)
     return null
 
-  applyDrawOptions(state, drawOptions)
+  applyDrawOptions(state, drawOptions, fallbackDrawOptions)
 
   if ((drawOptions.stroke ?? true) && state.ctx.lineWidth === 0)
     return null
@@ -472,16 +536,12 @@ const text = (
 }
 
 const _measureTextWidth = (state: CanvasDrawerState, _text: string, textOptions: TextOptions, fallbackTextOptions: TextOptions) => {
-  if (textOptions != null && fallbackTextOptions != null)
-    applyTextOptionsToContext(state.ctx, textOptions, fallbackTextOptions)
-
+  applyTextOptionsToContext(state.ctx, textOptions, fallbackTextOptions)
   return measureTextWidth(state.ctx, _text)
 }
 
 const _measureTextHeight = (state: CanvasDrawerState, _text: string, textOptions: TextOptions, fallbackTextOptions: TextOptions) => {
-  if (textOptions != null && fallbackTextOptions != null)
-    applyTextOptionsToContext(state.ctx, textOptions, fallbackTextOptions)
-
+  applyTextOptionsToContext(state.ctx, textOptions, fallbackTextOptions)
   return measureTextLineHeight(state.ctx, _text)
 }
 
@@ -498,16 +558,14 @@ export const createCanvasDrawer = (canvasElement: HTMLCanvasElement, rectDimensi
     getRenderingContext: () => state.ctx,
     line: (_line, lineOptions, fallbackLineOptions) => line(state, _line, lineOptions, fallbackLineOptions),
     quadraticCurve: (_quadraticCurve, lineOptions) => quadraticCurve(state, _quadraticCurve, lineOptions, null),
-    arc: (sector, drawOptions) => arc(state, sector, drawOptions),
-    circle: (_circle, drawOptions) => circle(state, _circle, drawOptions),
-    path: (_path, drawOptions) => path(state, _path, drawOptions),
-    rect: (_rect, drawOptions) => rect(state, _rect, drawOptions),
-    roundedRectSimple: (_rect, options) => roundedRectSimple(state, _rect, options),
+    arc: (sector, drawOptions, fallbackDrawOptions) => arc(state, sector, drawOptions, fallbackDrawOptions),
+    circle: (_circle, drawOptions, fallbackDrawOptions) => circle(state, _circle, drawOptions, fallbackDrawOptions),
+    path: (_path, drawOptions, fallbackDrawOptions) => path(state, _path, drawOptions, fallbackDrawOptions),
+    rect: (_rect, drawOptions, fallbackDrawOptions) => rect(state, _rect, drawOptions, fallbackDrawOptions),
+    roundedRectSimple: (_rect, options, fallbackOptions) => roundedRectSimple(state, _rect, options, fallbackOptions),
     roundedRect: (_rect, options, fallbackOptions) => roundedRect(state, _rect, options, fallbackOptions),
     occlusionBorder: unoccludedRect => occlusionBorder(state, unoccludedRect),
-    isoscelesTriangle: (boundingRect, drawOptions) => (
-      isoscelesTriangle(state, boundingRect, drawOptions)
-    ),
+    isoscelesTriangle: (boundingRect, drawOptions, fallbackDrawOptions) => isoscelesTriangle(state, boundingRect, drawOptions, fallbackDrawOptions),
     clearRenderingSpace: rectToClear => clearRenderingSpace(state, rectToClear),
     text: (_text, position, angle, textOptions, fallbackTextOptions) => text(state, _text, position, angle, textOptions, fallbackTextOptions),
     measureTextWidth: (_text, textOptions, fallbackTextOptions) => _measureTextWidth(state, _text, textOptions, fallbackTextOptions),

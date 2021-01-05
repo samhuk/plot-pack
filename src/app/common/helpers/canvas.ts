@@ -120,6 +120,9 @@ export const applyTextOptionsToContext = (
   textOptions: TextOptions,
   fallbackTextOptions: TextOptions,
 ) => {
+  if (textOptions == null && fallbackTextOptions == null)
+    return
+
   ctx.lineWidth = 0.7
   ctx.font = createTextStyle(
     textOptions?.fontFamily ?? fallbackTextOptions?.fontFamily ?? 'Helvetica',

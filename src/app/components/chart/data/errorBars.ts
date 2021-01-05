@@ -5,9 +5,10 @@ import ErrorBarsMode from '../types/ErrorBarsMode'
 import Options from '../types/Options'
 import { CanvasDrawer } from '../../../common/drawer/types'
 import { LineOptions } from '../../../common/types/canvas'
-import { Path, PathComponentType } from '../../../common/drawer/path/types'
+import { DrawOptions, Path, PathComponentType } from '../../../common/drawer/path/types'
 import { isPositionInAxesBounds } from '../../../common/helpers/geometry'
 import AxesBound from '../types/AxesBound'
+import ErrorBarsOptions from '../types/ErrorBarsOptions'
 
 const DEFAULT_LINE_OPTIONS: LineOptions = {
   lineWidth: 1.5,
@@ -17,30 +18,31 @@ const DEFAULT_LINE_OPTIONS: LineOptions = {
 
 const DEFAULT_CAP_SIZE = 8
 
-export const getShouldShowErrorBars = (props: Options, seriesKey: string, axis: Axis2D) => (
-  props.seriesOptions?.[seriesKey]?.errorBarsOptions?.[axis]?.mode
+const getErrorBarsOptions = (props: Options, seriesKey: string, axis: Axis2D): ErrorBarsOptions => ({
+  mode: props.seriesOptions?.[seriesKey]?.errorBarsOptions?.[axis]?.mode
+    ?? props?.errorBarsOptions?.[axis]?.mode,
+  capSize: props?.seriesOptions?.[seriesKey]?.errorBarsOptions?.[axis]?.capSize
+    ?? props?.errorBarsOptions?.[axis]?.capSize
+    ?? DEFAULT_CAP_SIZE,
+  color: props?.seriesOptions?.[seriesKey]?.errorBarsOptions?.[axis]?.color
+    ?? props?.errorBarsOptions?.[axis]?.color,
+  lineWidth: props?.seriesOptions?.[seriesKey]?.errorBarsOptions?.[axis]?.lineWidth
+    ?? props?.errorBarsOptions?.[axis]?.lineWidth,
+})
+
+export const getErrorBarsMode = (props: Options, seriesKey: string, axis: Axis2D) => (
+  props?.seriesOptions?.[seriesKey]?.errorBarsOptions?.[axis]?.mode
     ?? props?.errorBarsOptions?.[axis]?.mode
-) != null
+)
+
+export const getShouldShowErrorBars = (props: Options, seriesKey: string, axis: Axis2D) => (
+  getErrorBarsMode(props, seriesKey, axis) != null
+)
 
 const getCapSize = (props: Options, seriesKey: string, axis: Axis2D) => (
   props?.seriesOptions?.[seriesKey]?.errorBarsOptions?.[axis]?.capSize
     ?? props?.errorBarsOptions?.[axis]?.capSize
     ?? DEFAULT_CAP_SIZE
-)
-
-const getLineWidth = (props: Options, seriesKey: string, axis: Axis2D) => (
-  props?.seriesOptions?.[seriesKey]?.errorBarsOptions?.[axis]?.lineWidth
-    ?? props?.errorBarsOptions?.[axis]?.lineWidth
-)
-
-const getColor = (props: Options, seriesKey: string, axis: Axis2D) => (
-  props?.seriesOptions?.[seriesKey]?.errorBarsOptions?.[axis]?.color
-    ?? props?.errorBarsOptions?.[axis]?.color
-)
-
-export const getErrorBarsMode = (props: Options, seriesKey: string, axis: Axis2D) => (
-  props?.seriesOptions?.[seriesKey]?.errorBarsOptions?.[axis]?.mode
-    ?? props?.errorBarsOptions?.[axis]?.mode
 )
 
 const normalizeDatumErrorBarsValues = (
@@ -202,22 +204,18 @@ export const drawDatumErrorBarsForDatums = (
   axesScreenBounds: AxesBound,
   axis: Axis2D,
 ) => {
-  const lineWidth = getLineWidth(props, seriesKey, axis)
-
-  if (lineWidth <= 0)
-    return
-
-  drawer.applyLineOptions({ color: getColor(props, seriesKey, axis), lineWidth }, DEFAULT_LINE_OPTIONS)
-
   const capSize = getCapSize(props, seriesKey, axis)
+  const createPath = createDatumErrorBarsPathCreator(axis)
 
-  const pathCreator = createDatumErrorBarsPathCreator(axis)
+  const errorBarsOptions = getErrorBarsOptions(props, seriesKey, axis)
+  const drawOptions: DrawOptions = { lineOptions: errorBarsOptions }
+  const fallbackDrawOptions: DrawOptions = { lineOptions: DEFAULT_LINE_OPTIONS }
 
   datums
     // Filter out datums that are out of view
     .filter(d => isPositionInAxesBounds({ x: d.fpX, y: d.fpY }, axesScreenBounds))
     // draw each datum
-    .forEach(d => drawer.path(pathCreator(d, capSize)))
+    .forEach(d => drawer.path(createPath(d, capSize), drawOptions, fallbackDrawOptions))
 }
 
 export default drawDatumErrorBarsForDatums

@@ -48,6 +48,9 @@ export const drawAxisGridLines = (
   props: Options,
   axis: Axis2D,
 ) => {
-  drawer.applyLineOptions(props.axesOptions?.[axis]?.gridLineOptions, DEFAULT_LINE_OPTIONS)
-  drawer.path(createPath(axesGeometry, axis))
+  drawer.path(
+    createPath(axesGeometry, axis),
+    { lineOptions: props.axesOptions?.[axis]?.gridLineOptions },
+    { lineOptions: DEFAULT_LINE_OPTIONS },
+  )
 }
