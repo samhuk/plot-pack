@@ -1,6 +1,6 @@
 {
   "name": "plot-pack",
-  "version": "1.0.25",
+  "version": "1.0.26",
   "description": "Data visualization pack.",
   "files": [
     "lib",
