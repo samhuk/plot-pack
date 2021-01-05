@@ -150,7 +150,7 @@ export const DarkModeFlexDimensions = () => {
               type: DatumHighlightType.CIRCLE,
               drawOptions: {
                 lineOptions: {
-                  color: 'white'
+                  color: 'white',
                 },
               },
             }}

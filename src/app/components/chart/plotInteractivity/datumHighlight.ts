@@ -2,12 +2,13 @@ import ProcessedDatum from '../types/ProcessedDatum'
 import Options from '../types/Options'
 import { getShouldShowMarkers, getSize as getMarkerSize } from '../data/marker'
 import DatumHighlightType from '../types/DatumHighlightType'
-import { boundToRange } from '../../../common/helpers/math'
 import { CanvasDrawer } from '../../../common/drawer/types'
 import { DrawOptions, Path, PathComponentType } from '../../../common/drawer/path/types'
-import { Circle, Point2D } from '../../../common/types/geometry'
-import DatumHighlightOptions, { CircleDatumHighlightOptions, CrossHairDatumHighlightOptions, DatumHighlightOptionsAll, DatumHighlightOptionsBase, HairDatumHighlightOptionsBase, PlusHairDatumHighlightOptions } from '../types/DatumHighlightOptions'
-import { createTextStyle } from '../../../common/helpers/canvas'
+import { Point2D } from '../../../common/types/geometry'
+import DatumHighlightOptions, { CircleDatumHighlightOptions,
+  CrossHairDatumHighlightOptions,
+  DatumHighlightOptionsBase,
+  HairDatumHighlightOptionsBase } from '../types/DatumHighlightOptions'
 
 const DEFAULT_HIGHLIGHT_TYPE = DatumHighlightType.CIRCLE
 
@@ -23,8 +24,8 @@ const DEFAULT_CIRCLE_OPTIONS: CircleDatumHighlightOptions = {
     lineOptions: {
       color: 'black',
       lineWidth: 1,
-      dashPattern: []
-    }
+      dashPattern: [],
+    },
   },
 }
 
@@ -34,8 +35,8 @@ const DEFAULT_HAIR_OPTIONS_BASE: HairDatumHighlightOptionsBase = {
   lineOptions: {
     color: 'black',
     lineWidth: 1,
-    dashPattern: []
-  }
+    dashPattern: [],
+  },
 }
 
 const DEFAULT_DATUM_HIGHLIGHT_OPTIONS_BASE: DatumHighlightOptionsBase = {
@@ -53,7 +54,7 @@ const getRadiusForCircularDatumHighlights = (radius: number, markerSize: number)
   radius ?? (markerSize != null ? 0.75 * markerSize : null) ?? DEFAULT_CIRCLE_OPTIONS.radius
 )
 
-const createCircleDatumHighlightPath = (position: Point2D, options: CircleDatumHighlightOptions , markerSize: number): Path => {
+const createCircleDatumHighlightPath = (position: Point2D, options: CircleDatumHighlightOptions, markerSize: number): Path => {
   const radius = getRadiusForCircularDatumHighlights(options?.radius, markerSize)
   return [{ type: PathComponentType.CIRCLE, position, radius }]
 }
@@ -85,7 +86,7 @@ const createPlushairDatumHighlightPath = (position: Point2D, options: CrossHairD
     { type: PathComponentType.LINE_TO, x: position.x, y: position.y - hairStartRadius - hairLength },
     { type: PathComponentType.MOVE_TO, x: position.x - hairStartRadius, y: position.y },
     { type: PathComponentType.LINE_TO, x: position.x - hairStartRadius - hairLength, y: position.y },
-    { type: PathComponentType.MOVE_TO, x: position.x + hairStartRadius, y: position.y},
+    { type: PathComponentType.MOVE_TO, x: position.x + hairStartRadius, y: position.y },
     { type: PathComponentType.LINE_TO, x: position.x + hairStartRadius + hairLength, y: position.y },
   ]
 }

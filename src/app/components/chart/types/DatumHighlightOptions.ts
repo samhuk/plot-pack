@@ -18,7 +18,7 @@ export type DatumHighlightOptionsBase = {
 
 export type HairDatumHighlightOptionsBase = { hairStartRadius?: number, hairLength?: number, lineOptions?: LineOptions }
 
-export type CircleDatumHighlightOptions =  { radius?: number, drawOptions?: DrawOptions }
+export type CircleDatumHighlightOptions = { radius?: number, drawOptions?: DrawOptions }
 export type CrossHairDatumHighlightOptions = HairDatumHighlightOptionsBase
 export type PlusHairDatumHighlightOptions = HairDatumHighlightOptionsBase
 
@@ -32,10 +32,6 @@ type AnnotationTypeUnion = {
   [K in DatumHighlightType]: { type: K } & DatumHighlightTypeToOptionsMap[K]
 }[DatumHighlightType]
 
-type AnnotationTypeUnionAll = CircleDatumHighlightOptions & CrossHairDatumHighlightOptions & PlusHairDatumHighlightOptions & { type: DatumHighlightType }
-
 export type DatumHighlightOptions<T extends DatumHighlightType> = DatumHighlightOptionsBase & AnnotationTypeUnion & { type: T }
-
-export type DatumHighlightOptionsAll = DatumHighlightOptionsBase & AnnotationTypeUnionAll
 
 export default DatumHighlightOptions
