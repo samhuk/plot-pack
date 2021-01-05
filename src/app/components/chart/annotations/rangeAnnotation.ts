@@ -153,10 +153,13 @@ export const render = (
   const puX = options.axesValueBound.x?.upper != null
     ? geometry.chartAxesGeometry.x.p(options.axesValueBound.x?.upper)
     : geometry.chartAxesGeometry.x.pu
-  const plYFromOptions = geometry.chartAxesGeometry.y.p(options.axesValueBound.y?.lower) ?? geometry.chartAxesGeometry.y.pl
-  const puYFromOptions = geometry.chartAxesGeometry.y.p(options.axesValueBound.y?.upper) ?? geometry.chartAxesGeometry.y.pu
-  const plY = Math.min(plYFromOptions, puYFromOptions)
-  const puY = Math.max(plYFromOptions, puYFromOptions)
+  const puY = options.axesValueBound.y?.lower != null
+    ? geometry.chartAxesGeometry.y.p(options.axesValueBound.y?.lower)
+    : geometry.chartAxesGeometry.y.pl
+  const plY = options.axesValueBound.y?.upper != null
+    ? geometry.chartAxesGeometry.y.p(options.axesValueBound.y?.upper)
+    : geometry.chartAxesGeometry.y.pu
+
 
   const rangeRect: Rect = { x: plX, y: plY, height: puY - plY, width: puX - plX }
 

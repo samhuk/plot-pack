@@ -184,8 +184,8 @@ export const render = () => {
               {
                 type: AnnotationType.RANGE,
                 axesValueBound: {
-                  x: { lower: 0, upper: 12 },
-                  y: { lower: 0, upper: 16 },
+                  x: { lower: 1, upper: 12 },
+                  y: { lower: 5, upper: 16 },
                 },
                 rectOptions: {
                   stroke: true,
@@ -215,11 +215,21 @@ export const render = () => {
               {
                 type: AnnotationType.RANGE,
                 axesValueBound: {
-                  x: null,
+                  x: { lower: 0, upper: null },
                   y: { lower: -10, upper: -3 },
                 },
                 labelOptions: {
                   text: 'Y-Axis sink region',
+                },
+              },
+              {
+                type: AnnotationType.RANGE,
+                axesValueBound: {
+                  x: { lower: null, upper: 0 },
+                  y: { lower: null, upper: 0 },
+                },
+                labelOptions: {
+                  text: 'All negative region',
                 },
               },
             ],
