@@ -8,7 +8,7 @@ import MarkerType from '../../../../../app/components/chart/types/MarkerType'
 import XAxisOrientation from '../../../../../app/components/chart/types/xAxisOrientation'
 import YAxisOrientation from '../../../../../app/components/chart/types/yAxisOrientation'
 import DatumSnapMode from '../../../../../app/components/chart/types/DatumSnapMode'
-import { DatumHighlightAppearanceType } from '../../../../../app/components/chart/types/DatumHighlightAppearanceType'
+import { DatumHighlightType } from '../../../../../app/components/chart/types/DatumHighlightType'
 import AnnotationType from '../../../../../app/components/chart/types/AnnotationType'
 import { RectHorizontalAlign, RectVerticalAlign } from '../../../../../app/components/chart/types/AnnotationOptions'
 
@@ -149,6 +149,10 @@ export const render = () => {
               numFigures: 2,
               lineOptions: {
                 color: '#333',
+              },
+              labelOptions: {
+                fontSize: 18,
+                color: 'purple',
               },
               markerLineOptions: {
                 color: '#333',
@@ -297,9 +301,12 @@ export const render = () => {
             excludedSeriesKeys: [],
           }}
           datumHighlightOptions={{
-            type: DatumHighlightAppearanceType.CROSSHAIR,
-            lineWidth: 2,
-            color: 'blue',
+            type: DatumHighlightType.CROSSHAIR,
+            hairLength: 10,
+            lineOptions: {
+              lineWidth: 2,
+              color: 'blue',
+            },
           }}
           navigatorOptions={{
             boundBoxOptions: {
@@ -363,9 +370,14 @@ export const render = () => {
             showDatumHighlight: true,
           }}
           datumHighlightOptions={{
-            color: 'black',
-            type: DatumHighlightAppearanceType.CIRCLE,
-            lineWidth: 1,
+            drawOptions: {
+              fill: true,
+              stroke: false,
+              fillOptions: {
+                opacity: 0.4,
+              },
+            },
+            type: DatumHighlightType.CIRCLE,
           }}
         />
       </div>

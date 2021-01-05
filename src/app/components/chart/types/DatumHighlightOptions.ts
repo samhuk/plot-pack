@@ -1,12 +1,10 @@
-import DatumHighlightAppearanceType from './DatumHighlightAppearanceType'
+import DatumHighlightType from './DatumHighlightType'
 import ProcessedDatum from './ProcessedDatum'
 import Options from './Options'
+import { LineOptions } from '../../../common/types/canvas'
+import { DrawOptions } from '../../../common/drawer/path/types'
 
-export type DatumHighlightOptions = {
-  type?: DatumHighlightAppearanceType
-  color?: string
-  fillColor?: string
-  lineWidth?: number
+export type DatumHighlightOptionsBase = {
   customHighlightOptions?: {
     customHighlightFunction: (
       ctx: CanvasRenderingContext2D,
@@ -17,5 +15,27 @@ export type DatumHighlightOptions = {
     doesCompliment?: boolean
   }
 }
+
+export type HairDatumHighlightOptionsBase = { hairStartRadius?: number, hairLength?: number, lineOptions?: LineOptions }
+
+export type CircleDatumHighlightOptions =  { radius?: number, drawOptions?: DrawOptions }
+export type CrossHairDatumHighlightOptions = HairDatumHighlightOptionsBase
+export type PlusHairDatumHighlightOptions = HairDatumHighlightOptionsBase
+
+type DatumHighlightTypeToOptionsMap = {
+  [DatumHighlightType.CIRCLE]: CircleDatumHighlightOptions
+  [DatumHighlightType.CROSSHAIR]: CrossHairDatumHighlightOptions
+  [DatumHighlightType.PLUSHAIR]: PlusHairDatumHighlightOptions
+}
+
+type AnnotationTypeUnion = {
+  [K in DatumHighlightType]: { type: K } & DatumHighlightTypeToOptionsMap[K]
+}[DatumHighlightType]
+
+type AnnotationTypeUnionAll = CircleDatumHighlightOptions & CrossHairDatumHighlightOptions & PlusHairDatumHighlightOptions & { type: DatumHighlightType }
+
+export type DatumHighlightOptions<T extends DatumHighlightType> = DatumHighlightOptionsBase & AnnotationTypeUnion & { type: T }
+
+export type DatumHighlightOptionsAll = DatumHighlightOptionsBase & AnnotationTypeUnionAll
 
 export default DatumHighlightOptions

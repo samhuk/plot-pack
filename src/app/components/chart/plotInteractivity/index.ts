@@ -61,7 +61,7 @@ const determineNearestDatums = (
   ))
 )
 
-const drawDatumHighlightInternal = (ctx: CanvasRenderingContext2D, nearestDatum: ProcessedDatum, props: Options, seriesKey: string) => {
+const drawDatumHighlightInternal = (drawer: CanvasDrawer, nearestDatum: ProcessedDatum, props: Options, seriesKey: string) => {
   const shouldDraw = nearestDatum != null
 
   if (!shouldDraw)
@@ -72,6 +72,7 @@ const drawDatumHighlightInternal = (ctx: CanvasRenderingContext2D, nearestDatum:
 
   // Draw custom datum highlight if custom function defined
   if (isCustomFunctionDefined) {
+    const ctx = drawer.getRenderingContext()
     ctx.save()
     props.datumHighlightOptions.customHighlightOptions.customHighlightFunction(ctx, nearestDatum, props, seriesKey)
     ctx.restore()
@@ -79,7 +80,7 @@ const drawDatumHighlightInternal = (ctx: CanvasRenderingContext2D, nearestDatum:
 
   // Draw standard datum highlight
   if (!isCustomFunctionDefined || (isCustomFunctionDefined && doesCustomFunctionCompliment))
-    drawDatumHighlight(ctx, nearestDatum, props, seriesKey)
+    drawDatumHighlight(drawer, nearestDatum, props, seriesKey)
 }
 
 const determineNearestDatumOfAllSeries = (nearestDatums: { [seriesKey: string]: NearestDatum }) => {
@@ -93,12 +94,12 @@ const determineNearestDatumOfAllSeries = (nearestDatums: { [seriesKey: string]: 
 }
 
 const drawDatumHighlights = (
-  ctx: CanvasRenderingContext2D,
+  drawer: CanvasDrawer,
   nearestDatums: { [seriesKey: string]: NearestDatum },
   props: Options,
 ) => {
   Object.entries(nearestDatums).forEach(([seriesKey, nearestDatum]) => {
-    drawDatumHighlightInternal(ctx, nearestDatum, props, seriesKey)
+    drawDatumHighlightInternal(drawer, nearestDatum, props, seriesKey)
   })
 }
 
@@ -150,7 +151,7 @@ const draw = (
   // Draw datam highlight(s)
   if (highlightedDatums != null) {
     if (props.visibilityOptions?.showDatumHighlight ?? true)
-      drawDatumHighlights(ctx, highlightedDatums, props)
+      drawDatumHighlights(drawer, highlightedDatums, props)
   }
 
   // Draw the vertical and horizontal lines, intersecting at where the cursor is

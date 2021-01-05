@@ -4,7 +4,7 @@ import { Axis2D } from '../../../../../app/common/types/geometry'
 import ErrorBarsMode from '../../../../../app/components/chart/types/ErrorBarsMode'
 import MarkerType from '../../../../../app/components/chart/types/MarkerType'
 import DatumSnapMode from '../../../../../app/components/chart/types/DatumSnapMode'
-import DatumHighlightAppearanceType from '../../../../../app/components/chart/types/DatumHighlightAppearanceType'
+import DatumHighlightType from '../../../../../app/components/chart/types/DatumHighlightType'
 
 export const DarkModeFlexDimensions = () => {
   const [xMax, setXMax] = useState(20)
@@ -133,9 +133,11 @@ export const DarkModeFlexDimensions = () => {
               size: 8,
             }}
             tooltipOptions={{
-              backgroundColor: '#666',
-              textColor: 'white',
-              borderLineColor: '#999',
+              rectOptions: {
+                fillOptions: {
+                  color: '#666',
+                },
+              },
             }}
             visibilityOptions={{
               showConnectingLine: true,
@@ -145,9 +147,12 @@ export const DarkModeFlexDimensions = () => {
               distanceThresholdPx: 30,
             }}
             datumHighlightOptions={{
-              type: DatumHighlightAppearanceType.CIRCLE,
-              color: 'white',
-              lineWidth: 2,
+              type: DatumHighlightType.CIRCLE,
+              drawOptions: {
+                lineOptions: {
+                  color: 'white'
+                },
+              },
             }}
           />
         </div>

@@ -2,15 +2,11 @@
  * The possible data highlight appearances. This is what is shown around a datum that has
  * been snapped to (i.e. highlighted).
  */
-export enum DatumHighlightAppearanceType {
+export enum DatumHighlightType {
   /**
    * The datum highlight appears as a circle (i.e. ring) around teh datum
    */
   CIRCLE = 'circle',
-  /**
-   * The datum highlight appears as a dot at the marker's position. This will appear over the marker.
-   */
-  DOT = 'dot',
   /**
    * The datum highlight appears as a crosshair around the marker.
    */
@@ -22,4 +18,4 @@ export enum DatumHighlightAppearanceType {
   PLUSHAIR = 'plushair',
 }
 
-export default DatumHighlightAppearanceType
+export default DatumHighlightType

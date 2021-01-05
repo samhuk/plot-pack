@@ -16,6 +16,7 @@ import NavigatorOptions from './NavigatorOptions'
 import TitleOptions from './TitleOptions'
 import { InputMargin } from '../../../common/rectPositioningEngine/types'
 import AnnotationsOptions from './AnnotationsOptions'
+import DatumHighlightType from './DatumHighlightType'
 
 /**
  * Options for the Chart
@@ -36,7 +37,7 @@ export type CommonOptions = {
   errorBarsOptions?: { [axis in Axis2D]?: ErrorBarsOptions }
   visibilityOptions?: VisibilityOptions
   bestFitLineOptions?: BestFitLineOptions
-  datumHighlightOptions?: DatumHighlightOptions
+  datumHighlightOptions?: DatumHighlightOptions<DatumHighlightType>
   datumSnapOptions?: DatumSnapOptions
   navigatorOptions?: NavigatorOptions
   autoSetAxisBoundsToFitOnlyVisibleDatums?: boolean
