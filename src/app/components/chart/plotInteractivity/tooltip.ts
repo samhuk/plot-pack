@@ -8,7 +8,7 @@ import { formatNumber } from '../plotBase/components/axisMarkerLabels'
 import { parseInputColumn } from '../../../common/rectPositioningEngine/elementParsing'
 import { renderColumn } from '../../../common/rectPositioningEngine/rendering'
 import { ColumnJustification, InputColumn, InputRow, RowJustification } from '../../../common/rectPositioningEngine/types'
-import { CanvasDrawer } from '../../../common/drawer/types'
+import { CanvasDrawer, RoundedRectOptions } from '../../../common/drawer/types'
 import TooltipOptions from '../types/TooltipOptions'
 
 const DEFAULT_OPTIONS: TooltipOptions = {
@@ -86,17 +86,33 @@ const getShouldShowConnectingLinePreview = (props: Options, seriesKey: string) =
   && getShouldShowConnectingLine(props, seriesKey)
 )
 
+const getRectShadowVector = (rectOptions: RoundedRectOptions) => {
+  if (!(rectOptions?.shadow ?? DEFAULT_OPTIONS.rectOptions.shadow))
+    return 0
+  
+  const offsetX = rectOptions?.shadowOptions?.offsetX ?? DEFAULT_OPTIONS.rectOptions.shadowOptions.offsetX
+  const blurDistance = rectOptions?.shadowOptions?.blurDistance ?? DEFAULT_OPTIONS.rectOptions.shadowOptions.blurDistance
+  return offsetX + blurDistance
+}
+
 const determineTooltipBoxXCoord = (canvasWidth: number, boxWidth: number, x: number, tooltipOptions: TooltipOptions) => {
   // TODO: TAKE THE VALUE FROM OPTIONS
   const xDistanceFromMarker = tooltipOptions?.positioningOptions?.xDistanceFromMarker ?? DEFAULT_OPTIONS.positioningOptions.xDistanceFromMarker
-  // Try placing on RHS
-  let prospectiveBoxX = x + xDistanceFromMarker
-  // Determine if the box is overflowing on the RHS
-  const rhsOverflow = Math.max(0, prospectiveBoxX + boxWidth - canvasWidth)
-  // If not overflowing, remain on RHS, else try placing on LHS
-  prospectiveBoxX = rhsOverflow === 0 ? prospectiveBoxX : x - xDistanceFromMarker - boxWidth
-  // If not overflowing, remain on LHS, else place in the middle
-  return prospectiveBoxX > 0 ? prospectiveBoxX : x - (boxWidth / 2)
+  const shadowVector = getRectShadowVector(tooltipOptions?.rectOptions)
+  console.log(shadowVector)
+  const prospectiveRHSRectX = x + xDistanceFromMarker
+  const prospectiveLHSRectX = x - xDistanceFromMarker - boxWidth
+  // Measure rect RHS overflow
+  const rhsOverflow = Math.max(0, prospectiveRHSRectX + boxWidth + Math.max(0, shadowVector) - canvasWidth)
+  // Measure rect LHS overflow
+  const lhsOverflow = Math.min(0, prospectiveLHSRectX + Math.min(0, shadowVector))
+  if (rhsOverflow !== 0 && lhsOverflow !== 0) // If RHS and LHS overrun, center
+    return x - (boxWidth / 2)
+  if (rhsOverflow === 0) // Else if there is no RHS overflow, RHS
+    return prospectiveRHSRectX
+  if (lhsOverflow === 0) // Else if there is no LHS overflow, LHS
+    return prospectiveLHSRectX
+  return 
 }
 
 const drawYSeriesPreview = (
