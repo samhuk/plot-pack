@@ -5,10 +5,9 @@ import { InputRow, ColumnJustification, InputColumn, RowJustification } from '..
 import ChartZones from '../types/ChartZones'
 import { getAxisLabelText, applyAxisLabelTextOptionsToDrawer, getAxisLabelMargin } from '../plotBase/components/axisLabels'
 import { Axis2D } from '../../../common/types/geometry'
-import { DEFAULT_NAVIGATOR_HEIGHT_PX } from '../navigator'
+import { DEFAULT_NAVIGATOR_HEIGHT_PX, DEFAULT_NAVIGATOR_PADDING_PX } from '../navigator'
 import ChartZoneRects from '../types/ChartZoneRects'
 import { renderInputColumn } from '../../../common/rectPositioningEngine/rendering'
-import { createDimensionValue } from '../../../common/rectPositioningEngine/elementParsing'
 
 const DEFAULT_GRAPH_MARGIN = 10
 
@@ -80,10 +79,6 @@ const createXAxisLabelRow = (drawer: CanvasDrawer, props: Options): InputRow => 
   }
 }
 
-const getNavigatorPlotBaseHeight = (props: Options) => props.navigatorOptions?.height != null
-  ? createDimensionValue(props.navigatorOptions.height, props.navigatorOptions.heightUnit)
-  : DEFAULT_NAVIGATOR_HEIGHT_PX
-
 const createNavigatorRow = (props: Options): InputRow => {
   if (props.visibilityOptions?.showNavigator ?? false)
     return null
@@ -91,11 +86,11 @@ const createNavigatorRow = (props: Options): InputRow => {
   return {
     id: ChartZones.NAVIGATOR,
     width: '100%',
-    padding: 5,
+    padding: props.navigatorOptions?.padding ?? DEFAULT_NAVIGATOR_PADDING_PX,
     columns: [{
       id: ChartZones.NAVIGATOR_PLOT_BASE,
       width: '100%',
-      height: getNavigatorPlotBaseHeight(props),
+      height: props.navigatorOptions?.height ?? DEFAULT_NAVIGATOR_HEIGHT_PX,
     }],
   }
 }
