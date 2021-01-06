@@ -11,8 +11,6 @@ import ChartZones from '../types/ChartZones'
 import { LineOptions } from '../../../common/types/canvas'
 import AxesBound from '../types/AxesBound'
 
-const DEFAULT_BACKGROUND_COLOR = 'white'
-
 const DEFAULT_CONNECTING_LINE_LINE_OPTIONS: LineOptions = {
   lineWidth: 1,
   color: 'black',
@@ -57,19 +55,13 @@ const drawConnectingLineForAllSeries = (
     })
 }
 
-const drawBackground = (drawer: CanvasDrawer, props: Options, rect: Rect) => {
-  drawer.rect(rect, { stroke: false, fill: true, fillOptions: { color: props.backgroundColor ?? DEFAULT_BACKGROUND_COLOR } })
-}
-
 export const drawNavigatorPlotBase = (
   drawer: CanvasDrawer,
+  screenRect: Rect,
   geometry: Geometry,
   props: Options,
 ) => {
-  drawBackground(drawer, props, geometry.chartZoneRects[ChartZones.NAVIGATOR])
-
   const axesGeometry = geometry.navigatorAxesGeometry
-  const rect = geometry.chartZoneRects[ChartZones.NAVIGATOR]
 
   const axesScreenBounds: AxesBound = {
     [Axis2D.X]: {
@@ -84,9 +76,6 @@ export const drawNavigatorPlotBase = (
 
   // Draw connecting line for each series
   drawConnectingLineForAllSeries(drawer, geometry.navigatorProcessedDatums, axesScreenBounds, props)
-
-  // Draw top border
-  drawer.line([rect, { x: rect.x + rect.width, y: rect.y }], { color: 'black', lineWidth: 1 })
 
   // Draw the plot base
   drawAxisLine(drawer, axesGeometry, props, Axis2D.X)

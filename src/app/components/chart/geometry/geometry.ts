@@ -100,7 +100,7 @@ export const createGeometry = (drawer: CanvasDrawer, props: Options): Geometry =
     },
   }
   // Create axes geometry for the Navigator
-  const navigatorAxesGeometry = createAxesGeometry(drawer, props, navigatorAxesValueRangeOptions, chartZoneRects[ChartZones.NAVIGATOR])
+  const navigatorAxesGeometry = createAxesGeometry(drawer, props, navigatorAxesValueRangeOptions, chartZoneRects[ChartZones.NAVIGATOR_PLOT_BASE])
 
   const navigatorFocusedDatums = hasNavigatorGotOwnSeries
     ? mapDict(navigatorNormalizedSeries, (_, datums) => calculateFocusedDatums(datums, props.datumFocusPointDeterminationMode))

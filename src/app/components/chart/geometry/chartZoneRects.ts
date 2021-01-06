@@ -80,20 +80,22 @@ const createXAxisLabelRow = (drawer: CanvasDrawer, props: Options): InputRow => 
   }
 }
 
+const getNavigatorPlotBaseHeight = (props: Options) => props.navigatorOptions?.height != null
+  ? createDimensionValue(props.navigatorOptions.height, props.navigatorOptions.heightUnit)
+  : DEFAULT_NAVIGATOR_HEIGHT_PX
+
 const createNavigatorRow = (props: Options): InputRow => {
   if (props.visibilityOptions?.showNavigator ?? false)
     return null
 
   return {
-    height: props.navigatorOptions?.height != null
-      ? createDimensionValue(props.navigatorOptions.height, props.navigatorOptions.heightUnit)
-      : DEFAULT_NAVIGATOR_HEIGHT_PX,
+    id: ChartZones.NAVIGATOR,
     width: '100%',
     padding: 5,
     columns: [{
+      id: ChartZones.NAVIGATOR_PLOT_BASE,
       width: '100%',
-      height: '100%',
-      id: ChartZones.NAVIGATOR,
+      height: getNavigatorPlotBaseHeight(props),
     }],
   }
 }
@@ -149,5 +151,6 @@ export const getChartZoneRects = (drawer: CanvasDrawer, props: Options): ChartZo
     [ChartZones.CHART_PLOT_BASE]: chartZoneRectsRaw[ChartZones.CHART_PLOT_BASE],
     [ChartZones.X_AXIS_TITLE]: chartZoneRectsRaw[ChartZones.X_AXIS_TITLE],
     [ChartZones.NAVIGATOR]: chartZoneRectsRaw[ChartZones.NAVIGATOR],
+    [ChartZones.NAVIGATOR_PLOT_BASE]: chartZoneRectsRaw[ChartZones.NAVIGATOR_PLOT_BASE]
   }
 }

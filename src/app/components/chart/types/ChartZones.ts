@@ -4,7 +4,8 @@ export enum ChartZones {
   X_AXIS_TITLE = 'X_AXIS_TITLE',
   CHART_PLOT_BASE = 'CHART_PLOT_BASE',
   CHART = 'CHART',
-  NAVIGATOR = 'NAVIGATOR'
+  NAVIGATOR = 'NAVIGATOR',
+  NAVIGATOR_PLOT_BASE = 'NAVIGATOR_PLOT_BASE'
 }
 
 export default ChartZones
