@@ -146,6 +146,6 @@ export const getChartZoneRects = (drawer: CanvasDrawer, props: Options): ChartZo
     [ChartZones.CHART_PLOT_BASE]: chartZoneRectsRaw[ChartZones.CHART_PLOT_BASE],
     [ChartZones.X_AXIS_TITLE]: chartZoneRectsRaw[ChartZones.X_AXIS_TITLE],
     [ChartZones.NAVIGATOR]: chartZoneRectsRaw[ChartZones.NAVIGATOR],
-    [ChartZones.NAVIGATOR_PLOT_BASE]: chartZoneRectsRaw[ChartZones.NAVIGATOR_PLOT_BASE]
+    [ChartZones.NAVIGATOR_PLOT_BASE]: chartZoneRectsRaw[ChartZones.NAVIGATOR_PLOT_BASE],
   }
 }

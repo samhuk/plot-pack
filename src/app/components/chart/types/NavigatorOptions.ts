@@ -1,4 +1,4 @@
-import { InputPadding, SizeUnit } from '../../../common/rectPositioningEngine/types'
+import { InputPadding } from '../../../common/rectPositioningEngine/types'
 import NavigatorSeriesOptions from './NavigatorSeriesOptions'
 import { LineOptions } from '../../../common/types/canvas'
 import Datum from './Datum'

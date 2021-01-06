@@ -7,7 +7,6 @@ import { drawAxisLine } from '../plotBase/components/axisLines'
 import { drawAxisMarkerLabels } from '../plotBase/components/axisMarkerLabels'
 import { drawAxisAxisMarkerLines } from '../plotBase/components/axisMarkerLines'
 import Geometry from '../types/Geometry'
-import ChartZones from '../types/ChartZones'
 import { LineOptions } from '../../../common/types/canvas'
 import AxesBound from '../types/AxesBound'
 
