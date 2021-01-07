@@ -99,7 +99,6 @@ const determineTooltipBoxXCoord = (canvasWidth: number, boxWidth: number, x: num
   // TODO: TAKE THE VALUE FROM OPTIONS
   const xDistanceFromMarker = tooltipOptions?.positioningOptions?.xDistanceFromMarker ?? DEFAULT_OPTIONS.positioningOptions.xDistanceFromMarker
   const shadowVector = getRectShadowVector(tooltipOptions?.rectOptions)
-  console.log(shadowVector)
   const prospectiveRHSRectX = x + xDistanceFromMarker
   const prospectiveLHSRectX = x - xDistanceFromMarker - boxWidth
   // Measure rect RHS overflow
