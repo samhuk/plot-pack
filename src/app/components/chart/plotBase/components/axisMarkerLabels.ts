@@ -9,6 +9,7 @@ import { determineXAxisMarkerPositioning, determineYAxisMarkerPositioning } from
 import AxisMarkerLabel from '../../types/AxisMarkerLabel'
 import { CanvasDrawer } from '../../../../common/drawer/types'
 import { TextOptions } from '../../../../common/types/canvas'
+import AxisOptions from '../../types/AxisOptions'
 
 const DEFALT_TEXT_OPTIONS: TextOptions = {
   color: 'black',
@@ -26,15 +27,14 @@ const getXAxisMarkerOrientation = (props: Options) => (props.axesOptions?.[Axis2
 
 const getYAxisMarkerOrientation = (props: Options) => (props.axesOptions?.[Axis2D.Y]?.markerOrientation as YAxisMarkerOrientation)
 
-export const formatNumber = (value: number, props: Options, axis: Axis2D) => (
-  formatNumberMath(value, props.axesOptions?.[axis]?.notation, props.axesOptions?.[axis]?.numFigures)
+export const formatNumberForAxisOptions = (value: number, axisOptions: AxisOptions) => (
+  formatNumberMath(value, axisOptions?.notation, axisOptions?.numFigures)
 )
 
 const calculateXAxisMarkerLabelOffsetVector = (
   axesGeometry: AxesGeometry,
   markerPosition: XAxisMarkerOrientation,
   markerLineLength: number,
-  lineHeight: number,
   textWidth: number,
 ): Point2D => {
   const { shouldPlaceBelow, shouldHorizontallyCenter } = determineXAxisMarkerPositioning(axesGeometry, markerPosition)
@@ -68,7 +68,7 @@ const calculateMarkerLabelOffsetVector = (
 ) => {
   switch (axis) {
     case Axis2D.X:
-      return calculateXAxisMarkerLabelOffsetVector(axesGeometry, markerPosition as XAxisMarkerOrientation, markerLineLength, lineHeight, textWidth)
+      return calculateXAxisMarkerLabelOffsetVector(axesGeometry, markerPosition as XAxisMarkerOrientation, markerLineLength, textWidth)
     case Axis2D.Y:
       return calculateYAxisMarkerLabelOffsetVector(axesGeometry, markerPosition as YAxisMarkerOrientation, markerLineLength, lineHeight, textWidth)
     default:
@@ -92,7 +92,7 @@ const createAxisMarkerLabels = (
   const axisMarkerLabels: AxisMarkerLabel[] = []
   for (let i = 0; i < axesGeometry[axis].numGridLines; i += 1) {
     const value = axesGeometry[axis].vlGrid + axesGeometry[axis].dvGrid * i
-    const text = formatNumber(value, props, axis)
+    const text = formatNumberForAxisOptions(value, props?.axesOptions?.[axis])
     const textWidth = drawer.measureTextWidth(text)
     const offsetVector = calculateMarkerLabelOffsetVector(axesGeometry, markerPosition, markerLineLength, lineHeight, textWidth, axis)
     const parallelScreenPosition = axesGeometry[axis].p(value)

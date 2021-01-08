@@ -1,15 +1,16 @@
-import { Point2D, Rect, Axis2D } from '../../../common/types/geometry'
+import { Point2D, Rect } from '../../../common/types/geometry'
 import Options from '../types/Options'
 import { mapDict, combineDicts, anyDict } from '../../../common/helpers/dict'
 import ProcessedDatum from '../types/ProcessedDatum'
 import { getSize as getMarkerSize, drawStandardMarker, getShouldShowMarkers } from '../data/marker'
 import { drawConnectingLine, getShouldShowConnectingLine } from '../data/connectingLine'
-import { formatNumber } from '../plotBase/components/axisMarkerLabels'
+import { formatNumberForAxisOptions } from '../plotBase/components/axisMarkerLabels'
 import { parseInputColumn } from '../../../common/rectPositioningEngine/elementParsing'
 import { renderColumn } from '../../../common/rectPositioningEngine/rendering'
 import { ColumnJustification, InputColumn, InputRow, RowJustification } from '../../../common/rectPositioningEngine/types'
 import { CanvasDrawer, RoundedRectOptions } from '../../../common/drawer/types'
 import TooltipOptions from '../types/TooltipOptions'
+import { deepMergeObjects } from '../../../common/helpers/object'
 
 const DEFAULT_OPTIONS: TooltipOptions = {
   positioningOptions: { xDistanceFromMarker: 10 },
@@ -88,30 +89,32 @@ const getShouldShowConnectingLinePreview = (props: Options, seriesKey: string) =
 
 const getRectShadowVector = (rectOptions: RoundedRectOptions) => {
   if (!(rectOptions?.shadow ?? DEFAULT_OPTIONS.rectOptions.shadow))
-    return 0
-  
-  const offsetX = rectOptions?.shadowOptions?.offsetX ?? DEFAULT_OPTIONS.rectOptions.shadowOptions.offsetX
-  const blurDistance = rectOptions?.shadowOptions?.blurDistance ?? DEFAULT_OPTIONS.rectOptions.shadowOptions.blurDistance
-  return offsetX + blurDistance
+    return { x: 0, y: 0 }
+
+  const mergedShadowOptions = deepMergeObjects(DEFAULT_OPTIONS.rectOptions.shadowOptions, rectOptions?.shadowOptions)
+  return {
+    x: mergedShadowOptions.offsetX + mergedShadowOptions.blurDistance,
+    y: mergedShadowOptions.offsetY + mergedShadowOptions.blurDistance,
+  }
 }
 
 const determineTooltipBoxXCoord = (canvasWidth: number, boxWidth: number, x: number, tooltipOptions: TooltipOptions) => {
-  // TODO: TAKE THE VALUE FROM OPTIONS
   const xDistanceFromMarker = tooltipOptions?.positioningOptions?.xDistanceFromMarker ?? DEFAULT_OPTIONS.positioningOptions.xDistanceFromMarker
+  // Measure the distance the shadow contributes to the sides of the box
   const shadowVector = getRectShadowVector(tooltipOptions?.rectOptions)
   const prospectiveRHSRectX = x + xDistanceFromMarker
   const prospectiveLHSRectX = x - xDistanceFromMarker - boxWidth
   // Measure rect RHS overflow
-  const rhsOverflow = Math.max(0, prospectiveRHSRectX + boxWidth + Math.max(0, shadowVector) - canvasWidth)
+  const rhsOverflow = Math.max(0, prospectiveRHSRectX + boxWidth + Math.max(0, shadowVector.x) - canvasWidth)
   // Measure rect LHS overflow
-  const lhsOverflow = Math.min(0, prospectiveLHSRectX + Math.min(0, shadowVector))
+  const lhsOverflow = Math.min(0, prospectiveLHSRectX + Math.min(0, shadowVector.x))
   if (rhsOverflow !== 0 && lhsOverflow !== 0) // If RHS and LHS overrun, center
     return x - (boxWidth / 2)
   if (rhsOverflow === 0) // Else if there is no RHS overflow, RHS
     return prospectiveRHSRectX
   if (lhsOverflow === 0) // Else if there is no LHS overflow, LHS
     return prospectiveLHSRectX
-  return 
+  return prospectiveRHSRectX
 }
 
 const drawYSeriesPreview = (
@@ -139,7 +142,7 @@ const createXValueRow = (
   if (!(props.tooltipOptions?.visibilityOptions?.showXValue ?? DEFAULT_OPTIONS.visibilityOptions.showXValue))
     return null
 
-  const text = formatNumber(nearestDatumOfAllSeries.fvX, props, Axis2D.X)
+  const text = formatNumberForAxisOptions(nearestDatumOfAllSeries.fvX, props.axesOptions?.x)
   // Apply text options now for accurate width and height measurements
   drawer.applyTextOptions(props.tooltipOptions?.xValueOptions, DEFAULT_OPTIONS.xValueOptions)
   return {
@@ -156,18 +159,18 @@ const createXValueRow = (
 
 const createXValueDividerRow = (
   drawer: CanvasDrawer,
-  props: Options,
+  tooltipOptions: TooltipOptions,
 ): InputRow => {
-  if (!(props.tooltipOptions?.visibilityOptions?.showXValueDivider ?? DEFAULT_OPTIONS.visibilityOptions.showXValueDivider))
+  if (!(tooltipOptions?.visibilityOptions?.showXValueDivider ?? DEFAULT_OPTIONS.visibilityOptions.showXValueDivider))
     return null
 
   return {
     width: '100%',
-    height: props.tooltipOptions?.xValueDividerOptions?.lineWidth ?? DEFAULT_OPTIONS.xValueDividerOptions.lineWidth,
-    margin: props.tooltipOptions?.xValueDividerOptions?.margin ?? DEFAULT_OPTIONS.xValueDividerOptions.margin,
+    height: tooltipOptions?.xValueDividerOptions?.lineWidth ?? DEFAULT_OPTIONS.xValueDividerOptions.lineWidth,
+    margin: tooltipOptions?.xValueDividerOptions?.margin ?? DEFAULT_OPTIONS.xValueDividerOptions.margin,
     render: rect => {
       const y = rect.y + rect.height / 2
-      drawer.line([{ x: rect.x, y }, { x: rect.x + rect.width, y }], props.tooltipOptions?.xValueDividerOptions, DEFAULT_OPTIONS.xValueDividerOptions)
+      drawer.line([{ x: rect.x, y }, { x: rect.x + rect.width, y }], tooltipOptions?.xValueDividerOptions, DEFAULT_OPTIONS.xValueDividerOptions)
     },
   }
 }
@@ -297,7 +300,7 @@ export const draw = (
   // Create series key label texts and widths
   const yLabelTexts = mapDict(highlightedDatums, seriesKey => `${seriesKey}:`)
   // Create value texts and widths
-  const yValueTexts = mapDict(highlightedDatums, (_, { fvY }) => formatNumber(fvY, props, Axis2D.Y))
+  const yValueTexts = mapDict(highlightedDatums, (_, { fvY }) => formatNumberForAxisOptions(fvY, props.axesOptions?.y))
 
   drawer.applyTextOptions(props.tooltipOptions?.yLabelOptions, DEFAULT_OPTIONS.yLabelOptions)
   const yLabelTextHeights = mapDict(yLabelTexts, seriesKey => drawer.measureTextHeight(yLabelTexts[seriesKey]))
@@ -312,7 +315,7 @@ export const draw = (
       // Title row
       createXValueRow(drawer, props, nearestDatumOfAllSeries),
       // divider row
-      createXValueDividerRow(drawer, props),
+      createXValueDividerRow(drawer, props.tooltipOptions),
       // Y data section (table)
       {
         columns: [

@@ -2,7 +2,7 @@ import { Options } from '../types/Options'
 import { Axis2D, Point2D, Rect } from '../../../common/types/geometry'
 import ProcessedDatum from '../types/ProcessedDatum'
 import AxesGeometry from '../types/AxesGeometry'
-import { formatNumber } from '../plotBase/components/axisMarkerLabels'
+import { formatNumberForAxisOptions } from '../plotBase/components/axisMarkerLabels'
 import { CanvasDrawer, RoundedRectOptions } from '../../../common/drawer/types'
 import { TextOptions } from '../../../common/types/canvas'
 
@@ -51,7 +51,7 @@ const drawXAxisCursorPositionValueLabel = (
   props: Options,
 ) => {
   const pX = nearestDatum != null && getCursorPositionValueLabelSnapTo(props, Axis2D.X) ? nearestDatum.fpX : cursorPoint.x
-  const xAxisText = formatNumber(axesGeometry[Axis2D.X].v(pX), props, Axis2D.X)
+  const xAxisText = formatNumberForAxisOptions(axesGeometry[Axis2D.X].v(pX), props.axesOptions?.x)
 
   const bgRectPaddingPx = getCursorPositionValueLabelPadding(props, Axis2D.X)
 
@@ -96,7 +96,7 @@ const drawYAxisCursorPositionValueLabel = (
   props: Options,
 ) => {
   const pY = nearestDatum != null && getCursorPositionValueLabelSnapTo(props, Axis2D.Y) ? nearestDatum.fpY : cursorPoint.y
-  const yAxisText = axesGeometry[Axis2D.Y].v(pY).toFixed(2)
+  const yAxisText = formatNumberForAxisOptions(axesGeometry[Axis2D.Y].v(pY), props.axesOptions?.y)
 
   const bgRectPaddingPx = getCursorPositionValueLabelPadding(props, Axis2D.Y)
 
