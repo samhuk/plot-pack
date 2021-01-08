@@ -21,20 +21,20 @@ const createPath = (axesGeometry: AxesGeometry, axis: Axis2D): Path => {
   const path: Path = []
 
   if (axis === Axis2D.X) {
-    for (let i = 0; i < axesGeometry[Axis2D.X].numGridLines; i += 1) {
-      const x = axesGeometry[Axis2D.X].plGrid + axesGeometry[Axis2D.X].dpGrid * i
+    for (let i = 0; i < axesGeometry.x.numGridLines; i += 1) {
+      const x = axesGeometry.x.plGrid + axesGeometry.x.dpGrid * i
       path.push(
-        { type: PathComponentType.MOVE_TO, x, y: axesGeometry[Axis2D.Y].pl },
-        { type: PathComponentType.LINE_TO, x, y: axesGeometry[Axis2D.Y].pu },
+        { type: PathComponentType.MOVE_TO, x, y: axesGeometry.y.pl },
+        { type: PathComponentType.LINE_TO, x, y: axesGeometry.y.pu },
       )
     }
   }
   else {
-    for (let i = 0; i < axesGeometry[Axis2D.Y].numGridLines; i += 1) {
-      const y = axesGeometry[Axis2D.Y].plGrid + axesGeometry[Axis2D.Y].dpGrid * i
+    for (let i = 0; i < axesGeometry.y.numGridLines; i += 1) {
+      const y = axesGeometry.y.plGrid + axesGeometry.y.dpGrid * i
       path.push(
-        { type: PathComponentType.MOVE_TO, x: axesGeometry[Axis2D.X].pl, y },
-        { type: PathComponentType.LINE_TO, x: axesGeometry[Axis2D.X].pu, y },
+        { type: PathComponentType.MOVE_TO, x: axesGeometry.x.pl, y },
+        { type: PathComponentType.LINE_TO, x: axesGeometry.x.pu, y },
       )
     }
   }

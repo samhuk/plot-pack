@@ -1,5 +1,5 @@
 import Options from '../types/Options'
-import { StraightLineEquation, Axis2D } from '../../../common/types/geometry'
+import { StraightLineEquation } from '../../../common/types/geometry'
 import { isInRange } from '../../../common/helpers/math'
 import AxesGeometry from '../types/AxesGeometry'
 import { CanvasDrawer } from '../../../common/drawer/types'
@@ -33,24 +33,24 @@ export const drawStraightLineOfBestFit = (
   props: Options,
   seriesKey: string,
 ) => {
-  const vlXIntersectionCoordY = bestFitStraightLineEquation.y(axesGeometry[Axis2D.X].vl)
-  const lowerValueIntersectionPoint = isInRange(axesGeometry[Axis2D.Y].vl, axesGeometry[Axis2D.Y].vu, vlXIntersectionCoordY)
-    ? { x: axesGeometry[Axis2D.X].vl, y: vlXIntersectionCoordY }
-    : { x: bestFitStraightLineEquation.x(axesGeometry[Axis2D.Y].vl), y: axesGeometry[Axis2D.Y].vl }
+  const vlXIntersectionCoordY = bestFitStraightLineEquation.y(axesGeometry.x.vl)
+  const lowerValueIntersectionPoint = isInRange(axesGeometry.y.vl, axesGeometry.y.vu, vlXIntersectionCoordY)
+    ? { x: axesGeometry.x.vl, y: vlXIntersectionCoordY }
+    : { x: bestFitStraightLineEquation.x(axesGeometry.y.vl), y: axesGeometry.y.vl }
 
-  const vuXIntersectionCoordY = bestFitStraightLineEquation.y(axesGeometry[Axis2D.X].vu)
-  const upperValueIntersectionPoint = isInRange(axesGeometry[Axis2D.Y].vl, axesGeometry[Axis2D.Y].vu, vuXIntersectionCoordY)
-    ? { x: axesGeometry[Axis2D.X].vu, y: vuXIntersectionCoordY }
-    : { x: bestFitStraightLineEquation.x(axesGeometry[Axis2D.Y].vu), y: axesGeometry[Axis2D.Y].vu }
+  const vuXIntersectionCoordY = bestFitStraightLineEquation.y(axesGeometry.x.vu)
+  const upperValueIntersectionPoint = isInRange(axesGeometry.y.vl, axesGeometry.y.vu, vuXIntersectionCoordY)
+    ? { x: axesGeometry.x.vu, y: vuXIntersectionCoordY }
+    : { x: bestFitStraightLineEquation.x(axesGeometry.y.vu), y: axesGeometry.y.vu }
 
   const lowerScreenIntersectionPoint = {
-    x: axesGeometry[Axis2D.X].p(lowerValueIntersectionPoint.x),
-    y: axesGeometry[Axis2D.Y].p(lowerValueIntersectionPoint.y),
+    x: axesGeometry.x.p(lowerValueIntersectionPoint.x),
+    y: axesGeometry.y.p(lowerValueIntersectionPoint.y),
   }
 
   const upperScreenIntersectionPoint = {
-    x: axesGeometry[Axis2D.X].p(upperValueIntersectionPoint.x),
-    y: axesGeometry[Axis2D.Y].p(upperValueIntersectionPoint.y),
+    x: axesGeometry.x.p(upperValueIntersectionPoint.x),
+    y: axesGeometry.y.p(upperValueIntersectionPoint.y),
   }
 
   const ctx = drawer.getRenderingContext()

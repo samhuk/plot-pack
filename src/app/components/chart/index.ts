@@ -10,7 +10,6 @@ import { drawNavigator } from './navigator'
 import { drawChart } from './chart'
 import { merge } from '../../common/helpers/function'
 import Bound from './types/Bound'
-import { Axis2D } from '../../common/types/geometry'
 import Chart from './types/Chart'
 import Navigator from './types/Navigator'
 import NavigatorEventHandlers from './types/NavigatorEventHandlers'
@@ -176,9 +175,9 @@ const createInteractiveEventContainer = (): HTMLElement => {
 const setXAxisValueBoundToOptions = (options: Options, bound: Bound): void => {
   if (options.axesOptions == null)
     options.axesOptions = {}
-  if (options.axesOptions[Axis2D.X] == null)
-    options.axesOptions[Axis2D.X] = {}
-  options.axesOptions[Axis2D.X].valueBound = bound
+  if (options.axesOptions.x == null)
+    options.axesOptions.x = {}
+  options.axesOptions.x.valueBound = bound
 }
 
 const renderInternal = (state: State, renderNewNavigator: boolean = false, clearAll: boolean = false): void => {
@@ -249,7 +248,7 @@ export const render = (parentContainerElement: HTMLElement, inputOptions: InputO
     renderedComponents: null,
     options: null,
     interactiveEventElement: null,
-    selectedXValueBound: inputOptions.axesOptions?.[Axis2D.X]?.valueBound,
+    selectedXValueBound: inputOptions.axesOptions?.x?.valueBound,
     canvasLayerDrawers: null,
   }
 

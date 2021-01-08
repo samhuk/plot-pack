@@ -1,4 +1,4 @@
-import { Rect, BoundingRect, Point2D, Axis2D, Directions2DOptional, Directions2D, Corners2D, Corners2DOptional } from '../types/geometry'
+import { Rect, BoundingRect, Point2D, Directions2DOptional, Directions2D, Corners2D, Corners2DOptional } from '../types/geometry'
 import { isInRange } from './math'
 import AxesBound from '../../components/chart/types/AxesBound'
 
@@ -37,8 +37,8 @@ export const isMouseEventInRect = (cursorPositionFromEvent: { offsetX: number, o
 )
 
 export const isPositionInAxesBounds = (position: Point2D, axesBounds: AxesBound) => (
-  isInRange(axesBounds[Axis2D.X].lower, axesBounds[Axis2D.X].upper, position.x)
-    && isInRange(axesBounds[Axis2D.Y].lower, axesBounds[Axis2D.Y].upper, position.y)
+  isInRange(axesBounds.x.lower, axesBounds.x.upper, position.x)
+    && isInRange(axesBounds.y.lower, axesBounds.y.upper, position.y)
 )
 
 /**
@@ -107,10 +107,10 @@ export const getRectOccludedLineBetweenTwoPointsUsingAxesBounds = (
   axesBounds: AxesBound,
 ): [Point2D, Point2D] => {
   // Construct rect from given axes bounds
-  const x0 = axesBounds[Axis2D.X].lower
-  const x1 = axesBounds[Axis2D.X].upper
-  const y0 = axesBounds[Axis2D.Y].lower
-  const y1 = axesBounds[Axis2D.Y].upper
+  const x0 = axesBounds.x.lower
+  const x1 = axesBounds.x.upper
+  const y0 = axesBounds.y.lower
+  const y1 = axesBounds.y.upper
   const rect: Rect = { x: x0, y: y0, height: y1 - y0, width: x1 - x0 }
   // Call the base function with the constructed rect
   return getRectOccludedLineBetweenTwoPoints(point1, point2, rect)

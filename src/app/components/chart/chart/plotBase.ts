@@ -144,13 +144,13 @@ const drawBackground = (drawer: CanvasDrawer, props: Options, rect: Rect) => {
 
 const drawAllSeriesData = (drawer: CanvasDrawer, g: Geometry, props: Options) => {
   const axesScreenBounds: AxesBound = {
-    [Axis2D.X]: {
-      lower: g.chartAxesGeometry[Axis2D.X].pl,
-      upper: g.chartAxesGeometry[Axis2D.X].pu,
+    x: {
+      lower: g.chartAxesGeometry.x.pl,
+      upper: g.chartAxesGeometry.x.pu,
     },
-    [Axis2D.Y]: {
-      lower: g.chartAxesGeometry[Axis2D.Y].pl,
-      upper: g.chartAxesGeometry[Axis2D.Y].pu,
+    y: {
+      lower: g.chartAxesGeometry.y.pl,
+      upper: g.chartAxesGeometry.y.pu,
     },
   }
 

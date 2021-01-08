@@ -2,7 +2,6 @@ import Options from '../types/Options'
 import Geometry from '../types/Geometry'
 import BestFitLineType from '../types/BestFitLineType'
 import { calculateStraightLineOfBestFit } from '../../../common/helpers/stat'
-import { Axis2D } from '../../../common/types/geometry'
 import { mapDict } from '../../../common/helpers/dict'
 import { normalizeDatumsErrorBarsValues } from '../data/errorBars'
 import { createAxesGeometry } from '../plotBase/geometry/axesGeometry'
@@ -40,8 +39,8 @@ export const createGeometry = (drawer: CanvasDrawer, props: Options): Geometry =
    * positioned in the chart axes screen space).
    */
   const chartOptionsSpecifiedChartAxesValueBounds: AxesBound = {
-    [Axis2D.X]: props.axesOptions?.[Axis2D.X]?.valueBound,
-    [Axis2D.Y]: props.axesOptions?.[Axis2D.Y]?.valueBound,
+    x: props.axesOptions?.x?.valueBound,
+    y: props.axesOptions?.y?.valueBound,
   }
   const datumsForChartAxesValueRangeOptions = (props.autoSetAxisBoundsToFitOnlyVisibleDatums ?? true)
     // Chart-visible focused datums
@@ -57,7 +56,7 @@ export const createGeometry = (drawer: CanvasDrawer, props: Options): Geometry =
 
   // Calculate positioned datums, adding screen position and a focus point to each datum.
   const chartProcessedDatums = mapDict(focusedDatums, (seriesKey, datums) => (
-    calculateProcessedDatums(datums, chartAxesGeometry[Axis2D.X].p, chartAxesGeometry[Axis2D.Y].p)
+    calculateProcessedDatums(datums, chartAxesGeometry.x.p, chartAxesGeometry.y.p)
   ))
 
   // Calculate best fit straight line for each series
@@ -86,17 +85,17 @@ export const createGeometry = (drawer: CanvasDrawer, props: Options): Geometry =
   const navigatorDatumsValueRange = calculateValueBoundsOfSeries(navigatorNormalizedSeries)
   // Create the axes value range options for the Navigator, which will be the all-datums value range
   const navigatorAxesValueRangeOptions: AxesValueRangeOptions = {
-    [Axis2D.X]: {
+    x: {
       isUpperForced: false,
       isLowerForced: false,
-      lower: navigatorDatumsValueRange[Axis2D.X].lower,
-      upper: navigatorDatumsValueRange[Axis2D.X].upper,
+      lower: navigatorDatumsValueRange.x.lower,
+      upper: navigatorDatumsValueRange.x.upper,
     },
-    [Axis2D.Y]: {
+    y: {
       isLowerForced: false,
       isUpperForced: false,
-      lower: navigatorDatumsValueRange[Axis2D.Y].lower,
-      upper: navigatorDatumsValueRange[Axis2D.Y].upper,
+      lower: navigatorDatumsValueRange.y.lower,
+      upper: navigatorDatumsValueRange.y.upper,
     },
   }
   // Create axes geometry for the Navigator
@@ -106,7 +105,7 @@ export const createGeometry = (drawer: CanvasDrawer, props: Options): Geometry =
     ? mapDict(navigatorNormalizedSeries, (_, datums) => calculateFocusedDatums(datums, props.datumFocusPointDeterminationMode))
     : focusedDatums
   const navigatorProcessedDatums = mapDict(navigatorFocusedDatums, (seriesKey, datums) => (
-    calculateProcessedDatums(datums, navigatorAxesGeometry[Axis2D.X].p, navigatorAxesGeometry[Axis2D.Y].p)
+    calculateProcessedDatums(datums, navigatorAxesGeometry.x.p, navigatorAxesGeometry.y.p)
   ))
 
   return {

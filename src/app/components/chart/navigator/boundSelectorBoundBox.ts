@@ -1,5 +1,5 @@
 import { CanvasDrawer, RoundedRectOptions } from '../../../common/drawer/types'
-import { Axis2D, Rect } from '../../../common/types/geometry'
+import { Rect } from '../../../common/types/geometry'
 import AxesGeometry from '../types/AxesGeometry'
 import Bound from '../types/Bound'
 import NavigatorBoundBoxOptions from '../types/NavigatorBoundBoxOptions'
@@ -24,9 +24,9 @@ export const drawXValueBoundBox = (
   const px1 = xScreenBound.upper
   const selectedAreaRect: Rect = {
     x: px0,
-    y: axesGeometry[Axis2D.Y].pu,
+    y: axesGeometry.y.pu,
     width: px1 - px0,
-    height: axesGeometry[Axis2D.Y].pl - axesGeometry[Axis2D.Y].pu,
+    height: axesGeometry.y.pl - axesGeometry.y.pu,
   }
 
   // Clear any pre-existing box

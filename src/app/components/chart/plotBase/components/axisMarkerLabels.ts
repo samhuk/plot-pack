@@ -23,9 +23,9 @@ export const getShouldShowAxisMarkerLabels = (props: Options, axis: Axis2D) => (
     ?? true
 )
 
-const getXAxisMarkerOrientation = (props: Options) => (props.axesOptions?.[Axis2D.X]?.markerOrientation as XAxisMarkerOrientation)
+const getXAxisMarkerOrientation = (props: Options) => (props.axesOptions?.x?.markerOrientation as XAxisMarkerOrientation)
 
-const getYAxisMarkerOrientation = (props: Options) => (props.axesOptions?.[Axis2D.Y]?.markerOrientation as YAxisMarkerOrientation)
+const getYAxisMarkerOrientation = (props: Options) => (props.axesOptions?.y?.markerOrientation as YAxisMarkerOrientation)
 
 export const formatNumberForAxisOptions = (value: number, axisOptions: AxisOptions) => (
   formatNumberMath(value, axisOptions?.notation, axisOptions?.numFigures)
@@ -108,8 +108,8 @@ export const createAxesMarkerLabels = (
   axesGeometry: AxesGeometry,
   props: Options,
 ): { [axis in Axis2D]: AxisMarkerLabel[] } => ({
-  [Axis2D.X]: createAxisMarkerLabels(drawer, axesGeometry, Axis2D.X, props),
-  [Axis2D.Y]: createAxisMarkerLabels(drawer, axesGeometry, Axis2D.Y, props),
+  x: createAxisMarkerLabels(drawer, axesGeometry, Axis2D.X, props),
+  y: createAxisMarkerLabels(drawer, axesGeometry, Axis2D.Y, props),
 })
 
 export const drawAxisMarkerLabels = (

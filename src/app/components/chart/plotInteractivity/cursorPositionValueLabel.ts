@@ -51,7 +51,7 @@ const drawXAxisCursorPositionValueLabel = (
   props: Options,
 ) => {
   const pX = nearestDatum != null && getCursorPositionValueLabelSnapTo(props, Axis2D.X) ? nearestDatum.fpX : cursorPoint.x
-  const xAxisText = formatNumberForAxisOptions(axesGeometry[Axis2D.X].v(pX), props.axesOptions?.x)
+  const xAxisText = formatNumberForAxisOptions(axesGeometry.x.v(pX), props.axesOptions?.x)
 
   const bgRectPaddingPx = getCursorPositionValueLabelPadding(props, Axis2D.X)
 
@@ -62,21 +62,21 @@ const drawXAxisCursorPositionValueLabel = (
 
   const textBoxWidth = drawer.measureTextWidth(xAxisText)
   const bgRectX = pX - textBoxWidth / 2 - bgRectPaddingPx
-  const bgRectY = axesGeometry[Axis2D.Y].pl - lineHeight - 2 * bgRectPaddingPx
+  const bgRectY = axesGeometry.y.pl - lineHeight - 2 * bgRectPaddingPx
   const bgRectWidth = textBoxWidth + 2 * bgRectPaddingPx
   const bgRectHeight = lineHeight + 2 * bgRectPaddingPx
 
-  const bgRectXRightOverrunFromAxes = Math.max(0, bgRectX + bgRectWidth - axesGeometry[Axis2D.X].pu)
-  const bgRectXLeftOverrunFromAxes = Math.max(0, axesGeometry[Axis2D.X].pl - bgRectX)
+  const bgRectXRightOverrunFromAxes = Math.max(0, bgRectX + bgRectWidth - axesGeometry.x.pu)
+  const bgRectXLeftOverrunFromAxes = Math.max(0, axesGeometry.x.pl - bgRectX)
 
   // Correct x position of bg rect if it overruns the axes
   let correctedBgRectX = bgRectX
   if (bgRectXLeftOverrunFromAxes > 0 && bgRectXRightOverrunFromAxes === 0)
-    correctedBgRectX = axesGeometry[Axis2D.X].pl
+    correctedBgRectX = axesGeometry.x.pl
   else if (bgRectXRightOverrunFromAxes > 0 && bgRectXLeftOverrunFromAxes === 0)
-    correctedBgRectX = axesGeometry[Axis2D.X].pu - bgRectWidth
+    correctedBgRectX = axesGeometry.x.pu - bgRectWidth
   else if (bgRectXRightOverrunFromAxes > 0 && bgRectXLeftOverrunFromAxes > 0)
-    correctedBgRectX = ((axesGeometry[Axis2D.X].pu - axesGeometry[Axis2D.X].pl) / 2) - (bgRectX / 2)
+    correctedBgRectX = ((axesGeometry.x.pu - axesGeometry.x.pl) / 2) - (bgRectX / 2)
 
   const bgRect: Rect = { x: correctedBgRectX, y: bgRectY, width: bgRectWidth, height: bgRectHeight }
   drawer.roundedRect(bgRect, getCursorPositionValueLabelRectOptions(props, Axis2D.X), DEFAULT_ROUNDED_RECT_OPTIONS)
@@ -84,7 +84,7 @@ const drawXAxisCursorPositionValueLabel = (
   // Create label
   drawer.text(xAxisText, {
     x: correctedBgRectX + bgRectPaddingPx,
-    y: axesGeometry[Axis2D.Y].pl - bgRectPaddingPx - drawer.measureTextHeight(xAxisText) - 2,
+    y: axesGeometry.y.pl - bgRectPaddingPx - drawer.measureTextHeight(xAxisText) - 2,
   }, null, textOptions, DEFAULT_TEXT_OPTIONS)
 }
 
@@ -96,7 +96,7 @@ const drawYAxisCursorPositionValueLabel = (
   props: Options,
 ) => {
   const pY = nearestDatum != null && getCursorPositionValueLabelSnapTo(props, Axis2D.Y) ? nearestDatum.fpY : cursorPoint.y
-  const yAxisText = formatNumberForAxisOptions(axesGeometry[Axis2D.Y].v(pY), props.axesOptions?.y)
+  const yAxisText = formatNumberForAxisOptions(axesGeometry.y.v(pY), props.axesOptions?.y)
 
   const bgRectPaddingPx = getCursorPositionValueLabelPadding(props, Axis2D.Y)
 
@@ -107,29 +107,29 @@ const drawYAxisCursorPositionValueLabel = (
 
   // Create background rect
   const textBoxWidth = drawer.measureTextWidth(yAxisText)
-  const bgRectX = axesGeometry[Axis2D.X].pl
+  const bgRectX = axesGeometry.x.pl
   const bgRectY = pY - lineHeight / 2 - bgRectPaddingPx
   const bgRectWidth = textBoxWidth + 2 * bgRectPaddingPx
   const bgRectHeight = lineHeight + 2 * bgRectPaddingPx
 
-  const bgRectYTopOverrunFromAxes = Math.max(0, axesGeometry[Axis2D.Y].pu - bgRectY)
-  const bgRectYBottomOverrunFromAxes = Math.max(0, bgRectY + bgRectHeight - axesGeometry[Axis2D.Y].pl)
+  const bgRectYTopOverrunFromAxes = Math.max(0, axesGeometry.y.pu - bgRectY)
+  const bgRectYBottomOverrunFromAxes = Math.max(0, bgRectY + bgRectHeight - axesGeometry.y.pl)
 
   // Correct y position of bg rect if it overruns the axes
   let correctedBgRectY = bgRectY
   if (bgRectYTopOverrunFromAxes > 0 && bgRectYBottomOverrunFromAxes === 0)
-    correctedBgRectY = axesGeometry[Axis2D.Y].pu
+    correctedBgRectY = axesGeometry.y.pu
   else if (bgRectYBottomOverrunFromAxes > 0 && bgRectYTopOverrunFromAxes === 0)
-    correctedBgRectY = axesGeometry[Axis2D.Y].pl - bgRectHeight
+    correctedBgRectY = axesGeometry.y.pl - bgRectHeight
   else if (bgRectYTopOverrunFromAxes > 0 && bgRectYBottomOverrunFromAxes > 0)
-    correctedBgRectY = ((axesGeometry[Axis2D.Y].pl - axesGeometry[Axis2D.Y].pu) / 2) - (bgRectY / 2)
+    correctedBgRectY = ((axesGeometry.y.pl - axesGeometry.y.pu) / 2) - (bgRectY / 2)
 
   const bgRect: Rect = { x: bgRectX, y: correctedBgRectY, width: bgRectWidth, height: bgRectHeight }
   drawer.roundedRect(bgRect, getCursorPositionValueLabelRectOptions(props, Axis2D.Y), DEFAULT_ROUNDED_RECT_OPTIONS)
 
   // Draw label
   drawer.text(yAxisText, {
-    x: axesGeometry[Axis2D.X].pl + bgRectPaddingPx,
+    x: axesGeometry.x.pl + bgRectPaddingPx,
     y: correctedBgRectY + bgRectPaddingPx,
   }, null, textOptions, DEFAULT_TEXT_OPTIONS)
 }

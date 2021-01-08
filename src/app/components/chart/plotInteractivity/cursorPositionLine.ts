@@ -33,8 +33,8 @@ const createCursorLinePath = (
       // Don't snap horizontal y-axis line by default
       const shouldSnapLine = getShouldSnapCursorPositionLine(props, Axis2D.Y)
       const yAxisLineY = nearestDatum != null && shouldSnapLine ? nearestDatum.fpY : cursorPoint.y
-      line.moveTo(axesGeometry[Axis2D.X].pu, yAxisLineY)
-      line.lineTo(axesGeometry[Axis2D.X].pl, yAxisLineY)
+      line.moveTo(axesGeometry.x.pu, yAxisLineY)
+      line.lineTo(axesGeometry.x.pl, yAxisLineY)
       return line
     }
     // The vertical line
@@ -44,8 +44,8 @@ const createCursorLinePath = (
       // Snap vertical x-axis line by default
       const shouldSnapLine = getShouldSnapCursorPositionLine(props, Axis2D.X)
       const xAxisLineX = nearestDatum != null && shouldSnapLine ? nearestDatum.fpX : cursorPoint.x
-      line.moveTo(xAxisLineX, axesGeometry[Axis2D.Y].pu)
-      line.lineTo(xAxisLineX, axesGeometry[Axis2D.Y].pl)
+      line.moveTo(xAxisLineX, axesGeometry.y.pu)
+      line.lineTo(xAxisLineX, axesGeometry.y.pl)
       return line
     }
     default:

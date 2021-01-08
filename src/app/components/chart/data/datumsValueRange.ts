@@ -1,6 +1,5 @@
 import Datum from '../types/Datum'
 import AxesBound from '../types/AxesBound'
-import { Axis2D } from '../../../common/types/geometry'
 import { filterDict, mapDict } from '../../../common/helpers/dict'
 import Options from '../types/Options'
 import AxesValueRangeForceOptions from '../types/AxesValueRangeForceOptions'
@@ -19,7 +18,7 @@ const getValueRangeOfDatum = (datum: Datum) => ({
  */
 const calculateValueBoundsOfDatums = (datums: Datum[]): AxesBound => {
   if (datums.length === 0)
-    return { [Axis2D.X]: { lower: 0, upper: 0 }, [Axis2D.Y]: { lower: 0, upper: 0 } }
+    return { x: { lower: 0, upper: 0 }, y: { lower: 0, upper: 0 } }
 
   const firstDatumValueRange = getValueRangeOfDatum(datums[0])
   let { xMin, xMax, yMin, yMax } = firstDatumValueRange
@@ -35,7 +34,7 @@ const calculateValueBoundsOfDatums = (datums: Datum[]): AxesBound => {
       yMin = datumValueRanges.yMin
   }
 
-  return { [Axis2D.X]: { lower: xMin, upper: xMax }, [Axis2D.Y]: { lower: yMin, upper: yMax } }
+  return { x: { lower: xMin, upper: xMax }, y: { lower: yMin, upper: yMax } }
 }
 
 const patchAxisBoundIfLowerAndUpperEqual = (axisBound: Bound): Bound => {
@@ -57,8 +56,8 @@ export const calculateValueBoundsOfSeries = (series: { [seriesKey: string]: Datu
   // If there are no axes bounds (occurs if there are no datums), then return a default 0 -> 1 bound
   if (axesBounds.length === 0) {
     return {
-      [Axis2D.X]: { lower: 0, upper: 1 },
-      [Axis2D.Y]: { lower: 0, upper: 1 },
+      x: { lower: 0, upper: 1 },
+      y: { lower: 0, upper: 1 },
     }
   }
 
@@ -67,13 +66,13 @@ export const calculateValueBoundsOfSeries = (series: { [seriesKey: string]: Datu
     .reduce((acc, _axesBound) => (acc == null
       ? _axesBound
       : {
-        [Axis2D.X]: {
-          lower: Math.min(_axesBound[Axis2D.X].lower, acc[Axis2D.X].lower),
-          upper: Math.max(_axesBound[Axis2D.X].upper, acc[Axis2D.X].upper),
+        x: {
+          lower: Math.min(_axesBound.x.lower, acc.x.lower),
+          upper: Math.max(_axesBound.x.upper, acc.x.upper),
         },
-        [Axis2D.Y]: {
-          lower: Math.min(_axesBound[Axis2D.Y].lower, acc[Axis2D.Y].lower),
-          upper: Math.max(_axesBound[Axis2D.Y].upper, acc[Axis2D.Y].upper),
+        y: {
+          lower: Math.min(_axesBound.y.lower, acc.y.lower),
+          upper: Math.max(_axesBound.y.upper, acc.y.upper),
         },
       }), null)
 
@@ -81,23 +80,23 @@ export const calculateValueBoundsOfSeries = (series: { [seriesKey: string]: Datu
    * then set either the lower or upper bound values to zero (depending of if the bound value is negative).
    */
   return {
-    [Axis2D.X]: patchAxisBoundIfLowerAndUpperEqual(axesBound[Axis2D.X]),
-    [Axis2D.Y]: patchAxisBoundIfLowerAndUpperEqual(axesBound[Axis2D.Y]),
+    x: patchAxisBoundIfLowerAndUpperEqual(axesBound.x),
+    y: patchAxisBoundIfLowerAndUpperEqual(axesBound.y),
   }
 }
 
 export const getAxesValueRangeOptions = (props: Options, datumValueBound: AxesBound): AxesValueRangeOptions => {
-  const forcedVlX = props.axesOptions?.[Axis2D.X]?.valueBound?.lower
-  const forcedVuX = props.axesOptions?.[Axis2D.X]?.valueBound?.upper
-  const forcedVlY = props.axesOptions?.[Axis2D.Y]?.valueBound?.lower
-  const forcedVuY = props.axesOptions?.[Axis2D.Y]?.valueBound?.upper
+  const forcedVlX = props.axesOptions?.x?.valueBound?.lower
+  const forcedVuX = props.axesOptions?.x?.valueBound?.upper
+  const forcedVlY = props.axesOptions?.y?.valueBound?.lower
+  const forcedVuY = props.axesOptions?.y?.valueBound?.upper
 
   const axesValueRangeForceOptions: AxesValueRangeForceOptions = {
-    [Axis2D.X]: {
+    x: {
       forceLower: forcedVlX != null,
       forceUpper: forcedVuX != null,
     },
-    [Axis2D.Y]: {
+    y: {
       forceLower: forcedVlY != null,
       forceUpper: forcedVuY != null,
     },
@@ -105,28 +104,28 @@ export const getAxesValueRangeOptions = (props: Options, datumValueBound: AxesBo
 
   // Determine value bounds
   const axesValueBound: AxesBound = {
-    [Axis2D.X]: {
-      lower: forcedVlX ?? datumValueBound[Axis2D.X].lower,
-      upper: forcedVuX ?? datumValueBound[Axis2D.X].upper,
+    x: {
+      lower: forcedVlX ?? datumValueBound.x.lower,
+      upper: forcedVuX ?? datumValueBound.x.upper,
     },
-    [Axis2D.Y]: {
-      lower: forcedVlY ?? datumValueBound[Axis2D.Y].lower,
-      upper: forcedVuY ?? datumValueBound[Axis2D.Y].upper,
+    y: {
+      lower: forcedVlY ?? datumValueBound.y.lower,
+      upper: forcedVuY ?? datumValueBound.y.upper,
     },
   }
 
   return {
-    [Axis2D.X]: {
-      isLowerForced: axesValueRangeForceOptions[Axis2D.X].forceLower,
-      isUpperForced: axesValueRangeForceOptions[Axis2D.X].forceUpper,
-      lower: axesValueBound[Axis2D.X].lower,
-      upper: axesValueBound[Axis2D.X].upper,
+    x: {
+      isLowerForced: axesValueRangeForceOptions.x.forceLower,
+      isUpperForced: axesValueRangeForceOptions.x.forceUpper,
+      lower: axesValueBound.x.lower,
+      upper: axesValueBound.x.upper,
     },
-    [Axis2D.Y]: {
-      isLowerForced: axesValueRangeForceOptions[Axis2D.Y].forceLower,
-      isUpperForced: axesValueRangeForceOptions[Axis2D.Y].forceUpper,
-      lower: axesValueBound[Axis2D.Y].lower,
-      upper: axesValueBound[Axis2D.Y].upper,
+    y: {
+      isLowerForced: axesValueRangeForceOptions.y.forceLower,
+      isUpperForced: axesValueRangeForceOptions.y.forceUpper,
+      lower: axesValueBound.y.lower,
+      upper: axesValueBound.y.upper,
     },
   }
 }

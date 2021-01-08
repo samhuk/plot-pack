@@ -15,6 +15,9 @@ import AxesGeometry from '../types/AxesGeometry'
 import PlotInteractivity from '../types/PlotInteractivity'
 
 type NearestDatum = ProcessedDatum & {
+  /**
+   * The absolute screen distance of the datum from the point
+   */
   dp: number
 }
 
@@ -104,8 +107,8 @@ const drawDatumHighlights = (
 }
 
 const isPositionInAxes = (axesGeometry: AxesGeometry, position: Point2D) => (
-  isInRange(axesGeometry[Axis2D.X].pl, axesGeometry[Axis2D.X].pu, position.x)
-    && isInRange(axesGeometry[Axis2D.Y].pl, axesGeometry[Axis2D.Y].pu, position.y)
+  isInRange(axesGeometry.x.pl, axesGeometry.x.pu, position.x)
+    && isInRange(axesGeometry.y.pl, axesGeometry.y.pu, position.y)
 )
 
 export const isMouseEventInAxes = (axesGeometry: AxesGeometry, cursorPositionFromEvent: { offsetX: number, offsetY: number }) => (
@@ -117,13 +120,13 @@ const draw = (
   props: Options,
   axesGeometry: AxesGeometry,
   datumKdTrees: { [seriesKey: string]: KdTree<ProcessedDatum> },
-  cursorPoint: Point2D,
+  cursorScreenPosition: Point2D,
 ) => {
   drawer.clearRenderingSpace()
   const ctx = drawer.getRenderingContext()
 
   // Determine if the cursor is within the chart area
-  const isCursorWithinChartArea = isPositionInAxes(axesGeometry, cursorPoint)
+  const isCursorWithinChartArea = isPositionInAxes(axesGeometry, cursorScreenPosition)
 
   // Don't draw anything if cursor isn't within the chart area (this excludes the padding area too)
   if (!isCursorWithinChartArea)
@@ -136,7 +139,7 @@ const draw = (
     // Determine the nearest datum to the cursor of each series
     const nearestDatums = determineNearestDatums(
       datumKdTrees,
-      cursorPoint,
+      cursorScreenPosition,
       props.datumSnapOptions?.distanceThresholdPx,
       props.datumSnapOptions?.excludedSeriesKeys,
     )
@@ -156,20 +159,20 @@ const draw = (
 
   // Draw the vertical and horizontal lines, intersecting at where the cursor is
   if (getShouldDrawCursorPositionLine(props, Axis2D.X))
-    drawCursorPositionLine(ctx, cursorPoint, nearestDatumOfAllSeries, axesGeometry, Axis2D.X, props)
+    drawCursorPositionLine(ctx, cursorScreenPosition, nearestDatumOfAllSeries, axesGeometry, Axis2D.X, props)
   if (getShouldDrawCursorPositionLine(props, Axis2D.Y))
-    drawCursorPositionLine(ctx, cursorPoint, nearestDatumOfAllSeries, axesGeometry, Axis2D.Y, props)
+    drawCursorPositionLine(ctx, cursorScreenPosition, nearestDatumOfAllSeries, axesGeometry, Axis2D.Y, props)
 
   // Draw the axis value labels at the cursor co-ordinates (next to the axes)
   if (getShouldDrawCursorPositionValueLabel(props, Axis2D.X))
-    drawCursorPositionValueLabel(drawer, cursorPoint, nearestDatumOfAllSeries, axesGeometry, Axis2D.X, props)
+    drawCursorPositionValueLabel(drawer, cursorScreenPosition, nearestDatumOfAllSeries, axesGeometry, Axis2D.X, props)
   if (getShouldDrawCursorPositionValueLabel(props, Axis2D.Y))
-    drawCursorPositionValueLabel(drawer, cursorPoint, nearestDatumOfAllSeries, axesGeometry, Axis2D.Y, props)
+    drawCursorPositionValueLabel(drawer, cursorScreenPosition, nearestDatumOfAllSeries, axesGeometry, Axis2D.Y, props)
 
   // Tooltip is drawn last, since that has to be on top over everything else
   if (highlightedDatums != null) {
     if (getShouldDrawTooltip(props))
-      drawTooltip(drawer, cursorPoint, highlightedDatums, nearestDatumOfAllSeries, props)
+      drawTooltip(drawer, cursorScreenPosition, highlightedDatums, nearestDatumOfAllSeries, props)
   }
 }
 
@@ -179,7 +182,7 @@ export const drawPlotInteractivity = (
   axesGeometry: AxesGeometry,
   datumKdTrees: { [seriesKey: string]: KdTree<ProcessedDatum> },
 ): PlotInteractivity => ({
-  onMouseMove: (e: MouseEvent) => draw(drawer, props, axesGeometry, datumKdTrees, { x: e.offsetX, y: e.offsetY }),
+  onMouseMove: e => draw(drawer, props, axesGeometry, datumKdTrees, { x: e.offsetX, y: e.offsetY }),
   onMouseLeave: () => drawer.clearRenderingSpace(),
 })
 

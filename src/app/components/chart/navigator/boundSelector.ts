@@ -2,7 +2,7 @@ import { CanvasDrawer } from '../../../common/drawer/types'
 import Geometry from '../types/Geometry'
 import Options from '../types/Options'
 import ChartZones from '../types/ChartZones'
-import { Axis2D, Point2D, Rect } from '../../../common/types/geometry'
+import { Point2D, Rect } from '../../../common/types/geometry'
 import { isMouseEventInRect } from '../../../common/helpers/geometry'
 import NavigatorEventHandlers from '../types/NavigatorEventHandlers'
 import NavigatorBoundSelector from '../types/NavigatorBoundSelector'
@@ -26,8 +26,8 @@ type State = {
 }
 
 const convertMouseEventToBoundSelection = (e: MouseEvent, currentMouseDownPositionX: number, axesGeometry: AxesGeometry): Bound => {
-  const constrainedMouseDownX = boundToRange(currentMouseDownPositionX, axesGeometry[Axis2D.X].pl, axesGeometry[Axis2D.X].pu)
-  const constrainedCurrentMouseX = boundToRange(e.offsetX, axesGeometry[Axis2D.X].pl, axesGeometry[Axis2D.X].pu)
+  const constrainedMouseDownX = boundToRange(currentMouseDownPositionX, axesGeometry.x.pl, axesGeometry.x.pu)
+  const constrainedCurrentMouseX = boundToRange(e.offsetX, axesGeometry.x.pl, axesGeometry.x.pu)
 
   return {
     lower: constrainedMouseDownX,
@@ -55,8 +55,8 @@ const selectBound = (
   state.lastSelectedXValueScreenStartPosition = constrainedPositionBound.lower
   state.lastSelectedXValueScreenEndPosition = constrainedPositionBound.upper
 
-  const fromVX = axesGeometry[Axis2D.X].v(constrainedPositionBound.lower)
-  const toVX = axesGeometry[Axis2D.X].v(constrainedPositionBound.upper)
+  const fromVX = axesGeometry.x.v(constrainedPositionBound.lower)
+  const toVX = axesGeometry.x.v(constrainedPositionBound.upper)
   eventHandlers.onSelectXValueBound({
     lower: Math.min(fromVX, toVX),
     upper: Math.max(fromVX, toVX),
@@ -233,8 +233,8 @@ export const drawNavigatorBoundSelector = (
   const rect = geometry.chartZoneRects[ChartZones.NAVIGATOR]
 
   const initialMouseBound: Bound = {
-    lower: selectedXValueBound?.lower != null ? axesGeometry[Axis2D.X].p(selectedXValueBound?.lower) : axesGeometry[Axis2D.X].pl,
-    upper: selectedXValueBound?.upper != null ? axesGeometry[Axis2D.X].p(selectedXValueBound?.upper) : axesGeometry[Axis2D.X].pu,
+    lower: selectedXValueBound?.lower != null ? axesGeometry.x.p(selectedXValueBound?.lower) : axesGeometry.x.pl,
+    upper: selectedXValueBound?.upper != null ? axesGeometry.x.p(selectedXValueBound?.upper) : axesGeometry.x.pu,
   }
 
   const boundBoxOptions = props.navigatorOptions?.boundBoxOptions

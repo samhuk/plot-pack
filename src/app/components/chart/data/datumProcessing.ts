@@ -3,7 +3,6 @@ import DatumFocusPointDeterminationMode from '../types/DatumFocusPointDeterminat
 import DatumValueFocusPoint from '../types/DatumValueFocusPoint'
 import { calculateMean } from '../../../common/helpers/stat'
 import AxesBound from '../types/AxesBound'
-import { Axis2D } from '../../../common/types/geometry'
 import { isInRangeOptionalBounds } from '../../../common/helpers/math'
 import ProcessedDatum from '../types/ProcessedDatum'
 import PositionedDatumValueFocusPoint from '../types/PositionedDatumValueFocusPoint'
@@ -62,8 +61,8 @@ export const filterFocusedDatumsOutsideOfAxesBounds = (
   focusedDatums: FocusedDatum[],
   axesValueBounds: AxesBound,
 ): Datum[] => focusedDatums.filter(d => (
-  isInRangeOptionalBounds(d.fvX, axesValueBounds[Axis2D.X]?.lower, axesValueBounds[Axis2D.X]?.upper)
-    && isInRangeOptionalBounds(d.fvY, axesValueBounds[Axis2D.Y]?.lower, axesValueBounds[Axis2D.Y]?.upper)
+  isInRangeOptionalBounds(d.fvX, axesValueBounds.x?.lower, axesValueBounds.x?.upper)
+    && isInRangeOptionalBounds(d.fvY, axesValueBounds.y?.lower, axesValueBounds.y?.upper)
 ))
 
 /**

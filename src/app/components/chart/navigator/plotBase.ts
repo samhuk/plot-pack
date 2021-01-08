@@ -2,7 +2,7 @@ import Options from '../types/Options'
 import { CanvasDrawer } from '../../../common/drawer/types'
 import PositionedDatumValueFocusPoint from '../types/PositionedDatumValueFocusPoint'
 import { createDatumsConnectingLinePath } from '../data/connectingLine'
-import { Axis2D, Rect } from '../../../common/types/geometry'
+import { Axis2D } from '../../../common/types/geometry'
 import { drawAxisLine } from '../plotBase/components/axisLines'
 import { drawAxisMarkerLabels } from '../plotBase/components/axisMarkerLabels'
 import { drawAxisAxisMarkerLines } from '../plotBase/components/axisMarkerLines'
@@ -56,20 +56,19 @@ const drawConnectingLineForAllSeries = (
 
 export const drawNavigatorPlotBase = (
   drawer: CanvasDrawer,
-  screenRect: Rect,
   geometry: Geometry,
   props: Options,
 ) => {
   const axesGeometry = geometry.navigatorAxesGeometry
 
   const axesScreenBounds: AxesBound = {
-    [Axis2D.X]: {
-      lower: geometry.navigatorAxesGeometry[Axis2D.X].pl,
-      upper: geometry.navigatorAxesGeometry[Axis2D.X].pu,
+    x: {
+      lower: geometry.navigatorAxesGeometry.x.pl,
+      upper: geometry.navigatorAxesGeometry.x.pu,
     },
-    [Axis2D.Y]: {
-      lower: geometry.navigatorAxesGeometry[Axis2D.Y].pl,
-      upper: geometry.navigatorAxesGeometry[Axis2D.Y].pu,
+    y: {
+      lower: geometry.navigatorAxesGeometry.y.pl,
+      upper: geometry.navigatorAxesGeometry.y.pu,
     },
   }
 

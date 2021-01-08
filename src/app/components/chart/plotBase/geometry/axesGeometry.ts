@@ -178,16 +178,16 @@ const calculateAxesGeometry = (
   axesDvGrid: { [axis in Axis2D]: number },
 ): AxesGeometry => {
   const unpositionedXAxisGeometry = calculateUnpositionedAxisGeometry(
-    axesValueRangeOptions[Axis2D.X],
-    axesScreenBound[Axis2D.X],
-    axesDpMin[Axis2D.X],
-    axesDvGrid[Axis2D.X],
+    axesValueRangeOptions.x,
+    axesScreenBound.x,
+    axesDpMin.x,
+    axesDvGrid.x,
   )
   const unpositionedYAxisGeometry = calculateUnpositionedAxisGeometry(
-    axesValueRangeOptions[Axis2D.Y],
-    axesScreenBound[Axis2D.Y],
-    axesDpMin[Axis2D.Y],
-    axesDvGrid[Axis2D.Y],
+    axesValueRangeOptions.y,
+    axesScreenBound.y,
+    axesDpMin.y,
+    axesDvGrid.y,
   )
 
   const boundedXAxisOrigin = boundToRange(unpositionedXAxisGeometry.p(0), unpositionedXAxisGeometry.pl, unpositionedXAxisGeometry.pu)
@@ -197,11 +197,11 @@ const calculateAxesGeometry = (
   const yAxisXPosition = getYAxisXPosition(yAxisOrientation, unpositionedXAxisGeometry.pl, unpositionedXAxisGeometry.pu, boundedXAxisOrigin)
 
   return {
-    [Axis2D.X]: {
+    x: {
       ...unpositionedXAxisGeometry,
       orthogonalScreenPosition: xAxisYPosition, // The x axis' y-position
     },
-    [Axis2D.Y]: {
+    y: {
       ...unpositionedYAxisGeometry,
       orthogonalScreenPosition: yAxisXPosition, // The y axis' x position
     },
@@ -211,8 +211,8 @@ const calculateAxesGeometry = (
 const getBoundingScreenRectsOfAxesMarkerLabels = (
   axesMarkerLabels: { [axis in Axis2D]: AxisMarkerLabel[] },
 ): { [axis in Axis2D]: BoundingRect } => ({
-  [Axis2D.X]: getBoundingRectOfRects(axesMarkerLabels[Axis2D.X].map(l => l.textRect)),
-  [Axis2D.Y]: getBoundingRectOfRects(axesMarkerLabels[Axis2D.Y].map(l => l.textRect)),
+  x: getBoundingRectOfRects(axesMarkerLabels.x.map(l => l.textRect)),
+  y: getBoundingRectOfRects(axesMarkerLabels.y.map(l => l.textRect)),
 })
 
 /**
@@ -230,13 +230,13 @@ const calculateAxisMarkerLabelOverrun = (
   // Get the bounding rect of each axis' marker labels
   const axesMarkerLabelsBoundingRects = getBoundingScreenRectsOfAxesMarkerLabels(axesMarkerLabels)
   // Calculate the overrun for each direction
-  const brX = axesMarkerLabelsBoundingRects[Axis2D.X]
-  const brY = axesMarkerLabelsBoundingRects[Axis2D.Y]
+  const brX = axesMarkerLabelsBoundingRects.x
+  const brY = axesMarkerLabelsBoundingRects.y
   return {
-    left: Math.max(0, tentativeAxesScreenBound[Axis2D.X].lower - Math.min(brX.left, brY.left)),
-    right: Math.max(0, Math.max(brX.right, brY.right) - tentativeAxesScreenBound[Axis2D.X].upper),
-    top: Math.max(0, tentativeAxesScreenBound[Axis2D.Y].upper - Math.min(brX.top, brY.top)),
-    bottom: Math.max(0, Math.max(brX.bottom, brY.bottom) - tentativeAxesScreenBound[Axis2D.Y].lower),
+    left: Math.max(0, tentativeAxesScreenBound.x.lower - Math.min(brX.left, brY.left)),
+    right: Math.max(0, Math.max(brX.right, brY.right) - tentativeAxesScreenBound.x.upper),
+    top: Math.max(0, tentativeAxesScreenBound.y.upper - Math.min(brX.top, brY.top)),
+    bottom: Math.max(0, Math.max(brX.bottom, brY.bottom) - tentativeAxesScreenBound.y.lower),
   }
 }
 
@@ -249,30 +249,30 @@ const createAdjustedAxesScreenBoundDueToLabelOverrun = (
   const axisMarkerLabelOverruns = calculateAxisMarkerLabelOverrun(drawer, tentativeAxesGeometry, tentativeAxesScreenBound, props)
   // Adjust screen bounds to account for any overruns
   return {
-    [Axis2D.X]: {
-      lower: tentativeAxesScreenBound[Axis2D.X].lower + axisMarkerLabelOverruns.left,
-      upper: tentativeAxesScreenBound[Axis2D.X].upper - axisMarkerLabelOverruns.right,
+    x: {
+      lower: tentativeAxesScreenBound.x.lower + axisMarkerLabelOverruns.left,
+      upper: tentativeAxesScreenBound.x.upper - axisMarkerLabelOverruns.right,
     },
-    [Axis2D.Y]: {
-      lower: tentativeAxesScreenBound[Axis2D.Y].lower - axisMarkerLabelOverruns.bottom,
-      upper: tentativeAxesScreenBound[Axis2D.Y].upper + axisMarkerLabelOverruns.top,
+    y: {
+      lower: tentativeAxesScreenBound.y.lower - axisMarkerLabelOverruns.bottom,
+      upper: tentativeAxesScreenBound.y.upper + axisMarkerLabelOverruns.top,
     },
   }
 }
 
 const createAxesScreenBoundFromRect = (rect: Rect): AxesBound => ({
-  [Axis2D.X]: { lower: rect.x, upper: rect.x + rect.width },
-  [Axis2D.Y]: { upper: rect.y, lower: rect.y + rect.height },
+  x: { lower: rect.x, upper: rect.x + rect.width },
+  y: { upper: rect.y, lower: rect.y + rect.height },
 })
 
 const createAxesDvGrid = (props: Options): { [axis in Axis2D]: number } => ({
-  [Axis2D.X]: props.axesOptions?.[Axis2D.X]?.dvGrid,
-  [Axis2D.Y]: props.axesOptions?.[Axis2D.Y]?.dvGrid,
+  x: props.axesOptions?.x?.dvGrid,
+  y: props.axesOptions?.y?.dvGrid,
 })
 
 const createAxesDpMin = (): { [axis in Axis2D]: number } => ({
-  [Axis2D.X]: DEFAULT_DP_GRID_MIN,
-  [Axis2D.Y]: DEFAULT_DP_GRID_MIN,
+  x: DEFAULT_DP_GRID_MIN,
+  y: DEFAULT_DP_GRID_MIN,
 })
 
 const createAppliedCalculateAxesGeometryFunction = (
@@ -316,8 +316,8 @@ export const createAxesGeometry = (
   const tentativeAxesScreenBound = createAxesScreenBoundFromRect(axesAvailableScreenRect)
 
   const _calculateAxesGeometry = createAppliedCalculateAxesGeometryFunction(
-    props.axesOptions?.[Axis2D.X]?.orientation as XAxisOrientation,
-    props.axesOptions?.[Axis2D.Y]?.orientation as YAxisOrientation,
+    props.axesOptions?.x?.orientation as XAxisOrientation,
+    props.axesOptions?.y?.orientation as YAxisOrientation,
     axesValueRangeOptions,
     createAxesDpMin(),
     createAxesDvGrid(props),

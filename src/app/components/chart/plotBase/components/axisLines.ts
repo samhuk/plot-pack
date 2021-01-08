@@ -20,10 +20,10 @@ const createLine = (axesGeometry: AxesGeometry, axis: Axis2D): Line => {
   const { orthogonalScreenPosition } = axesGeometry[axis]
 
   return axis === Axis2D.X
-    ? [{ x: axesGeometry[Axis2D.X].pl, y: orthogonalScreenPosition }, { x: axesGeometry[Axis2D.X].pu, y: orthogonalScreenPosition }]
-    : [{ x: orthogonalScreenPosition, y: axesGeometry[Axis2D.Y].pl }, { x: orthogonalScreenPosition, y: axesGeometry[Axis2D.Y].pu }]
+    ? [{ x: axesGeometry.x.pl, y: orthogonalScreenPosition }, { x: axesGeometry.x.pu, y: orthogonalScreenPosition }]
+    : [{ x: orthogonalScreenPosition, y: axesGeometry.y.pl }, { x: orthogonalScreenPosition, y: axesGeometry.y.pu }]
 }
 
 export const drawAxisLine = (drawer: CanvasDrawer, axesGeometry: AxesGeometry, props: Options, axis: Axis2D) => {
-  drawer.line(createLine(axesGeometry, axis), props.axesOptions?.[Axis2D.X]?.lineOptions, DEFAULT_LINE_OPTIONS)
+  drawer.line(createLine(axesGeometry, axis), props.axesOptions?.x?.lineOptions, DEFAULT_LINE_OPTIONS)
 }

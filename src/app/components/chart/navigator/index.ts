@@ -43,7 +43,7 @@ export const drawNavigator = (
   drawBackground(drawers.plotBase, props, geometry.chartZoneRects[ChartZones.NAVIGATOR])
   drawSeparator(drawers.plotBase, props.navigatorOptions?.separatorOptions, geometry.chartZoneRects[ChartZones.NAVIGATOR])
 
-  drawNavigatorPlotBase(drawers.plotBase, geometry.chartZoneRects[ChartZones.NAVIGATOR_PLOT_BASE], geometry, props)
+  drawNavigatorPlotBase(drawers.plotBase, geometry, props)
 
   const boundSelector = drawNavigatorBoundSelector(drawers.boundSelector, geometry, props, eventHandlers, selectedXValueBound)
 

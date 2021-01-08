@@ -7,7 +7,7 @@ import DatumValueFocusPoint from './DatumValueFocusPoint'
  * A fully processed datum, complete with the original datum value(s), the datum
  * screen position(s) datum, and the value and screen focus points.
  * @param x x value(s) in value-space
- * @param y y value(s) in  value-space
+ * @param y y value(s) in value-space
  * @param pX x value(s) in screen-space
  * @param pY y value(s) in screen-space
  * @param fvX x focus value in value-space
