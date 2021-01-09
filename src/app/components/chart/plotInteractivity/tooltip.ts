@@ -1,4 +1,4 @@
-import { Point2D, Rect } from '../../../common/types/geometry'
+import { Axis2D, HoriztonalAlign, Point2D, Rect, RectDimensions, VerticalAlign } from '../../../common/types/geometry'
 import Options from '../types/Options'
 import { mapDict, combineDicts, anyDict } from '../../../common/helpers/dict'
 import ProcessedDatum from '../types/ProcessedDatum'
@@ -9,11 +9,24 @@ import { parseInputColumn } from '../../../common/rectPositioningEngine/elementP
 import { renderColumn } from '../../../common/rectPositioningEngine/rendering'
 import { ColumnJustification, InputColumn, InputRow, RowJustification } from '../../../common/rectPositioningEngine/types'
 import { CanvasDrawer, RoundedRectOptions } from '../../../common/drawer/types'
-import TooltipOptions from '../types/TooltipOptions'
+import TooltipOptions, { TooltipReferencePosition } from '../types/TooltipOptions'
 import { deepMergeObjects } from '../../../common/helpers/object'
 
 const DEFAULT_OPTIONS: TooltipOptions = {
-  positioningOptions: { xDistanceFromMarker: 10 },
+  positioningOptions: {
+    x: {
+      absoluteDistanceFromMarker: 10,
+      allowFlexiblePositioning: false,
+      preferredJustification: HoriztonalAlign.RIGHT,
+      referencePosition: TooltipReferencePosition.MARKER,
+    },
+    y: {
+      absoluteDistanceFromMarker: 0,
+      allowFlexiblePositioning: true,
+      preferredJustification: VerticalAlign.CENTER,
+      referencePosition: TooltipReferencePosition.CURSOR,
+    },
+  },
   xValueOptions: {
     color: 'black',
     fontFamily: 'Helvetica',
@@ -98,23 +111,125 @@ const getRectShadowVector = (rectOptions: RoundedRectOptions) => {
   }
 }
 
-const determineTooltipBoxXCoord = (canvasWidth: number, boxWidth: number, x: number, tooltipOptions: TooltipOptions) => {
-  const xDistanceFromMarker = tooltipOptions?.positioningOptions?.xDistanceFromMarker ?? DEFAULT_OPTIONS.positioningOptions.xDistanceFromMarker
-  // Measure the distance the shadow contributes to the sides of the box
+const determineProspectivePosition = (
+  referencePosition: number,
+  rectSize: number,
+  absoluteDistanceFromPosition: number,
+  justification: HoriztonalAlign | VerticalAlign,
+) => {
+  // Center
+  if (justification === HoriztonalAlign.CENTER || justification === VerticalAlign.CENTER)
+    return referencePosition - rectSize / 2
+  // Negative direction
+  if (justification === HoriztonalAlign.LEFT || justification === VerticalAlign.TOP)
+    return referencePosition - rectSize - absoluteDistanceFromPosition
+  // Positive direction
+  if (justification === HoriztonalAlign.RIGHT || justification === VerticalAlign.BOTTOM)
+    return referencePosition + absoluteDistanceFromPosition
+}
+
+const measureRectPositionOverflows = (
+  position: number,
+  rectSize: number,
+  canvasSize: number,
+  shadowVector: number,
+) => {
+  return {
+    negative: -Math.min(0, position + Math.min(0, shadowVector)),
+    positive: Math.max(0, position + rectSize + Math.max(0, shadowVector) - canvasSize),
+  }
+}
+
+const determinePositionForNonFlexiblePositioning = (
+  referencePosition: number,
+  rectSize: number,
+  canvasSize: number,
+  absoluteDistanceFromPosition: number,
+  shadowVector: number,
+  preferredJustification: HoriztonalAlign | VerticalAlign,
+  axis: Axis2D,
+) => {
+  const isXAxis = axis === Axis2D.X
+  // Form a list of justifications, in the order of which they will be attempted
+  const justificationList: (HoriztonalAlign | VerticalAlign)[] = isXAxis
+    ? [HoriztonalAlign.RIGHT, HoriztonalAlign.LEFT, HoriztonalAlign.CENTER]
+    : [VerticalAlign.BOTTOM, VerticalAlign.TOP, VerticalAlign.CENTER]
+  const justificationOrdering = [preferredJustification].concat(justificationList.filter(j => j !== preferredJustification))
+  for (let i = 0; i < justificationOrdering.length; i++) {
+    // Determine the prospective position
+    const prospectivePosition = determineProspectivePosition(
+      referencePosition,
+      rectSize,
+      absoluteDistanceFromPosition,
+      justificationOrdering[i],
+    )
+    // Measure the negative and positive overflow of the prospective position over the canvas
+    const overflows = measureRectPositionOverflows(prospectivePosition, rectSize, canvasSize, shadowVector)
+    // If there is no overflow in either direction, then can return the prospective position straight away
+    if (overflows.negative === 0 && overflows.positive === 0)
+      return prospectivePosition
+  }
+  
+  return determineProspectivePosition(
+    referencePosition,
+    rectSize,
+    absoluteDistanceFromPosition,
+    isXAxis ? HoriztonalAlign.CENTER : VerticalAlign.CENTER,
+  )
+}
+
+const determinePositionForFlexiblePositioning = (
+  referencePosition: number,
+  rectSize: number,
+  canvasSize: number,
+  absoluteDistanceFromPosition: number,
+  shadowVector: number,
+  preferredJustification: HoriztonalAlign | VerticalAlign,
+) => {
+  // Determine the prospective position
+  const prospectivePosition = determineProspectivePosition(
+    referencePosition,
+    rectSize,
+    absoluteDistanceFromPosition,
+    preferredJustification,
+  )
+  // Measure the negative and positive overflow of the prospective position over the canvas
+  const overflows = measureRectPositionOverflows(prospectivePosition, rectSize, canvasSize, shadowVector)
+  /* Determine the offset vector required to correct the position to ensure it's as much
+   * inside the canvas as possible
+   */
+  const offsetVector = (
+    (overflows.negative !== 0 ? overflows.negative : -overflows.positive)
+    - (overflows.positive !== 0 ? overflows.positive : -overflows.negative)
+  ) / 2
+  console.log(referencePosition, rectSize, absoluteDistanceFromPosition, preferredJustification, offsetVector)
+  return prospectivePosition + offsetVector
+}
+
+const determineRectPosition = (
+  datumScreenFocusPoint: Point2D,
+  cursorScreenPosition: Point2D,
+  rectDimensions: RectDimensions,
+  canvasDimensions: RectDimensions,
+  tooltipOptions: TooltipOptions,
+): Point2D => {
+  const positioningOptions = deepMergeObjects(DEFAULT_OPTIONS.positioningOptions, tooltipOptions?.positioningOptions)
+
+  const referencePosition = {
+    x: positioningOptions.x.referencePosition === TooltipReferencePosition.MARKER ? datumScreenFocusPoint.x : cursorScreenPosition.x,
+    y: positioningOptions.y.referencePosition === TooltipReferencePosition.MARKER ? datumScreenFocusPoint.y : cursorScreenPosition.y,
+  }
   const shadowVector = getRectShadowVector(tooltipOptions?.rectOptions)
-  const prospectiveRHSRectX = x + xDistanceFromMarker
-  const prospectiveLHSRectX = x - xDistanceFromMarker - boxWidth
-  // Measure rect RHS overflow
-  const rhsOverflow = Math.max(0, prospectiveRHSRectX + boxWidth + Math.max(0, shadowVector.x) - canvasWidth)
-  // Measure rect LHS overflow
-  const lhsOverflow = Math.min(0, prospectiveLHSRectX + Math.min(0, shadowVector.x))
-  if (rhsOverflow !== 0 && lhsOverflow !== 0) // If RHS and LHS overrun, center
-    return x - (boxWidth / 2)
-  if (rhsOverflow === 0) // Else if there is no RHS overflow, RHS
-    return prospectiveRHSRectX
-  if (lhsOverflow === 0) // Else if there is no LHS overflow, LHS
-    return prospectiveLHSRectX
-  return prospectiveRHSRectX
+
+  const x = positioningOptions.x.allowFlexiblePositioning
+    ? determinePositionForFlexiblePositioning(referencePosition.x, rectDimensions.width, canvasDimensions.width, positioningOptions.x.absoluteDistanceFromMarker, shadowVector.x, positioningOptions.x.preferredJustification)
+    : determinePositionForNonFlexiblePositioning(referencePosition.x, rectDimensions.width, canvasDimensions.width, positioningOptions.x.absoluteDistanceFromMarker, shadowVector.x, positioningOptions.x.preferredJustification, Axis2D.X)
+
+  const y = positioningOptions.y.allowFlexiblePositioning
+    ? determinePositionForFlexiblePositioning(referencePosition.y, rectDimensions.height, canvasDimensions.height, positioningOptions.y.absoluteDistanceFromMarker, shadowVector.y, positioningOptions.y.preferredJustification)
+    : determinePositionForNonFlexiblePositioning(referencePosition.y, rectDimensions.height, canvasDimensions.height, positioningOptions.y.absoluteDistanceFromMarker, shadowVector.y, positioningOptions.y.preferredJustification, Axis2D.Y)
+
+  return { x, y }
 }
 
 const drawYSeriesPreview = (
@@ -284,7 +399,7 @@ const createYValueColumn = (
 
 export const draw = (
   drawer: CanvasDrawer,
-  cursorPoint: Point2D,
+  cursorPosition: Point2D,
   highlightedDatums: { [seriesKey: string]: ProcessedDatum },
   nearestDatumOfAllSeries: ProcessedDatum,
   props: Options,
@@ -334,15 +449,15 @@ export const draw = (
 
   const { boundingWidth, boundingHeight } = column
 
-  const tooltipBoxPosition: Point2D = {
-    x: determineTooltipBoxXCoord(props.width, boundingWidth, nearestDatumOfAllSeries.fpX, props.tooltipOptions),
-    /* Position vertically centered relative to cursor position,
-     * ensuring that it doesn't overflow at the top (negative y position)
-     */
-    y: Math.max(0, cursorPoint.y - (boundingHeight / 2)),
-  }
+  const rectPosition = determineRectPosition(
+    { x: nearestDatumOfAllSeries.fpX, y: nearestDatumOfAllSeries.fpY },
+    cursorPosition,
+    { height: boundingHeight, width: boundingWidth },
+    { height: props.height, width: props.width },
+    props.tooltipOptions,
+  )
 
-  renderColumn({ x: tooltipBoxPosition.x, y: tooltipBoxPosition.y, width: boundingWidth, height: boundingHeight }, column, 0)
+  renderColumn({ x: rectPosition.x, y: rectPosition.y, width: boundingWidth, height: boundingHeight }, column, 0)
 }
 
 export default draw

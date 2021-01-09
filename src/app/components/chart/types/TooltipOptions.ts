@@ -1,10 +1,24 @@
 import { RoundedRectOptions } from '../../../common/drawer/types'
 import { ColumnJustification, InputMargin, InputPadding } from '../../../common/rectPositioningEngine/types'
 import { TextOptions, LineOptions } from '../../../common/types/canvas'
+import { HoriztonalAlign, VerticalAlign } from '../../../common/types/geometry'
+
+export enum TooltipReferencePosition {
+  MARKER,
+  CURSOR,
+}
+
+export type PositioningOption<TAlignment> = {
+  absoluteDistanceFromMarker?: number
+  preferredJustification?: TAlignment
+  referencePosition?: TooltipReferencePosition
+  allowFlexiblePositioning?: boolean
+}
 
 export type TooltipOptions = {
   positioningOptions?: {
-    xDistanceFromMarker?: number
+    x?: PositioningOption<HoriztonalAlign>
+    y?: PositioningOption<VerticalAlign>
   }
   rectOptions?: RoundedRectOptions & {
     padding?: InputPadding

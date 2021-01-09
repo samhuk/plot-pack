@@ -1,7 +1,7 @@
 import { CanvasDrawer } from '../../../common/drawer/types'
 import { getNormalizedPadding } from '../../../common/rectPositioningEngine/padding'
-import { Point2D, Rect } from '../../../common/types/geometry'
-import AnnotationOptions, { RectVerticalAlign, RectHorizontalAlign, RangeAnnotationLabelOptions } from '../types/AnnotationOptions'
+import { Point2D, Rect, RectHorizontalAlign, RectVerticalAlign } from '../../../common/types/geometry'
+import AnnotationOptions, { RangeAnnotationLabelOptions } from '../types/AnnotationOptions'
 import AnnotationType from '../types/AnnotationType'
 import Geometry from '../types/Geometry'
 

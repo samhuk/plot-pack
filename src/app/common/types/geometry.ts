@@ -82,3 +82,31 @@ export type Circle = {
 export type CircularSector = Circle & {
   arc: Arc
 }
+
+export enum VerticalAlign {
+  TOP = 'top',
+  CENTER = 'center',
+  BOTTOM = 'bottom',
+}
+
+export enum HoriztonalAlign {
+  LEFT = 'right',
+  CENTER = 'center',
+  RIGHT = 'left',
+}
+
+export enum RectVerticalAlign {
+  TOP_OUTSIDE = 'top_outside',
+  TOP_INSIDE = 'top_inside',
+  CENTER = 'center',
+  BOTTOM_INSIDE = 'bottom_inside',
+  BOTTOM_OUTSIDE = 'bottom_outside',
+}
+
+export enum RectHorizontalAlign {
+  LEFT_OUTSIDE = 'left_outside',
+  LEFT_INSIDE = 'left_inside',
+  CENTER = 'center',
+  RIGHT_INSIDE = 'right_inside',
+  RIGHT_OUTSIDE = 'right_outside',
+}

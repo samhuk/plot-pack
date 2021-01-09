@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 
 import Chart from '../../../../../app/components/chart/react'
-import { Axis2D, Point2D } from '../../../../../app/common/types/geometry'
+import { Axis2D, Point2D, RectHorizontalAlign, RectVerticalAlign } from '../../../../../app/common/types/geometry'
 import { NumberFormatNotation } from '../../../../../app/common/types/math'
 import BestFitLine from '../../../../../app/components/chart/types/BestFitLineType'
 import MarkerType from '../../../../../app/components/chart/types/MarkerType'
@@ -10,7 +10,6 @@ import YAxisOrientation from '../../../../../app/components/chart/types/yAxisOri
 import DatumSnapMode from '../../../../../app/components/chart/types/DatumSnapMode'
 import { DatumHighlightType } from '../../../../../app/components/chart/types/DatumHighlightType'
 import AnnotationType from '../../../../../app/components/chart/types/AnnotationType'
-import { RectHorizontalAlign, RectVerticalAlign } from '../../../../../app/components/chart/types/AnnotationOptions'
 
 export const render = () => {
   const [height, setHeight] = useState(500)

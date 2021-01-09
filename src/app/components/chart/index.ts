@@ -52,10 +52,10 @@ const CONTAINER_CLASS = 'pp-chart'
 const CANVAS_LAYER_ELEMENT_ORDERING: CanvasLayers[] = [
   CanvasLayers.CHART_PLOT_BASE,
   CanvasLayers.ANNOTATIONS,
-  CanvasLayers.CHART_INTERACTIVITY,
   CanvasLayers.NAVIGATOR_PLOT_BASE,
   CanvasLayers.NAVIGATOR_BOUND_SELECTOR,
   CanvasLayers.NAVIGATOR_ACTION_BUTTONS,
+  CanvasLayers.CHART_INTERACTIVITY,
 ]
 
 const areClientRectsEqualSize = (r1: DOMRect, r2: DOMRect): boolean => (

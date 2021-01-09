@@ -9,7 +9,7 @@ import { DEFAULT_NAVIGATOR_HEIGHT_PX, DEFAULT_NAVIGATOR_PADDING_PX } from '../na
 import ChartZoneRects from '../types/ChartZoneRects'
 import { renderInputColumn } from '../../../common/rectPositioningEngine/rendering'
 
-const DEFAULT_GRAPH_MARGIN = 10
+const DEFAULT_CHART_MARGIN = 10
 
 const createTitleRow = (drawer: CanvasDrawer, props: Options): InputRow => {
   const titleText = getTitle(props)
@@ -50,7 +50,7 @@ const createYAxisLabelColumn = (drawer: CanvasDrawer, props: Options): InputColu
   }
 }
 
-const getChartMargin = (props: Options) => props.chartMargin ?? DEFAULT_GRAPH_MARGIN
+const getChartMargin = (props: Options) => props.chartMargin ?? DEFAULT_CHART_MARGIN
 
 const createChartPlotBaseColumn = (props: Options): InputColumn => ({
   id: ChartZones.CHART_PLOT_BASE,
@@ -95,13 +95,24 @@ const createNavigatorRow = (props: Options): InputRow => {
   }
 }
 
-const createCanvasRectEngineColumn = (drawer: CanvasDrawer, props: Options): InputColumn => {
-  const titleRow = createTitleRow(drawer, props)
-  const yAxisLabelColumn = createYAxisLabelColumn(drawer, props)
-  const chartPlotBaseColumn = createChartPlotBaseColumn(props)
-  const xAxisLabelRow = createXAxisLabelRow(drawer, props)
-  const navigatorRow = createNavigatorRow(props)
-
+/**
+ * Creates the InputColumn for the entire chart component, for use with the
+ * rect positioning engine. This will create a row-column layout as follows:
+ * 
+ * -----------------------------------------------   <-
+ * |                 Title Row                   |     |
+ * -----------------------------------------------     |
+ * |    Y     |                                  |     |
+ * |  Axis    |      Chart Plot Base             |     |- Chart Zone
+ * |  Label   |                                  |     |
+ * |  Column  |                                  |     |
+ * -----------------------------------------------     |
+ * |              X Axis Label Row               |     |
+ * -----------------------------------------------   <-
+ * |               Navigator Row                 |
+ * -----------------------------------------------
+ */
+const createCanvasColumn = (drawer: CanvasDrawer, props: Options): InputColumn => {
   return {
     height: props.height,
     width: props.width,
@@ -115,30 +126,30 @@ const createCanvasRectEngineColumn = (drawer: CanvasDrawer, props: Options): Inp
           height: '100%',
           rows: [
             // -- Title
-            titleRow,
+            createTitleRow(drawer, props),
             {
               evenlyFillAvailableHeight: true,
               width: '100%',
               columns: [
                 // -- LHS y-axis label column
-                yAxisLabelColumn,
+                createYAxisLabelColumn(drawer, props),
                 // -- Chart plot base column
-                chartPlotBaseColumn,
+                createChartPlotBaseColumn(props),
               ],
             },
             // -- Bottom x-axis label row
-            xAxisLabelRow,
+            createXAxisLabelRow(drawer, props),
           ],
         }],
       },
       // -- Navigator row
-      navigatorRow,
+      createNavigatorRow(props),
     ],
   }
 }
 
 export const getChartZoneRects = (drawer: CanvasDrawer, props: Options): ChartZoneRects => {
-  const chartZoneRectsRaw = renderInputColumn(createCanvasRectEngineColumn(drawer, props))
+  const chartZoneRectsRaw = renderInputColumn(createCanvasColumn(drawer, props))
   return {
     [ChartZones.TITLE_BAR]: chartZoneRectsRaw[ChartZones.TITLE_BAR],
     [ChartZones.Y_AXIS_TITLE]: chartZoneRectsRaw[ChartZones.Y_AXIS_TITLE],
