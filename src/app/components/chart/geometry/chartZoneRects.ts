@@ -98,7 +98,7 @@ const createNavigatorRow = (props: Options): InputRow => {
 /**
  * Creates the InputColumn for the entire chart component, for use with the
  * rect positioning engine. This will create a row-column layout as follows:
- * 
+ *
  * -----------------------------------------------   <-
  * |                 Title Row                   |     |
  * -----------------------------------------------     |
@@ -112,41 +112,39 @@ const createNavigatorRow = (props: Options): InputRow => {
  * |               Navigator Row                 |
  * -----------------------------------------------
  */
-const createCanvasColumn = (drawer: CanvasDrawer, props: Options): InputColumn => {
-  return {
-    height: props.height,
-    width: props.width,
-    rows: [
-      {
+const createCanvasColumn = (drawer: CanvasDrawer, props: Options): InputColumn => ({
+  height: props.height,
+  width: props.width,
+  rows: [
+    {
+      width: '100%',
+      evenlyFillAvailableHeight: true,
+      id: ChartZones.CHART,
+      columns: [{
         width: '100%',
-        evenlyFillAvailableHeight: true,
-        id: ChartZones.CHART,
-        columns: [{
-          width: '100%',
-          height: '100%',
-          rows: [
-            // -- Title
-            createTitleRow(drawer, props),
-            {
-              evenlyFillAvailableHeight: true,
-              width: '100%',
-              columns: [
-                // -- LHS y-axis label column
-                createYAxisLabelColumn(drawer, props),
-                // -- Chart plot base column
-                createChartPlotBaseColumn(props),
-              ],
-            },
-            // -- Bottom x-axis label row
-            createXAxisLabelRow(drawer, props),
-          ],
-        }],
-      },
-      // -- Navigator row
-      createNavigatorRow(props),
-    ],
-  }
-}
+        height: '100%',
+        rows: [
+          // -- Title
+          createTitleRow(drawer, props),
+          {
+            evenlyFillAvailableHeight: true,
+            width: '100%',
+            columns: [
+              // -- LHS y-axis label column
+              createYAxisLabelColumn(drawer, props),
+              // -- Chart plot base column
+              createChartPlotBaseColumn(props),
+            ],
+          },
+          // -- Bottom x-axis label row
+          createXAxisLabelRow(drawer, props),
+        ],
+      }],
+    },
+    // -- Navigator row
+    createNavigatorRow(props),
+  ],
+})
 
 export const getChartZoneRects = (drawer: CanvasDrawer, props: Options): ChartZoneRects => {
   const chartZoneRectsRaw = renderInputColumn(createCanvasColumn(drawer, props))

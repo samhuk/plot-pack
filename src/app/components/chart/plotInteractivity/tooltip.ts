@@ -117,7 +117,7 @@ const determineProspectivePosition = (
   absoluteDistanceFromPosition: number,
   justification: HoriztonalAlign | VerticalAlign,
 ) => {
-  // Center
+  // Centered
   if (justification === HoriztonalAlign.CENTER || justification === VerticalAlign.CENTER)
     return referencePosition - rectSize / 2
   // Negative direction
@@ -126,6 +126,8 @@ const determineProspectivePosition = (
   // Positive direction
   if (justification === HoriztonalAlign.RIGHT || justification === VerticalAlign.BOTTOM)
     return referencePosition + absoluteDistanceFromPosition
+
+  return referencePosition - rectSize / 2 // Default to centered
 }
 
 const measureRectPositionOverflows = (
@@ -133,68 +135,47 @@ const measureRectPositionOverflows = (
   rectSize: number,
   canvasSize: number,
   shadowVector: number,
-) => {
-  return {
-    negative: -Math.min(0, position + Math.min(0, shadowVector)),
-    positive: Math.max(0, position + rectSize + Math.max(0, shadowVector) - canvasSize),
-  }
-}
+) => ({
+  negative: -Math.min(0, position + Math.min(0, shadowVector)),
+  positive: Math.max(0, position + rectSize + Math.max(0, shadowVector) - canvasSize),
+})
 
-const determinePositionForNonFlexiblePositioning = (
-  referencePosition: number,
+type TooltipAxisPositioningOptionsBase = {
+  refPos: number,
   rectSize: number,
   canvasSize: number,
-  absoluteDistanceFromPosition: number,
+  absDistFromPosition: number,
   shadowVector: number,
   preferredJustification: HoriztonalAlign | VerticalAlign,
-  axis: Axis2D,
-) => {
+}
+
+const determinePositionForNonFlexiblePositioning = (options: TooltipAxisPositioningOptionsBase, axis: Axis2D) => {
   const isXAxis = axis === Axis2D.X
   // Form a list of justifications, in the order of which they will be attempted
   const justificationList: (HoriztonalAlign | VerticalAlign)[] = isXAxis
     ? [HoriztonalAlign.RIGHT, HoriztonalAlign.LEFT, HoriztonalAlign.CENTER]
     : [VerticalAlign.BOTTOM, VerticalAlign.TOP, VerticalAlign.CENTER]
-  const justificationOrdering = [preferredJustification].concat(justificationList.filter(j => j !== preferredJustification))
-  for (let i = 0; i < justificationOrdering.length; i++) {
+  const justificationOrdering = [options.preferredJustification].concat(justificationList.filter(j => j !== options.preferredJustification))
+  for (let i = 0; i < justificationOrdering.length; i += 1) {
     // Determine the prospective position
-    const prospectivePosition = determineProspectivePosition(
-      referencePosition,
-      rectSize,
-      absoluteDistanceFromPosition,
-      justificationOrdering[i],
-    )
+    const prospectivePosition = determineProspectivePosition(options.refPos, options.rectSize, options.absDistFromPosition, justificationOrdering[i])
     // Measure the negative and positive overflow of the prospective position over the canvas
-    const overflows = measureRectPositionOverflows(prospectivePosition, rectSize, canvasSize, shadowVector)
+    const overflows = measureRectPositionOverflows(prospectivePosition, options.rectSize, options.canvasSize, options.shadowVector)
     // If there is no overflow in either direction, then can return the prospective position straight away
     if (overflows.negative === 0 && overflows.positive === 0)
       return prospectivePosition
   }
-  
-  return determineProspectivePosition(
-    referencePosition,
-    rectSize,
-    absoluteDistanceFromPosition,
-    isXAxis ? HoriztonalAlign.CENTER : VerticalAlign.CENTER,
-  )
+
+  const defaultJustificationifAllElseFails = isXAxis ? HoriztonalAlign.CENTER : VerticalAlign.CENTER
+  return determineProspectivePosition(options.refPos, options.rectSize, options.absDistFromPosition, defaultJustificationifAllElseFails)
 }
 
-const determinePositionForFlexiblePositioning = (
-  referencePosition: number,
-  rectSize: number,
-  canvasSize: number,
-  absoluteDistanceFromPosition: number,
-  shadowVector: number,
-  preferredJustification: HoriztonalAlign | VerticalAlign,
-) => {
+const determinePositionForFlexiblePositioning = (options: TooltipAxisPositioningOptionsBase) => {
   // Determine the prospective position
-  const prospectivePosition = determineProspectivePosition(
-    referencePosition,
-    rectSize,
-    absoluteDistanceFromPosition,
-    preferredJustification,
-  )
+  const prefdJustf = options.preferredJustification // Literally just because of line length limits...
+  const prospectivePosition = determineProspectivePosition(options.refPos, options.rectSize, options.absDistFromPosition, prefdJustf)
   // Measure the negative and positive overflow of the prospective position over the canvas
-  const overflows = measureRectPositionOverflows(prospectivePosition, rectSize, canvasSize, shadowVector)
+  const overflows = measureRectPositionOverflows(prospectivePosition, options.rectSize, options.canvasSize, options.shadowVector)
   /* Determine the offset vector required to correct the position to ensure it's as much
    * inside the canvas as possible
    */
@@ -202,7 +183,6 @@ const determinePositionForFlexiblePositioning = (
     (overflows.negative !== 0 ? overflows.negative : -overflows.positive)
     - (overflows.positive !== 0 ? overflows.positive : -overflows.negative)
   ) / 2
-  console.log(referencePosition, rectSize, absoluteDistanceFromPosition, preferredJustification, offsetVector)
   return prospectivePosition + offsetVector
 }
 
@@ -214,22 +194,41 @@ const determineRectPosition = (
   tooltipOptions: TooltipOptions,
 ): Point2D => {
   const positioningOptions = deepMergeObjects(DEFAULT_OPTIONS.positioningOptions, tooltipOptions?.positioningOptions)
-
-  const referencePosition = {
+  // Reference position
+  const refPos = {
     x: positioningOptions.x.referencePosition === TooltipReferencePosition.MARKER ? datumScreenFocusPoint.x : cursorScreenPosition.x,
     y: positioningOptions.y.referencePosition === TooltipReferencePosition.MARKER ? datumScreenFocusPoint.y : cursorScreenPosition.y,
   }
   const shadowVector = getRectShadowVector(tooltipOptions?.rectOptions)
 
-  const x = positioningOptions.x.allowFlexiblePositioning
-    ? determinePositionForFlexiblePositioning(referencePosition.x, rectDimensions.width, canvasDimensions.width, positioningOptions.x.absoluteDistanceFromMarker, shadowVector.x, positioningOptions.x.preferredJustification)
-    : determinePositionForNonFlexiblePositioning(referencePosition.x, rectDimensions.width, canvasDimensions.width, positioningOptions.x.absoluteDistanceFromMarker, shadowVector.x, positioningOptions.x.preferredJustification, Axis2D.X)
+  // Declare options for determining the position. We are doing this because of line-length limits and for readability
+  const tooltipAxesPositioningOptionsBase: { [axis in Axis2D]: TooltipAxisPositioningOptionsBase } = {
+    x: {
+      refPos: refPos.x,
+      rectSize: rectDimensions.width,
+      canvasSize: canvasDimensions.width,
+      absDistFromPosition: positioningOptions.x.absoluteDistanceFromMarker,
+      shadowVector: shadowVector.x,
+      preferredJustification: positioningOptions.x.preferredJustification,
+    },
+    y: {
+      refPos: refPos.y,
+      rectSize: rectDimensions.height,
+      canvasSize: canvasDimensions.height,
+      absDistFromPosition: positioningOptions.y.absoluteDistanceFromMarker,
+      shadowVector: shadowVector.y,
+      preferredJustification: positioningOptions.y.preferredJustification,
+    },
+  }
 
-  const y = positioningOptions.y.allowFlexiblePositioning
-    ? determinePositionForFlexiblePositioning(referencePosition.y, rectDimensions.height, canvasDimensions.height, positioningOptions.y.absoluteDistanceFromMarker, shadowVector.y, positioningOptions.y.preferredJustification)
-    : determinePositionForNonFlexiblePositioning(referencePosition.y, rectDimensions.height, canvasDimensions.height, positioningOptions.y.absoluteDistanceFromMarker, shadowVector.y, positioningOptions.y.preferredJustification, Axis2D.Y)
-
-  return { x, y }
+  return {
+    x: positioningOptions.x.allowFlexiblePositioning
+      ? determinePositionForFlexiblePositioning(tooltipAxesPositioningOptionsBase.x)
+      : determinePositionForNonFlexiblePositioning(tooltipAxesPositioningOptionsBase.x, Axis2D.X),
+    y: positioningOptions.y.allowFlexiblePositioning
+      ? determinePositionForFlexiblePositioning(tooltipAxesPositioningOptionsBase.y)
+      : determinePositionForNonFlexiblePositioning(tooltipAxesPositioningOptionsBase.y, Axis2D.Y),
+  }
 }
 
 const drawYSeriesPreview = (
