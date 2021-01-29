@@ -236,7 +236,7 @@ export const render = () => {
                 },
               },
               {
-                type: AnnotationType.MARKER_TEXT,
+                type: AnnotationType.VALUE_TEXT,
                 textLabelOptions: {
                   text: 'A value text annotation',
                   backgroundRectOptions: {
