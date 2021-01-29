@@ -1,9 +1,11 @@
+import { TextLabelOptions } from '../../../common/components/textLabel/types'
 import { RoundedRectOptions } from '../../../common/drawer/types'
 import { InputPadding } from '../../../common/rectPositioningEngine/types'
-import { TextOptions } from '../../../common/types/canvas'
-import { Point2D, RectHorizontalAlign, RectVerticalAlign } from '../../../common/types/geometry'
+import { LineOptions, TextOptions } from '../../../common/types/canvas'
+import { InputPolarVector, Point2D, RectHorizontalAlign, RectVerticalAlign } from '../../../common/types/geometry'
 import AnnotationType from './AnnotationType'
 import AxesBound from './AxesBound'
+import Geometry from './Geometry'
 
 export type RangeAnnotationLabelOptions = {
   text?: string
@@ -12,8 +14,8 @@ export type RangeAnnotationLabelOptions = {
   horizontalAlign?: RectHorizontalAlign
   offsetX?: number
   offsetY?: number
-  showBackgroundRect?: boolean
   backgroundRectOptions?: RoundedRectOptions & {
+    draw?: boolean
     padding?: InputPadding
   }
 }
@@ -38,11 +40,11 @@ type ImageAnnotationOptionsBase = {
 }
 
 type TextAnnotationOptionsBase = {
-  text: string
+  textLabelOptions: TextLabelOptions
 }
 
 type HtmlAnnotationOptionsBase = {
-  render: () => HTMLElement
+  render: (screenPosition: Point2D, geometry: Geometry) => HTMLElement
 }
 
 export type ValueImageAnnotationOptions = ValueAnnotationOptionsBase & ImageAnnotationOptionsBase
@@ -59,9 +61,9 @@ export type MarkerHtmlAnnotationOptions = MarkerAnnotationOptionsBase & HtmlAnno
 
 type AnnotationTypeToOptionsMap = {
   [AnnotationType.RANGE]: RangeAnnotationOptions
-  [AnnotationType.VALUE_IMAGE]: ValueAnnotationOptionsBase
-  [AnnotationType.VALUE_TEXT]: ValueAnnotationOptionsBase
-  [AnnotationType.VALUE_HTML]: ValueAnnotationOptionsBase
+  [AnnotationType.VALUE_IMAGE]: ValueImageAnnotationOptions
+  [AnnotationType.VALUE_TEXT]: ValueTextAnnotationOptions
+  [AnnotationType.VALUE_HTML]: ValueHtmlAnnotationOptions
   [AnnotationType.MARKER_IMAGE]: MarkerImageAnnotationOptions
   [AnnotationType.MARKER_TEXT]: MarkerTextAnnotationOptions
   [AnnotationType.MARKER_HTML]: MarkerHtmlAnnotationOptions

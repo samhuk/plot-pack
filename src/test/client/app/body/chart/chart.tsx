@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 
 import Chart from '../../../../../app/components/chart/react'
-import { Axis2D, Point2D, RectHorizontalAlign, RectVerticalAlign } from '../../../../../app/common/types/geometry'
+import { AngleUnits, Axis2D, Point2D, RectHorizontalAlign, RectVerticalAlign } from '../../../../../app/common/types/geometry'
 import { NumberFormatNotation } from '../../../../../app/common/types/math'
 import BestFitLine from '../../../../../app/components/chart/types/BestFitLineType'
 import MarkerType from '../../../../../app/components/chart/types/MarkerType'
@@ -234,6 +234,24 @@ export const render = () => {
                 labelOptions: {
                   text: 'All negative region',
                 },
+              },
+              {
+                type: AnnotationType.VALUE_TEXT,
+                textLabelOptions: {
+                  text: 'A value text annotation',
+                  backgroundRectOptions: {
+                    draw: true,
+                    stroke: false,
+                    fillOptions: {
+                      opacity: 0.5,
+                    },
+                  },
+                  offsetVector: {
+                    radius: 15,
+                    direction: { angle: 20, angleUnits: AngleUnits.DEGREES },
+                  },
+                },
+                value: { x: 3.5, y: -7.61 },
               },
             ],
           }}

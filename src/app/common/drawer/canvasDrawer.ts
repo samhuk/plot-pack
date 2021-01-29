@@ -1,6 +1,11 @@
 import { CanvasDrawer, CanvasDrawerState, DrawOptions, RoundedRectOptions, RoundedRectSimpleOptions, ShadowOptions, TextOptions } from './types'
-import { get2DContext, applyTextOptionsToContext, getTextLineHeightMetrics, measureTextWidth, measureTextLineHeight } from '../helpers/canvas'
-import { LineOptions, FillOptions, TextOptions as TextOptionsBase } from '../types/canvas'
+import { get2DContext,
+  applyTextOptionsToContext,
+  getTextLineHeightMetrics,
+  measureTextWidth,
+  measureTextLineHeight,
+  lineCapToCanvasLineCapMap } from '../helpers/canvas'
+import { LineOptions, FillOptions, TextOptions as TextOptionsBase, LineCap } from '../types/canvas'
 import { Line, CircularSector, Rect, Circle, Point2D, RectDimensions, QuadraticCurve, Corners2DOptional } from '../types/geometry'
 import { createPath2DFromPath } from './path/path'
 import { Path, PathComponentType } from './path/types'
@@ -16,6 +21,7 @@ const applyLineOptions = (state: CanvasDrawerState, lineOptions: LineOptions, fa
   state.ctx.lineWidth = lineOptions?.lineWidth ?? fallbackOptions?.lineWidth ?? 1
   state.ctx.setLineDash(lineOptions?.dashPattern ?? fallbackOptions?.dashPattern ?? [])
   state.ctx.strokeStyle = lineOptions?.color ?? fallbackOptions?.color ?? 'black'
+  state.ctx.lineCap = lineCapToCanvasLineCapMap[lineOptions?.lineCap ?? fallbackOptions?.lineCap ?? LineCap.FLAT] as CanvasLineCap
 }
 
 const applyFillOptions = (state: CanvasDrawerState, fillOptions: FillOptions, fallbackOptions: FillOptions) => {
@@ -545,6 +551,19 @@ const _measureTextHeight = (state: CanvasDrawerState, _text: string, textOptions
   return measureTextLineHeight(state.ctx, _text)
 }
 
+const measureTextRectDimensions = (
+  state: CanvasDrawerState,
+  _text: string,
+  textOptions: TextOptions,
+  fallbackTextOptions: TextOptions,
+): RectDimensions => {
+  applyTextOptionsToContext(state.ctx, textOptions, fallbackTextOptions)
+  return {
+    width: measureTextWidth(state.ctx, _text),
+    height: measureTextLineHeight(state.ctx, _text),
+  }
+}
+
 export const createCanvasDrawer = (canvasElement: HTMLCanvasElement, rectDimensions: RectDimensions): CanvasDrawer => {
   const state: CanvasDrawerState = {
     ctx: get2DContext(canvasElement, rectDimensions.width, rectDimensions.height),
@@ -570,9 +589,6 @@ export const createCanvasDrawer = (canvasElement: HTMLCanvasElement, rectDimensi
     text: (_text, position, angle, textOptions, fallbackTextOptions) => text(state, _text, position, angle, textOptions, fallbackTextOptions),
     measureTextWidth: (_text, textOptions, fallbackTextOptions) => _measureTextWidth(state, _text, textOptions, fallbackTextOptions),
     measureTextHeight: (_text, textOptions, fallbackTextOptions) => _measureTextHeight(state, _text, textOptions, fallbackTextOptions),
-    measureTextRectDimensions: _text => ({
-      width: measureTextWidth(state.ctx, _text),
-      height: measureTextLineHeight(state.ctx, _text),
-    }),
+    measureTextRectDimensions: (_text, textOptions, fallbackTextOptions) => measureTextRectDimensions(state, _text, textOptions, fallbackTextOptions),
   }
 }

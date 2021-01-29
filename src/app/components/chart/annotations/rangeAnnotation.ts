@@ -20,8 +20,8 @@ const DEFAULT_OPTIONS: AnnotationOptions<AnnotationType.RANGE> = {
       color: 'black',
       bold: true,
     },
-    showBackgroundRect: true,
     backgroundRectOptions: {
+      draw: true,
       borderColor: 'grey',
       fill: true,
       stroke: { left: true, bottom: true, right: true },
@@ -120,7 +120,7 @@ const drawLabel = (
   const labelPosition = determineLabelPosition(rangeRect, textWidth, textHeight, vAlign, hAlign, offsetX, offsetY)
 
   // Optionally draw background
-  if (labelOptions.showBackgroundRect ?? DEFAULT_OPTIONS.labelOptions.showBackgroundRect) {
+  if (labelOptions.backgroundRectOptions?.draw ?? DEFAULT_OPTIONS.labelOptions.backgroundRectOptions.draw) {
     const padding = labelOptions.backgroundRectOptions?.padding ?? DEFAULT_OPTIONS.labelOptions.backgroundRectOptions.padding
     const normalizedPadding = getNormalizedPadding(padding)
     const textRect = {

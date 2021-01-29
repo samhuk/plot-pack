@@ -2,7 +2,14 @@ export const isObject = (item: unknown): boolean => (
   item != null && typeof item === 'object' && !Array.isArray(item)
 )
 
-export const deepMergeObjects = <T extends { [k: string]: any }>(target: T, source: T) => {
+/**
+ * Deep (i.e. recursively) merges target and source objects. This essentially
+ * "overlays" `source` on-top of `target`.
+ *
+ * @example
+ * deepMergeObjects({ b: 3 }, { a: 1, b: 2 }) // { a: 1, b: 3 }
+ */
+const deepMergeObjectsInternal = <T extends { [k: string]: any }>(source: T, target: T) => {
   const output: T = { ...target }
 
   if (isObject(target) && isObject(source)) {
@@ -12,7 +19,7 @@ export const deepMergeObjects = <T extends { [k: string]: any }>(target: T, sour
           Object.assign(output, { [key]: source[key] })
         else
           // @ts-ignore
-          output[key] = deepMergeObjects(target[key], source[key])
+          output[key] = deepMergeObjectsInternal(source[key], target[key])
       }
       else {
         Object.assign(output, { [key]: source[key] })
@@ -22,3 +29,14 @@ export const deepMergeObjects = <T extends { [k: string]: any }>(target: T, sour
 
   return output
 }
+
+/**
+ * Deep (i.e. recursively) merges target and source objects. This essentially
+ * "overlays" `source` on-top of `target`.
+ *
+ * @example
+ * deepMergeObjects({ b: 3 }, { a: 1, b: 2 }) // { a: 1, b: 3 }
+ */
+export const deepMergeObjects = <T extends { [k: string]: any }>(source: T, target: T) => (
+  deepMergeObjectsInternal(source, target ?? ({ } as T))
+)

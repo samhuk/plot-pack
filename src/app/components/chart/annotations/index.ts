@@ -4,12 +4,18 @@ import AnnotationsOptions from '../types/AnnotationsOptions'
 import AnnotationType from '../types/AnnotationType'
 import Geometry from '../types/Geometry'
 import { render as renderRangeAnnotation } from './rangeAnnotation'
+import { renderValueTextAnnotationOptions } from './textAnnotation'
 
 const renderAnnotation = (drawer: CanvasDrawer, geometry: Geometry, options: AnnotationOptions<AnnotationType>) => {
   switch (options.type) {
     case AnnotationType.RANGE:
     {
       renderRangeAnnotation(drawer, geometry, options)
+      break
+    }
+    case AnnotationType.VALUE_TEXT:
+    {
+      renderValueTextAnnotationOptions(drawer, geometry, options)
       break
     }
     // TODO: Implement the rest of the annotation types

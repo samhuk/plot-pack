@@ -1,7 +1,12 @@
 /* eslint-disable no-param-reassign */
 
 import { Point2D } from '../types/geometry'
-import { TextOptions, LineOptions } from '../types/canvas'
+import { TextOptions, LineOptions, LineCap } from '../types/canvas'
+
+export const lineCapToCanvasLineCapMap: { [cap in LineCap]: string } = {
+  [LineCap.FLAT]: 'butt',
+  [LineCap.ROUND]: 'round',
+}
 
 /**
  * Readjusts the dimensions of `canvas` and `ctx` depnding on the current

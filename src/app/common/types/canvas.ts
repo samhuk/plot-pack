@@ -6,10 +6,16 @@ export type TextOptions = {
   italic?: boolean
 }
 
+export enum LineCap {
+  FLAT = 'flat',
+  ROUND = 'round'
+}
+
 export type LineOptions = {
   color?: string
   lineWidth?: number
   dashPattern?: number[]
+  lineCap?: LineCap
 }
 
 export type FillOptions = {

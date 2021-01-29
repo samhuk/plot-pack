@@ -108,7 +108,7 @@ type Drawer<T, R> = {
   getRenderingContext: () => T
   measureTextWidth: (text: string, textOptions?: TextOptions, fallbackTextOptions?: TextOptions) => number,
   measureTextHeight: (text?: string, textOptions?: TextOptions, fallbackTextOptions?: TextOptions) => number,
-  measureTextRectDimensions: (text: string) => RectDimensions,
+  measureTextRectDimensions: (text: string, textOptions?: TextOptions, fallbackTextOptions?: TextOptions) => RectDimensions,
 }
 
 export type CanvasDrawer = Drawer<CanvasRenderingContext2D, Path2D>

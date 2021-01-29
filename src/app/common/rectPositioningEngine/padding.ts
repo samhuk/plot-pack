@@ -1,3 +1,4 @@
+import { Rect } from '../types/geometry'
 import { InputPadding, Padding } from './types'
 
 export const getLeftPadding = (padding: InputPadding): number => (padding != null
@@ -48,3 +49,26 @@ export const getNormalizedPadding = (inputPadding: InputPadding): Padding => ({
   left: getLeftPadding(inputPadding),
   right: getRightPadding(inputPadding),
 })
+
+/**
+ * Outwardly pads the given rect by the given padding
+ */
+export const outwardPadRect = (rect: Rect, padding: InputPadding): Rect => {
+  const _padding = getNormalizedPadding(padding)
+  return {
+    x: rect.x - _padding.left,
+    y: rect.y - _padding.top,
+    height: rect.height + (_padding.top + _padding.bottom),
+    width: rect.width + (_padding.left + _padding.right),
+  }
+}
+
+export const inwardPadRect = (rect: Rect, padding: InputPadding) => {
+  const _padding = getNormalizedPadding(padding)
+  return {
+    x: rect.x + _padding.left,
+    y: rect.y + _padding.top,
+    width: Math.max(0, rect.width - (_padding.left + _padding.right)),
+    height: Math.max(0, rect.height - (_padding.top + _padding.bottom)),
+  }
+}

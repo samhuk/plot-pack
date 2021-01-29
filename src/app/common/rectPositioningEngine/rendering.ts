@@ -1,14 +1,8 @@
 /* eslint-disable no-use-before-define */
-import { Column, Row, ColumnJustification, SizeUnit, Margin, InputColumn, CalculatedRects, RowJustification, Padding } from './types'
+import { Column, Row, ColumnJustification, SizeUnit, Margin, InputColumn, CalculatedRects, RowJustification } from './types'
 import { Rect } from '../types/geometry'
 import { parseInputColumn } from './elementParsing'
-
-const createPaddedRect = (rect: Rect, padding: Padding): Rect => ({
-  x: rect.x + padding.left,
-  y: rect.y + padding.top,
-  width: Math.max(0, rect.width - (padding.left + padding.right)),
-  height: Math.max(0, rect.height - (padding.top + padding.bottom)),
-})
+import { inwardPadRect } from './padding'
 
 const renderColumnRowTemplate = (rect: Rect, rowTemplate: Row, numRows: number): CalculatedRects => {
   const rowMargin = rowTemplate.margin
@@ -218,7 +212,7 @@ const renderRow = (rect: Rect, row: Row, index: number): CalculatedRects => {
   if (row.render != null)
     row.render(rect, index)
 
-  const paddedRect = createPaddedRect(rect, row.padding)
+  const paddedRect = inwardPadRect(rect, row.padding)
 
   return row.columnTemplate != null && row.numColumns > 0
     ? renderRowColumnTemplate(paddedRect, row.columnTemplate, row.numColumns)
@@ -235,7 +229,7 @@ export const renderColumn = (rect: Rect, column: Column, index: number): Calcula
   if (column.render != null)
     column.render(rect, index)
 
-  const paddedRect = createPaddedRect(rect, column.padding)
+  const paddedRect = inwardPadRect(rect, column.padding)
 
   return column.rowTemplate != null && column.numRows > 0
     ? renderColumnRowTemplate(paddedRect, column.rowTemplate, column.numRows)

@@ -104,7 +104,7 @@ const getRectShadowVector = (rectOptions: RoundedRectOptions) => {
   if (!(rectOptions?.shadow ?? DEFAULT_OPTIONS.rectOptions.shadow))
     return { x: 0, y: 0 }
 
-  const mergedShadowOptions = deepMergeObjects(DEFAULT_OPTIONS.rectOptions.shadowOptions, rectOptions?.shadowOptions)
+  const mergedShadowOptions = deepMergeObjects(rectOptions?.shadowOptions, DEFAULT_OPTIONS.rectOptions.shadowOptions)
   return {
     x: mergedShadowOptions.offsetX + mergedShadowOptions.blurDistance,
     y: mergedShadowOptions.offsetY + mergedShadowOptions.blurDistance,
@@ -193,7 +193,7 @@ const determineRectPosition = (
   canvasDimensions: RectDimensions,
   tooltipOptions: TooltipOptions,
 ): Point2D => {
-  const positioningOptions = deepMergeObjects(DEFAULT_OPTIONS.positioningOptions, tooltipOptions?.positioningOptions)
+  const positioningOptions = deepMergeObjects(tooltipOptions?.positioningOptions, DEFAULT_OPTIONS.positioningOptions)
   // Reference position
   const refPos = {
     x: positioningOptions.x.referencePosition === TooltipReferencePosition.MARKER ? datumScreenFocusPoint.x : cursorScreenPosition.x,

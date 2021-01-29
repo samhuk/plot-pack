@@ -1,6 +1,33 @@
-import { Rect, BoundingRect, Point2D, Directions2DOptional, Directions2D, Corners2D, Corners2DOptional } from '../types/geometry'
+import { Rect,
+  BoundingRect,
+  Point2D,
+  Directions2DOptional,
+  Directions2D,
+  Corners2D,
+  Corners2DOptional,
+  AngleUnits,
+  InputDirection,
+  OctalRadialDirection,
+  InputPolarVector,
+  PolarVector,
+  CartesianVector,
+  CartesianOrInputPolarVector } from '../types/geometry'
 import { isInRange } from './math'
 import AxesBound from '../../components/chart/types/AxesBound'
+import { deepMergeObjects } from './object'
+
+const DEGREES_TO_RADIANS_CONVERSION_FACTOR = Math.PI / 180
+
+const octalRadialDirectionToAngle: { [dir in OctalRadialDirection]: number } = {
+  [OctalRadialDirection.TOP]: 270,
+  [OctalRadialDirection.TOP_RIGHT]: 315 * DEGREES_TO_RADIANS_CONVERSION_FACTOR,
+  [OctalRadialDirection.RIGHT]: 0 * DEGREES_TO_RADIANS_CONVERSION_FACTOR,
+  [OctalRadialDirection.BOTTOM_RIGHT]: 45 * DEGREES_TO_RADIANS_CONVERSION_FACTOR,
+  [OctalRadialDirection.BOTTOM]: 90 * DEGREES_TO_RADIANS_CONVERSION_FACTOR,
+  [OctalRadialDirection.BOTTOM_LEFT]: 135 * DEGREES_TO_RADIANS_CONVERSION_FACTOR,
+  [OctalRadialDirection.LEFT]: 180 * DEGREES_TO_RADIANS_CONVERSION_FACTOR,
+  [OctalRadialDirection.TOP_LEFT]: 225 * DEGREES_TO_RADIANS_CONVERSION_FACTOR,
+}
 
 export const getBoundingRectOfRects = (rects: Rect[]): BoundingRect => {
   if (rects.length === 0)
@@ -197,4 +224,56 @@ export const normalizeCornersObject = <T extends any>(
     bottomLeft: cornersValue ?? defaultForUndefined,
     bottomRight: cornersValue ?? defaultForUndefined,
   }
+}
+
+const normalizeInputDirection = (inputDirection: InputDirection): number => (
+  inputDirection == null
+    ? null
+    : typeof inputDirection === 'object'
+      ? inputDirection.angleUnits === AngleUnits.DEGREES
+        ? inputDirection.angle * (Math.PI / 180)
+        : inputDirection.angle
+      : octalRadialDirectionToAngle[inputDirection]
+)
+
+const normalizeInputPolarVector = (inputPolarVector: InputPolarVector): PolarVector => ({
+  radius: inputPolarVector?.radius ?? 0,
+  angle: normalizeInputDirection(inputPolarVector?.direction) ?? 0,
+})
+
+export const convertPolarVectorToCartesianVector = (polarVector: PolarVector): CartesianVector => ({
+  x: polarVector.radius * Math.cos(polarVector.angle),
+  y: polarVector.radius * Math.sin(polarVector.angle),
+})
+
+export const convertInputPolarVectorToCartesionVector = (inputPolarVector: InputPolarVector): CartesianVector => {
+  const polarVector = normalizeInputPolarVector(inputPolarVector)
+  return convertPolarVectorToCartesianVector(polarVector)
+}
+
+export const normalizeCartesianOrInputPolarVectorToCartesian = (
+  vector: CartesianOrInputPolarVector,
+  defaultIfPolarVector?: InputPolarVector,
+  defaultIfCartesianVector?: CartesianVector,
+  defaultIfNone?: CartesianOrInputPolarVector,
+): CartesianVector => {
+  const vectorIfCartesian = vector as CartesianVector
+  if (vectorIfCartesian.x != null || vectorIfCartesian.y != null)
+    return deepMergeObjects(vectorIfCartesian, defaultIfCartesianVector)
+
+  const vectorIfPolar = vector as InputPolarVector
+  if (vectorIfPolar.radius != null || vectorIfPolar.direction != null)
+    return convertInputPolarVectorToCartesionVector(deepMergeObjects(vectorIfPolar, defaultIfPolarVector))
+
+  return defaultIfNone != null ? normalizeCartesianOrInputPolarVectorToCartesian(defaultIfNone) : null
+}
+
+export const addVectors = (vectors: CartesianOrInputPolarVector[]): CartesianVector => {
+  if (vectors == null || vectors.length === 0)
+    return null
+
+  return vectors.reduce<CartesianVector>((acc, v) => {
+    const _v = normalizeCartesianOrInputPolarVectorToCartesian(v)
+    return { x: acc.x + (_v?.x ?? 0), y: acc.y + (_v?.y ?? 0) }
+  }, { x: 0, y: 0 })
 }

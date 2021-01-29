@@ -110,3 +110,44 @@ export enum RectHorizontalAlign {
   RIGHT_INSIDE = 'right_inside',
   RIGHT_OUTSIDE = 'right_outside',
 }
+
+export enum OctalRadialDirection {
+  TOP = 'top',
+  TOP_RIGHT = 'top_right',
+  RIGHT = 'right',
+  BOTTOM_RIGHT = 'bottom_right',
+  BOTTOM = 'bottom',
+  BOTTOM_LEFT = 'bottom_left',
+  LEFT = 'left',
+  TOP_LEFT = 'top_left',
+}
+
+/**
+ * Either an angle from the x-axis in radians (clockwise from RHS), or one of the octal radial directions
+ */
+export type InputDirection = { angle: number, angleUnits?: AngleUnits } | OctalRadialDirection
+
+export enum AngleUnits {
+  DEGREES = 'degrees',
+  RADIANS = 'radians',
+}
+
+export type InputPolarVector = {
+  direction: InputDirection
+  radius?: number
+}
+
+/**
+ * A 2D polar vector.
+ */
+export type PolarVector = {
+  /**
+   * Angle from the x-axis in radians (clockwise from RHS)
+   */
+  angle: number
+  radius: number
+}
+
+export type CartesianVector = { [axis in Axis2D]: number }
+
+export type CartesianOrInputPolarVector = CartesianVector | InputPolarVector
