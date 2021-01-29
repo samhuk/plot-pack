@@ -1,4 +1,5 @@
 import { CanvasDrawer } from '../../../common/drawer/types'
+import { createNotYetSupportedError } from '../../../common/errors'
 import AnnotationOptions from '../types/AnnotationOptions'
 import AnnotationsOptions from '../types/AnnotationsOptions'
 import AnnotationType from '../types/AnnotationType'
@@ -17,6 +18,26 @@ const renderAnnotation = (drawer: CanvasDrawer, geometry: Geometry, options: Ann
     {
       renderValueTextAnnotationOptions(drawer, geometry, options)
       break
+    }
+    case AnnotationType.VALUE_IMAGE:
+    {
+      throw createNotYetSupportedError('chart', `${AnnotationType.VALUE_IMAGE} annotation type`)
+    }
+    case AnnotationType.VALUE_HTML:
+    {
+      throw createNotYetSupportedError('chart', `${AnnotationType.VALUE_HTML} annotation type`)
+    }
+    case AnnotationType.MARKER_IMAGE:
+    {
+      throw createNotYetSupportedError('chart', `${AnnotationType.MARKER_IMAGE} annotation type`)
+    }
+    case AnnotationType.MARKER_HTML:
+    {
+      throw createNotYetSupportedError('chart', `${AnnotationType.MARKER_HTML} annotation type`)
+    }
+    case AnnotationType.MARKER_TEXT:
+    {
+      throw createNotYetSupportedError('chart', `${AnnotationType.MARKER_TEXT} annotation type`)
     }
     // TODO: Implement the rest of the annotation types
     default:
